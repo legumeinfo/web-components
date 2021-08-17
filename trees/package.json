@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/legumeinfo/web-components#readme",
   "dependencies": {
+    "d3": "^3.5.17",
     "tntvis": "^0.3.1"
   },
   "devDependencies": {
