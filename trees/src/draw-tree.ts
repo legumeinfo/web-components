@@ -1,5 +1,5 @@
 type Species = {genus: string, species: string};
-
+var tnt = require("tntvis")
 
 export class DrawTree extends HTMLElement {
     connectedCallback(){
@@ -11,7 +11,7 @@ export class DrawTree extends HTMLElement {
 	const treeName = treeElement.getAttribute('treename');
 	const treeData = treeElement.getAttribute('treedata');
 	this.innerHTML = `<div id="` + treeName + `"></div>`;
-        const tree = tnt.tree();
+        const tree = tnt.tree()
                .data(tnt.tree.parse_newick(treeData))
                .layout (tnt.tree.layout.vertical()
                                         .width(430)
