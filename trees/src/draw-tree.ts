@@ -27,14 +27,14 @@ function injectD3() {
 }
 
 
-export class DrawTree extends HTMLElement {
+export class PhyloTree extends HTMLElement {
     connectedCallback(){
 	this._draw();
     }
 
     @injectD3()
     private _draw() {
-	const treeElement = document.querySelector('phylo-tree');
+	const treeElement = document.querySelector('lis-phylo-tree');
 	const treeName = treeElement.getAttribute('treename');
 	const treeData = treeElement.getAttribute('treedata');
 	this.innerHTML = `<div id="` + treeName + `"></div>`;
@@ -84,4 +84,4 @@ export class DrawTree extends HTMLElement {
     }
 }
 
-customElements.define('phylo-tree', DrawTree);
+customElements.define('lis-phylo-tree', PhyloTree);
