@@ -28,6 +28,8 @@
       }
     ]
   },
-  "include": ["./src/gene-list/gene-list-element.ts", "./src/pagination/pagination-element.ts"],
+  "include": ["./src/gene-list/gene-list-element.ts", 
+	      "./src/pagination/pagination-element.ts", 
+	      "./src/lis-search/lis-search-element.ts"],
   "exclude": []
 }
