@@ -1,3 +1,3 @@
-import '../tsc/gene-list/gene-list-element.js';
-import '../tsc/pagination/pagination-element.js';
+import './tsc/src/gene-list/gene-list-element.js';
+import './tsc/src/pagination/pagination-element.js';
 

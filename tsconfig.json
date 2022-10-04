@@ -7,7 +7,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "inlineSources": true,
-    "outDir": "./tsc",
+    "outDir": "./src/tsc",
     "rootDir": "./",
     "strict": true,
     "noUnusedLocals": true,
@@ -28,6 +28,6 @@
       }
     ]
   },
-  "include": ["./gene-list/gene-list-element.ts", "./pagination/pagination-element.ts"],
+  "include": ["./src/gene-list/gene-list-element.ts", "./src/pagination/pagination-element.ts"],
   "exclude": []
 }
