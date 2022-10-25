@@ -35,7 +35,8 @@
     "uikit": "^3.14.3"
   },
   "scripts": {
-    "build": "tsc && rollup -c rollup.config.js",
+    "build": "tsc",
+    "package": "rollup -c rollup.config.js",
     "watch": "rollup -c -w",
     "dev": "npm-run-all --parallel start watch",
     "start": "serve public",

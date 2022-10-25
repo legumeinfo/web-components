@@ -9,7 +9,7 @@ const production = !process.env.ROLLUP_WATCH;
 
 export default 
      {
-        input: 'src/main.js',
+        input: 'dist/src/index.js',
         output: {
                 file: 'public/main.bundle.js',
                 format: 'iife', // immediately-invoked function expression — suitable for <script> tags
