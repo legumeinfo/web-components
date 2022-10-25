@@ -20,9 +20,9 @@ export class GeneSearchElement extends LitElement {
     <slot hidden></slot>
     <div class="uk-container">
       <lis-search-element id="lis-search"></lis-search-element>
-      <gene-list-element id="gene-list">
+      <simple-table-element id="gene-list">
         <div uk-spinner></div>
-      </gene-list-element>
+      </simple-table-element-element>
       <pagination-element id="pagination"></pagination-element>
     </div>
     `;

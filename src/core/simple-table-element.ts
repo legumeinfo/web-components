@@ -4,8 +4,8 @@ import {customElement, property} from 'lit/decorators.js';
 
 type Gene = {name: string; description: string; organism: {genus: string; species: string}; geneFamily: {name: string}}
 
-@customElement('gene-list-element')
-export class GeneListElement extends LitElement {
+@customElement('simple-table-element')
+export class SimpleTableElement extends LitElement {
 
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
@@ -60,6 +60,6 @@ export class GeneListElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'gene-list-element': GeneListElement;
+    'simple-table-element': SimpleTableElement;
   }
 }
