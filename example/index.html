@@ -9,22 +9,13 @@
     <!-- web components polyfills -->
     <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../node_modules/lit/polyfill-support.js"></script>
-    <!-- web components
-    <script type="module" src="./tsc/gene-list-element.js"></script>
-    <script type="module" src="./tsc/pagination-element.js"></script>
-    GraphQL -->
+    <!-- GraphQL -->
     <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components bundle -->
     <script src="../public/main.bundle.js"></script>
   </head>
   <body>
-    <div class="uk-container">
-      <lis-search-element id="lis-search"></lis-search-element>
-      <gene-list-element id="gene-list">
-        <div uk-spinner></div>
-      </gene-list-element>
-      <pagination-element id="pagination"></pagination-element>
-    </div>
-
+    <gene-search-element id="gene-search-example"></gene-search-element>
   </body>
   <script src="./example.js"></script>
 </html>
