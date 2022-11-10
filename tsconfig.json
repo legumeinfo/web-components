@@ -8,7 +8,7 @@
     "sourceMap": true,
     "inlineSources": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -28,9 +28,6 @@
       }
     ]
   },
-  "include": [
-	      "./src/core/index.ts", 
-	      "./src/index.ts"
-	     ],
+  "include": ["src/**/*.ts"],
   "exclude": []
 }

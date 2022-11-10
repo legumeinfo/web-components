@@ -1,25 +1,38 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+import summary from 'rollup-plugin-summary';
+import {terser} from 'rollup-plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
-import { terser } from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
 
-// `npm run build` -> `production` is true
-// `npm run dev` -> `production` is false
-const production = !process.env.ROLLUP_WATCH;
-
-export default 
-     {
-        input: 'dist/src/index.js',
-        output: {
-                file: 'public/main.bundle.js',
-                format: 'iife', // immediately-invoked function expression — suitable for <script> tags
-                sourcemap: true
+export default {
+  input: 'dist/index.js',
+  output: {
+    file: 'dist/web-components.bundled.js',
+    format: 'esm',
+  },
+  onwarn(warning) {
+    if (warning.code !== 'THIS_IS_UNDEFINED') {
+      console.error(`(!) ${warning.message}`);
+    }
+  },
+  plugins: [
+    replace({'Reflect.decorate': 'undefined'}),
+    resolve(),
+    terser({
+      ecma: 2017,
+      module: true,
+      warnings: true,
+      mangle: {
+        properties: {
+          regex: /^__/,
         },
-        plugins: [
-                resolve(), // tells Rollup how to find date-fns in node_modules
-                commonjs(), // converts date-fns to ES modules
-                typescript(),
-                production && terser() // minify, but only in production
-        ]
-     }
-;
+      },
+    }),
+    summary(),
+  ],
+};
