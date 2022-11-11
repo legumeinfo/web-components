@@ -1,8 +1,6 @@
 import {LitElement, html} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement, property, query} from 'lit/decorators.js';
 
-
-//type Gene = {name: string; description: string; organism: {genus: string; species: string}; geneFamily: {name: string}}
 
 @customElement('lis-search-element')
 export class LisSearchElement extends LitElement {
@@ -12,41 +10,65 @@ export class LisSearchElement extends LitElement {
     return this;
   }
 
+  // the text displayed in the search form's legend
   @property({type: String})
-  searchTerm = "";
+  legend = '';
 
-  override render() {
-    // show whatever the user put inside the tags if there aren't any genes
-//    if (!this.searchTerm) {
-//      return html`
-//        <slot></slot>
-//      `;
-//    }
-//
-//    // what a table row will look like
-//    console.log(this.genes);
-//    console.log(this.searchTerm);
-//    const tableRows = this.genes.map(gene => {
-//        return html`
-//          <tr>
-//            <td>${gene.name}</td>
-//            <td>${gene.description}</td>
-//          </tr>
-//        `;
-//     });
+  // the text in the search form's input
+  @property({type: String})
+  input = '';
 
-    // draw a table containing the genes. Should there be a pho-form here that is used to access searchTerm?
-    return html`
-      <slot hidden></slot>
-         <h3>Please Input a Search Term Below To Find Specific Genes</h3>
-         <div class="uk-margin">
-           <input class="uk-input" id="search-term" type="text" size=50>
-         </div>
-         <div class="uk-margin">
-           <button class="uk-button uk-button-default" id="submit-search">Search</button>
-         </div>
-    `;
+  // bind to the input element in the template
+  @query('input')
+  _input!: HTMLInputElement;
+
+  // called when the form in the template is submitted
+  private _submit(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();  // we'll emit our own event
+    const value: string = this._input.value.trim();
+    this.input = value;
+    const options = {
+      detail: {value},
+      bubbles: true,
+      composed: true
+    };
+    this.dispatchEvent(new CustomEvent('submit', options));
   }
+
+  private _getLegend() {
+    if (!this.legend) {
+      return html``;
+    }
+    return html`<legend class="uk-legend">${this.legend}</legend>`;
+  }
+
+  // the template
+  override render() {
+
+    const legend = this._getLegend();
+
+    return html`
+      <form @submit="${this._submit}">
+        <fieldset class="uk-fieldset">
+          ${legend}
+          <div class="uk-margin">
+            <input
+              class="uk-input"
+              type="text"
+              placeholder="Input"
+              aria-label="Input"
+              value="${this.input}">
+          </div>
+          <div class="uk-margin">
+            <button type="submit" class="uk-button uk-button-primary">Search</button>
+          </div>
+        </fieldset>
+      </form>
+    `;
+
+  }
+
 }
 
 

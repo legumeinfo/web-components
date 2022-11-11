@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Web-Components Demo</title>
-    <!-- CSS framework -->
-    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
-    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
-    <!-- web components polyfills -->
-    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../node_modules/lit/polyfill-support.js"></script>
-    <!-- GraphQL -->
-    <script type="text/javascript" src="./graphql.js"></script>
-    <!-- web components -->
-    <script src="../dist/index.js"></script>
-  </head>
-  <body>
-    <gene-search-element id="gene-search-example"></gene-search-element>
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Web-Components Demo</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../node_modules/lit/polyfill-support.js"></script>
+  <!-- GraphQL -->
+  <script type="text/javascript" src="./graphql.js"></script>
+  <!-- example gene search -->
   <script src="./example.js"></script>
+  <!-- web components -->
+  <script type="module" src="../dist/index.js"></script>
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <!-- the custom gene search element -->
+    <lis-gene-search-element id="search"></lis-gene-search-element>
+  </div>
+
+  <!-- set the search function by property because functions can't be set as attributes -->
+  <script type="text/javascript">
+    const searchElement = document.getElementById('search');
+    searchElement.searchFunction = getGenes;
+  </script>
+
+</body>
+
 </html>

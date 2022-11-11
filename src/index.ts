@@ -1,2 +1,2 @@
 export * from './core';
-export * from './gene-search';
+export * from './lis-gene-search';
