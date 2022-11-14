@@ -8,6 +8,8 @@ import {Gene} from './models';
 
 type AlertModifier = 'primary' | 'success' | 'warning' | 'danger';
 
+export type SearchFunction = (query: string, page: number) => Promise<Gene[]>;
+
 
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LitElement {
@@ -20,7 +22,7 @@ export class LisGeneSearchElement extends LitElement {
   // the search callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  searchFunction: Function = () => Promise.reject(new Error('No search function provided'));
+  searchFunction: SearchFunction = () => Promise.reject(new Error('No search function provided'));
 
   // messages sent to the user about search status
   @state()
