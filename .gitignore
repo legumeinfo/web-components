@@ -1,0 +1,8 @@
+/node_modules/
+/lib/
+/test/
+custom-elements.json
+# compiled file source
+/dist/
+# only generated for size check
+web-components.bundled.js
