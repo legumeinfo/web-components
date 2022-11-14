@@ -2,25 +2,38 @@ import {LitElement, html} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
 
+/**
+ * A Web Component that provides a generic search form.
+ *
+ * @fires submit - Fired when the form is submitted. Dispatches a `CustomEvent`
+ * containing the text from the input element of the form.
+ */
 @customElement('lis-search-element')
 export class LisSearchElement extends LitElement {
 
+  /**
+   * @ignore
+   */
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
 
-  // the text displayed in the search form's legend
+  /**
+   * The text displayed in the search form's legend.
+   */
   @property({type: String})
   legend = '';
 
-  // the text in the search form's input
+  /**
+   * The text in the search form's input.
+   */
   @property({type: String})
   input = '';
 
   // bind to the input element in the template
   @query('input')
-  _input!: HTMLInputElement;
+  private _input!: HTMLInputElement;
 
   // called when the form in the template is submitted
   private _submit(e: Event) {
@@ -36,6 +49,7 @@ export class LisSearchElement extends LitElement {
     this.dispatchEvent(new CustomEvent('submit', options));
   }
 
+  // generates the legend part of the component's HTML
   private _getLegend() {
     if (!this.legend) {
       return html``;
@@ -43,7 +57,6 @@ export class LisSearchElement extends LitElement {
     return html`<legend class="uk-legend">${this.legend}</legend>`;
   }
 
-  // the template
   override render() {
 
     const legend = this._getLegend();

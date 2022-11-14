@@ -11,16 +11,28 @@ type AlertModifier = 'primary' | 'success' | 'warning' | 'danger';
 export type SearchFunction = (query: string, page: number) => Promise<Gene[]>;
 
 
+/**
+ * A Web Component that provides an interface for performing gene searches and
+ * displays results in a paginated table.
+ */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LitElement {
 
+  /**
+   * @ignore
+   */
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
 
-  // the search callback function; not an attribute because functions can't be
-  // parsed from attributes
+  /**
+   * The function that should be used to perform searches. Will throw an error
+   * if not set when a search is performed.
+   *
+   * @throws Will throw an error if not set when a search is performed.
+   */
+  // not an attribute because functions can't be parsed from attributes
   @property({type: Function, attribute: false})
   searchFunction: SearchFunction = () => Promise.reject(new Error('No search function provided'));
 
@@ -34,19 +46,19 @@ export class LisGeneSearchElement extends LitElement {
 
   // bind to the search element in the template
   @query('lis-search-element')
-  _search!: LisSearchElement;
+  private _search!: LisSearchElement;
 
   // bind to the table element in the template
   @query('lis-simple-table-element')
-  _table!: LisSimpleTableElement;
+  private _table!: LisSimpleTableElement;
 
   // bind to the pagination element in the template
   @query('lis-pagination-element')
-  _paginator!: LisPaginationElement;
+  private _paginator!: LisPaginationElement;
 
   // invariant state
-  private _geneAttributes = ['name', 'description']
-  private _tableHeader = {name: 'Name', description: 'Description'};
+  private readonly _geneAttributes = ['name', 'description']
+  private readonly _tableHeader = {name: 'Name', description: 'Description'};
 
   // called when a search term is submitted
   private _updateTerm(e: CustomEvent) {

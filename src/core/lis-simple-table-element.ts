@@ -3,36 +3,55 @@ import {customElement, property} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
+/**
+ * A Web Component that provides a generic table element.
+ *
+ * @slot - Adds content after the content defined via the component properties.
+ * Can be used to manually create a table that has the same styling as the
+ * component.
+ */
 @customElement('lis-simple-table-element')
 export class LisSimpleTableElement extends LitElement {
 
+  /**
+   * @ignore
+   */
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
 
-  // the caption shown above the table
+  /**
+   * The caption shown above the table.
+   */
   @property({type: String})
   caption: string = '';
 
-  // an ordered list of attributes in the input data objects used to populate
-  // table rows; assumed to be static if assigned as an attribute
+  /**
+   * An ordered list of attributes in the input data objects used to populate
+   * table rows. Assumed to be invariant if assigned as an attribute.
+   */
   @property({type: Array<string>})
   dataAttributes: string[] = [];
 
-  // a single object mapping attributes to header labels; assumed to be static
-  // if assigned as an attribute
+  /**
+   * A single object mapping attributes to header labels. Assumed to be
+   * invariant if assigned as an attribute.
+   */
   @property({type: Object})
   header: Object = {};
 
-  // the data to display in the table; not an attribute because Arrays (i.e.
-  // Objects) don't trigger Lit change detection
+  /**
+   * The data to display in the table. Only attributes defined in the
+   * `dataAttributes` property will be parsed from the objects.
+   */
+  // not an attribute because Arrays (i.e. Objects) don't trigger Lit change
+  // detection
   @property({type: Array<Object>, attribute: false})
   data: Object[] = [];
 
   // converts an object to a table row
   private _objectToRow(o: Object, cellTag: string='td') {
-    //const startTag = unsafeHTML(`<${cellTag}>`);
     const startTag = `<${cellTag}>`;
     const endTag = `</${cellTag}>`;
     const cells = this.dataAttributes.map((a) => {
@@ -43,7 +62,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<tr>${unsafeHTML(cells.join(''))}</tr>`;
   }
 
-  // computes the table caption
+  // computes the caption part of the component's table
   private _getCaption() {
     if (!this.caption) {
       return html``;
@@ -51,7 +70,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<caption>${this.caption}</caption>`;
   }
 
-  // computes the table header
+  // computes the header part of the component's table
   private _getHeader() {
     if (!this.header) {
       return html``;
@@ -60,7 +79,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<thead>${row}</thead>`;
   }
 
-  // computes the rows for the table
+  // computes the rows for the component's table
   private _getBody() {
     if (!this.data) {
       return html``;
@@ -70,12 +89,6 @@ export class LisSimpleTableElement extends LitElement {
   }
 
   override render() {
-    // show what's inside the tags if there's no data
-    //if (!this.data) {
-    //  return html`
-    //    <slot></slot>
-    //  `;
-    //}
 
     // compute table parts
     const caption = this._getCaption();
@@ -88,6 +101,7 @@ export class LisSimpleTableElement extends LitElement {
         ${caption}
         ${header}
         ${body}
+        <slot></slot>
       </table>
     `;
   }
