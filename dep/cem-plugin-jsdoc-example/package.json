@@ -1,0 +1,29 @@
+{
+  "name": "cem-plugin-jsdoc-example",
+  "version": "0.0.9",
+  "description": "Handle JSDoc @example tag",
+  "author": "Benny Powers <web@bennypowers.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bennypowers/cem-plugins.git",
+    "directory": "plugins/cem-plugin-jsdoc-example"
+  },
+  "peerDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.4 || ^0.5 || ^0.6"
+  },
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "*.js",
+    "*.d.ts"
+  ],
+  "keywords": [
+    "custom-elements-manifest",
+    "plugin",
+    "jsdoc"
+  ],
+  "dependencies": {
+    "chalk": "^5.0.1"
+  }
+}

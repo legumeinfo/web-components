@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "my-element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "## Examples\n\n<figure class=\"example\"><figcaption>Do a thing</figcaption>\n\n```html\n<thing-doer></thing-doer>\n```\n\n</figure>\n\n<figure class=\"example\"><figcaption>Poorly formed</figcaption>\n\n```html\n<p>but we still allow it</p>\n```\n\n</figure>",
+          "name": "ThingDoer",
+          "members": [
+            {
+              "kind": "field",
+              "name": "prop",
+              "description": "### Examples\n\n<figure class=\"example\"><figcaption>A Property</figcaption>\n\n```js\nel.prop = 'prop';\n```\n\n</figure>"
+            },
+            {
+              "kind": "method",
+              "name": "method",
+              "description": "### Examples\n\n<figure class=\"example\"><figcaption>A Method</figcaption>\n\n```js\nel.method();\n```\n\n</figure>"
+            }
+          ],
+          "tagName": "thing-doer",
+          "customElement": true
+        },
+        {
+          "kind": "function",
+          "name": "f",
+          "description": "## Examples\n\n<figure class=\"example\"><figcaption>Call a Function</figcaption>\n\n```js\nf();\n```\n\n</figure>"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "ThingDoer",
+          "declaration": {
+            "name": "ThingDoer",
+            "module": "my-element.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "f",
+          "declaration": {
+            "name": "f",
+            "module": "my-element.js"
+          }
+        }
+      ]
+    }
+  ]
+}
