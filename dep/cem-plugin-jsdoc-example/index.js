@@ -85,12 +85,26 @@ function addExamples(node, doc, context, offset = 0) {
         if (!match)
           continue;
         const { caption, rest } = match.groups;
+        let code = rest.trim();
+        let language = 'js';  // default language
+
+        // parse markdown style code blocks
+        if (code.startsWith('```')) {
+          const [first, ...codeLines] = code.split('\n');
+          language = first.substring(3).trim();
+          if (codeLines[codeLines.length-1].trim().startsWith('```')) {
+            codeLines.pop();
+          }
+          code = codeLines.join('\n');
+        }
+
         if (context.dev)
           console.log(`[jsdoc-example] found @example ${caption}`);
         //doc.description += `<figure class="example"><figcaption>${caption}</figcaption>\n\n${rest.trimStart()}\n\n</figure>\n\n`;
         const example = {
-          description: caption,
-          code: rest.trimStart(),
+          caption,
+          language,
+          code,
         };
         doc.examples.push(example);
       }
