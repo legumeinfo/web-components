@@ -24,6 +24,7 @@
     "jsdoc"
   ],
   "dependencies": {
-    "chalk": "^5.0.1"
+    "chalk": "^5.0.1",
+    "indent.js": "^0.3.5"
   }
 }

@@ -1,4 +1,5 @@
 import { getClassMemberDoc } from '@custom-elements-manifest/analyzer/src/utils/manifest-helpers.js';
+import indent from 'indent.js';
 
 /**
  * @param  {import('typescript').JSDocTag}  tag
@@ -97,6 +98,7 @@ function addExamples(node, doc, context, offset = 0) {
           }
           code = codeLines.join('\n');
         }
+        const indentedCode = indent.js(code, {tabString: '  '});
 
         if (context.dev)
           console.log(`[jsdoc-example] found @example ${caption}`);
@@ -104,7 +106,7 @@ function addExamples(node, doc, context, offset = 0) {
         const example = {
           caption,
           language,
-          code,
+          code: indentedCode,
         };
         doc.examples.push(example);
       }
