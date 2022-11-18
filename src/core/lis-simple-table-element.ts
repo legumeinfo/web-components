@@ -9,6 +9,76 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * @slot - Adds content after the content defined via the component properties.
  * Can be used to manually create a table that has the same styling as the
  * component.
+ *
+ * @example <caption>The simple table element's
+ * <code class="language-js">caption</code>,
+ * <code class="language-js">dataAttributes</code>, and
+ * <code class="language-js">header</code> attributes/properties can be set
+ * via HTML or JavaScript. However, <code class="language-js">HTMLElement</code>
+ * properties can only be set via JavaScript, meaning the
+ * <code class="language-js">data</code> property can only be set via a
+ * <code class="language-html">&lt;lis-simple-table-element&gt;</code> tag's
+ * instance of the <code class="language-js">LisSimpleTableElement</code> class.
+ * For example:</caption>
+ * ```html
+ * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
+ * <lis-simple-table-element
+ *   caption="My cheesy table"
+ *   dataAttributes="['cheese', 'region']"
+ *   header="{cheese: 'Cheese', region: 'Region'}">
+ * </lis-simple-table-element>
+ *
+ * <!-- set all attributes/properties via JavaScript -->
+ * <lis-simple-table-element id="table"></lis-simple-table-element>
+ * <script type="text/javascript">
+ *   // get the simple table element
+ *   const tableElement = document.getElementById('table');
+ *   // set the element's properties
+ *   paginationElement.caption = 'My cheesy table';
+ *   paginationElement.dataAttributes = ['cheese', 'region'];
+ *   paginationElement.header = {cheese: 'Cheese', region: 'Region'};
+ *   paginationElement.data = [
+ *     {cheese: 'Brie', region: 'France'},
+ *     {cheese: 'Burrata', region: 'Italy'},
+ *     {cheese: 'Feta', region: 'Greece'},
+ *     {cheese: 'Gouda', region: 'Netherlands'},
+ *   ];
+ * </script>
+ * ```
+ *
+ * @example <caption>Any or all of a simple table's parts can be written in HTML
+ * using the element's slot:</caption>
+ * ```html
+ * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
+ * <!-- NOTE: this is the table produced by the previous example -->
+ * <lis-simple-table-element>
+ *   <!-- TODO: the caption tag should be here but the jsdoc-example plugin can't handle it -->
+ *   <thead>
+ *     <tr>
+ *       <th>Cheese</th>
+ *       <th>Region</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <td>Brie</td>
+ *       <td>France</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Burrata</td>
+ *       <td>Italy</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Feta</td>
+ *       <td>Greece</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Gouda</td>
+ *       <td>Netherlands</td>
+ *     </tr>
+ *   </tbody>
+ * </lis-simple-table-element>
+ * ```
  */
 @customElement('lis-simple-table-element')
 export class LisSimpleTableElement extends LitElement {

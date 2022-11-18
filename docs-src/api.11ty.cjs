@@ -146,7 +146,7 @@ class Docs {
             <p>${example.caption}</p>
             ${this.highlight(example.language, example.code)}
           `
-        )
+        ).join('')
       }
     `;
   }

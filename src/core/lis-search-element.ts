@@ -7,6 +7,53 @@ import {customElement, property, query} from 'lit/decorators.js';
  *
  * @fires submit - Fired when the form is submitted. Dispatches a `CustomEvent`
  * containing the text from the input element of the form.
+ *
+ * @example <caption>The search form element's
+ * <code class="language-js">legend</code> and
+ * <code class="language-js">input</code> attributes/properties can be
+ * initialized via HTML and/or JavaScript. Both default to the empty string if
+ * no value is provided:
+ * </caption>
+ * ```html
+ * <!-- legend and input attributes/properties will be given default value of '' -->
+ * <lis-search-element></lis-search-element>
+ *
+ * <!-- setting the legend and input attributes/properties via HTML -->
+ * <lis-search-element legend="My search element" input="My search term"></lis-search-element>
+ *
+ * <!-- setting the legend and input attributes/properties via JavaScript -->
+ * <lis-search-element id="search"></lis-search-element>
+ * <script type="text/javascript">
+ *   // get the search element
+ *   const searchElement = document.getElementById('search');
+ *   // set the element's legend property
+ *   paginationElement.legend = "Best legend ever";
+ *   // set the element's input property
+ *   paginationElement.input = "Best input ever";
+ * </script>
+ * ```
+ *
+ * @example <caption>Every time the search element's form is submitted, a
+ * <code class="language-js">submit</code> event is dispatched. The event can be
+ * observed and the new input value can be extracted from the event as follows:
+ * </caption>
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-search-element input="root nodule" id="search"></lis-search-element>
+ *
+ * <!-- interact with the component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the search element
+ *   const searchElement = document.getElementById('search');
+ *   // a function to handle submit events
+ *   function eventHandler(event) {
+ *     const input = event.detail.value;
+ *     console.log(input);  // "root nodule"
+ *   }
+ *   // subscribe to submit events
+ *   paginationElement.addEventListener('submit', eventHandler);
+ * </script>
+ * ```
  */
 @customElement('lis-search-element')
 export class LisSearchElement extends LitElement {

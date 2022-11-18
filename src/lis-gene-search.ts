@@ -14,6 +14,29 @@ export type SearchFunction = (query: string, page: number) => Promise<Gene[]>;
 /**
  * A Web Component that provides an interface for performing gene searches and
  * displays results in a paginated table.
+ *
+ * @example <caption><code class="language-js">HTMLElement</code> properties can
+ * only be set via JavaScript. This means the
+ * <code class="language-js">searchFunction</code> property must be set on a
+ * <code class="language-html">&lt;lis-gene-search-element&gt;</code> tag's instance
+ * of the <code class="language-js">LisGeneSearchElement</code> class. For
+ * example:</caption>
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // a site-specific function that sends a request to a gene search API
+ *   function getGenes(searchText, page=1) {
+ *     // returns a Promise that resolves to a list of genes
+ *   }
+ *   // get the gene search element
+ *   const searchElement = document.getElementById('gene-search');
+ *   // set the element's searchFunction property
+ *   searchElement.searchFunction = getGenes;
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LitElement {
