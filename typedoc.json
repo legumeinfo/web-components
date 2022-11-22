@@ -7,5 +7,38 @@
         "private": false,
         "inherited": false,
         "external": false
+    },
+    // add to these links as needed
+    "externalSymbolLinkMappings": {
+        // e.g. used by {@link !Promise}
+        "global": {
+            // Events
+            "Event": "https://developer.mozilla.org/en-US/docs/Web/API/Event/Event",
+            "CustomEvent": "https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent",
+            // Fundamental objects
+            "Object": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+            "Function": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+            // Indexed collections
+            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            // Control abstraction objects
+            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+            // Custom Elements
+            "HTMLElement": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement"
+        },
+        // e.g. used by type Foo = Promise<string>
+        "typescript": {
+            // Events
+            "Event": "https://developer.mozilla.org/en-US/docs/Web/API/Event/Event",
+            "CustomEvent": "https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent",
+            // Fundamental objects
+            "Object": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+            "Function": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+            // Indexed collections
+            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            // Control abstraction objects
+            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+            // Custom Elements
+            "HTMLElement": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement"
+        }
     }
 }

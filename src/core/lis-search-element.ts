@@ -57,8 +57,9 @@ export class LisSearchElement extends LitElement {
 
   /**
    *
-   * Fired when the form is submitted. Dispatches a `CustomEvent` containing the
-   * text from the input element of the form.
+   * Fired when the form is submitted. Dispatches a
+   * {@link !CustomEvent | `CustomEvent`} containing the text from the input
+   * element of the form.
    * @eventProperty
    */
   static readonly submit: CustomEvent<{input: string}>;

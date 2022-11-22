@@ -15,18 +15,20 @@ export type GeneSearchResult = {name: string; description: string};
 
 
 /**
- * The signature of the function the {@link LisGeneSearchElement} class requires
- * for performing a gene search.
+ * The signature of the function the
+ * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
+ * performing a gene search.
  *
  * @param query The search term in the input element when the search form was
  * submitted.
  * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  *
- * @returns A `Promise` that resolves to an `Array` of {@link GeneSearchResult}
+ * @returns A {@link !Promise | `Promise`} that resolves to an
+ * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
  * objects.
  */
-export type GeneSearchFunction = (query: string, page: number) => Promise<GeneSearchResult[]>;
+export type GeneSearchFunction = (query: string, page: number) => Promise<Array<GeneSearchResult>>;
 
 
 /**

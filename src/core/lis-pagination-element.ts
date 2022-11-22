@@ -72,8 +72,9 @@ import {customElement, property} from 'lit/decorators.js';
 export class LisPaginationElement extends LitElement {
 
   /**
-   * Fired when the page changes. Dispatches a `CustomEvent` containing the new
-   * value of the {@link page | `page`} property.
+   * Fired when the page changes. Dispatches a
+   * {@link !CustomEvent | `CustomEvent`} containing the new value of the
+   * {@link page | `page`} property.
    * @eventProperty
    */
   static readonly pageChange: CustomEvent<{page: number}>;
@@ -98,7 +99,8 @@ export class LisPaginationElement extends LitElement {
   /**
    * Programmatically go to the previous page.
    *
-   * @param e - An optional event that can be passed if called via a UI event,
+   * @param e - An optional {@link !Event | `Event`} that can be passed if
+   * called via a UI event,
    * for example.
    */
   previous(e?: Event): void {
@@ -114,7 +116,8 @@ export class LisPaginationElement extends LitElement {
   /**
    * Programmatically go to the next page.
    *
-   * @param e - An optional event that can be passed if called via a UI event,
+   * @param e - An optional {@link !Event | `Event`} that can be passed if
+   * called via a UI event,
    * for example.
    */
   next(e?: Event): void {

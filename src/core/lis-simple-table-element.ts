@@ -14,9 +14,9 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * The simple table element's
  * {@link caption | `caption`}, {@link dataAttributes | `dataAttributes`}, and
  * {@link header | `header`} attributes/properties can be set via HTML or
- * JavaScript. However, `HTMLElement` properties can only be set via JavaScript,
- * meaning the {@link data | `data} property can only be set via a
- * `<lis-simple-table-element` tag's instance of the
+ * JavaScript. However, {@link !HTMLElement | `HTMLElement`} properties can only
+ * be set via JavaScript, meaning the {@link data | `data`} property can only be
+ * set via a `<lis-simple-table-element>` tag's instance of the
  * {@link LisSimpleTableElement | `LisSimpleTableElement`} class. For example:
  * ```html
  * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
@@ -104,7 +104,7 @@ export class LisSimpleTableElement extends LitElement {
    * table rows. Assumed to be invariant if assigned as an attribute.
    */
   @property({type: Array<string>})
-  dataAttributes: string[] = [];
+  dataAttributes: Array<string> = [];
 
   /**
    * A single object mapping attributes to header labels. Assumed to be
@@ -115,12 +115,13 @@ export class LisSimpleTableElement extends LitElement {
 
   /**
    * The data to display in the table. Only attributes defined in the
-   * `dataAttributes` property will be parsed from the objects.
+   * {@link dataAttributes | `dataAttributes`} property will be parsed from the
+   * objects.
    */
   // not an attribute because Arrays (i.e. Objects) don't trigger Lit change
   // detection
   @property({type: Array<Object>, attribute: false})
-  data: Object[] = [];
+  data: Array<Object> = [];
 
   // converts an object to a table row
   private _objectToRow(o: Object, cellTag: string='td') {
