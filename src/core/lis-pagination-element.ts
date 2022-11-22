@@ -3,6 +3,8 @@ import {customElement, property} from 'lit/decorators.js';
 
 
 /**
+ * @htmlElement `<lis-pagination-element>`
+ *
  * A Web Component that provides a pagination UI element.
  *
  * @example

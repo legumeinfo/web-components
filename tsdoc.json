@@ -1,0 +1,9 @@
+{
+    "extends": ["typedoc/tsdoc.json"],
+    "tagDefinitions": [
+        {
+            "tagName": "@htmlElement",
+            "syntaxKind": "block"
+        }
+    ]
+}

@@ -30,11 +30,10 @@
     "package:watch": "rollup -c -w"
   },
   "keywords": [
+    "lit",
     "web-components",
-    "lit-element",
     "typescript",
-    "legumes",
-    "lit"
+    "legumes"
   ],
   "author": "Legume Information System",
   "license": "Apache-2.0",

@@ -3,6 +3,8 @@ import {customElement, property, query} from 'lit/decorators.js';
 
 
 /**
+ * @htmlElement `<lis-search-element>`
+ *
  * A Web Component that provides a generic search form.
  *
  * @example

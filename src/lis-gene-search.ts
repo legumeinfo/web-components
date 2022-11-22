@@ -32,15 +32,16 @@ export type GeneSearchFunction = (query: string, page: number) => Promise<Array<
 
 
 /**
+ * @htmlElement `<lis-gene-search-element>`
+ *
  * A Web Component that provides an interface for performing gene searches and
  * displays results in a paginated table.
  *
  * @example 
- * `HTMLElement` properties can only be set via JavaScript. This means the
- * {@link searchFunction | `searchFunction`} property must be set on a
- * `<lis-gene-search-element>` tag's instance of the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`}.
- * For example:
+ * {@link !HTMLElement | `HTMLElement`} properties can only be set via
+ * JavaScript. This means the {@link searchFunction | `searchFunction`} property
+ * must be set on a `<lis-gene-search-element>` tag's instance of the
+ * {@link LisGeneSearchElement | `LisGeneSearchElement`}. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>

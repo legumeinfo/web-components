@@ -4,6 +4,8 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
 /**
+ * @htmlElement `<lis-simple-table-element>`
+ *
  * A Web Component that provides a generic table element.
  *
  * @slot - Adds content after the content defined via the component properties.
