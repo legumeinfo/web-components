@@ -1,19 +1,15 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 
 
 /**
  * A Web Component that provides a generic search form.
  *
- * @fires submit - Fired when the form is submitted. Dispatches a `CustomEvent`
- * containing the text from the input element of the form.
- *
- * @example <caption>The search form element's
- * <code class="language-js">legend</code> and
- * <code class="language-js">input</code> attributes/properties can be
- * initialized via HTML and/or JavaScript. Both default to the empty string if
- * no value is provided:
- * </caption>
+ * @example
+ * The search form element's
+ * {@link legend | `legend`} and {@link input | `input`} attributes/properties
+ * can be initialized via HTML and/or JavaScript. Both default to the empty
+ * string if no value is provided:
  * ```html
  * <!-- legend and input attributes/properties will be given default value of '' -->
  * <lis-search-element></lis-search-element>
@@ -33,10 +29,11 @@ import {customElement, property, query} from 'lit/decorators.js';
  * </script>
  * ```
  *
- * @example <caption>Every time the search element's form is submitted, a
- * <code class="language-js">submit</code> event is dispatched. The event can be
- * observed and the new input value can be extracted from the event as follows:
- * </caption>
+ * @example
+ * Every time the search element's form is submitted, a
+ * {@link submit | `submit`} event is dispatched. The event can be
+ * observed and the new {@link input | `input`} value can be extracted from the
+ * event as follows:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-search-element input="root nodule" id="search"></lis-search-element>
@@ -59,9 +56,20 @@ import {customElement, property, query} from 'lit/decorators.js';
 export class LisSearchElement extends LitElement {
 
   /**
-   * @ignore
+   *
+   * Fired when the form is submitted. Dispatches a `CustomEvent` containing the
+   * text from the input element of the form.
+   * @eventProperty
    */
-  // disable shadow DOM to inherit global styles
+  static readonly submit: CustomEvent<{input: string}>;
+
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
+
+  /** @ignore */
+  // disable Shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
@@ -93,7 +101,8 @@ export class LisSearchElement extends LitElement {
       bubbles: true,
       composed: true
     };
-    this.dispatchEvent(new CustomEvent('submit', options));
+    const event = new CustomEvent('submit', options);
+    this.dispatchEvent(event);
   }
 
   // generates the legend part of the component's HTML
@@ -104,6 +113,8 @@ export class LisSearchElement extends LitElement {
     return html`<legend class="uk-legend">${this.legend}</legend>`;
   }
 
+  /** @ignore */
+  // used by Lit to draw the template
   override render() {
 
     const legend = this._getLegend();

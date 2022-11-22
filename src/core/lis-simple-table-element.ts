@@ -1,4 +1,4 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
@@ -10,16 +10,14 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * Can be used to manually create a table that has the same styling as the
  * component.
  *
- * @example <caption>The simple table element's
- * <code class="language-js">caption</code>,
- * <code class="language-js">dataAttributes</code>, and
- * <code class="language-js">header</code> attributes/properties can be set
- * via HTML or JavaScript. However, <code class="language-js">HTMLElement</code>
- * properties can only be set via JavaScript, meaning the
- * <code class="language-js">data</code> property can only be set via a
- * <code class="language-html">&lt;lis-simple-table-element&gt;</code> tag's
- * instance of the <code class="language-js">LisSimpleTableElement</code> class.
- * For example:</caption>
+ * @example
+ * The simple table element's
+ * {@link caption | `caption`}, {@link dataAttributes | `dataAttributes`}, and
+ * {@link header | `header`} attributes/properties can be set via HTML or
+ * JavaScript. However, `HTMLElement` properties can only be set via JavaScript,
+ * meaning the {@link data | `data} property can only be set via a
+ * `<lis-simple-table-element` tag's instance of the
+ * {@link LisSimpleTableElement | `LisSimpleTableElement`} class. For example:
  * ```html
  * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
  * <lis-simple-table-element
@@ -46,13 +44,14 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * </script>
  * ```
  *
- * @example <caption>Any or all of a simple table's parts can be written in HTML
- * using the element's slot:</caption>
+ * @example
+ * Any or all of a simple table's parts can be written in HTML using the
+ * element's slot:
  * ```html
  * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
  * <!-- NOTE: this is the table produced by the previous example -->
  * <lis-simple-table-element>
- *   <!-- TODO: the caption tag should be here but the jsdoc-example plugin can't handle it -->
+ *   <caption>My cheesy table</caption>
  *   <thead>
  *     <tr>
  *       <th>Cheese</th>
@@ -83,10 +82,13 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 @customElement('lis-simple-table-element')
 export class LisSimpleTableElement extends LitElement {
 
-  /**
-   * @ignore
-   */
-  // disable shadow DOM to inherit global styles
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
+
+  /** @ignore */
+  // disable Shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
@@ -158,6 +160,8 @@ export class LisSimpleTableElement extends LitElement {
     return html`<tbody>${rows}</tbody>`;
   }
 
+  /** @ignore */
+  // used by Lit to draw the template
   override render() {
 
     // compute table parts

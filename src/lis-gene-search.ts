@@ -1,26 +1,44 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property, query, state} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {LisSearchElement, LisSimpleTableElement, LisPaginationElement} from './core';
-import {Gene} from './models';
 
 
 type AlertModifier = 'primary' | 'success' | 'warning' | 'danger';
 
-export type SearchFunction = (query: string, page: number) => Promise<Gene[]>;
+/**
+ * A single result of a gene search performed by the
+ * {@link LisGeneSearchElement} class.
+ */
+export type GeneSearchResult = {name: string; description: string};
+
+
+/**
+ * The signature of the function the {@link LisGeneSearchElement} class requires
+ * for performing a gene search.
+ *
+ * @param query The search term in the input element when the search form was
+ * submitted.
+ * @param page What page of results the search is for. Will always be 1 when a
+ * new search is performed.
+ *
+ * @returns A `Promise` that resolves to an `Array` of {@link GeneSearchResult}
+ * objects.
+ */
+export type GeneSearchFunction = (query: string, page: number) => Promise<GeneSearchResult[]>;
 
 
 /**
  * A Web Component that provides an interface for performing gene searches and
  * displays results in a paginated table.
  *
- * @example <caption><code class="language-js">HTMLElement</code> properties can
- * only be set via JavaScript. This means the
- * <code class="language-js">searchFunction</code> property must be set on a
- * <code class="language-html">&lt;lis-gene-search-element&gt;</code> tag's instance
- * of the <code class="language-js">LisGeneSearchElement</code> class. For
- * example:</caption>
+ * @example 
+ * `HTMLElement` properties can only be set via JavaScript. This means the
+ * {@link searchFunction | `searchFunction`} property must be set on a
+ * `<lis-gene-search-element>` tag's instance of the
+ * {@link LisGeneSearchElement | `LisGeneSearchElement`}.
+ * For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
@@ -41,23 +59,25 @@ export type SearchFunction = (query: string, page: number) => Promise<Gene[]>;
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LitElement {
 
-  /**
-   * @ignore
-   */
-  // disable shadow DOM to inherit global styles
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
+
+  /** @ignore */
+  // disable Shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
 
   /**
-   * The function that should be used to perform searches. Will throw an error
-   * if not set when a search is performed.
+   * The function that should be used to perform searches.
    *
    * @throws Will throw an error if not set when a search is performed.
    */
   // not an attribute because functions can't be parsed from attributes
   @property({type: Function, attribute: false})
-  searchFunction: SearchFunction = () => Promise.reject(new Error('No search function provided'));
+  searchFunction: GeneSearchFunction = () => Promise.reject(new Error('No search function provided'));
 
   // messages sent to the user about search status
   @state()
@@ -107,13 +127,13 @@ export class LisGeneSearchElement extends LitElement {
       this._setAlert(message, 'primary');
       this.searchFunction(query, page)
         .then(
-          (genes: Gene[]) => this._searchSuccess(query, genes),
+          (genes: GeneSearchResult[]) => this._searchSuccess(query, genes),
           (error: Error) => this._searchFailure(error),
         );
     }
   }
 
-  private _searchSuccess(query: string, genes: Gene[]): void {
+  private _searchSuccess(query: string, genes: GeneSearchResult[]): void {
     const plural = genes.length == 1 ? '' : 's';
     const message = `${genes.length} gene${plural} found for "${query}"`;
     const modifier = genes.length ? 'success' : 'warning';
@@ -143,6 +163,8 @@ export class LisGeneSearchElement extends LitElement {
     `;
   }
 
+  /** @ignore */
+  // used by Lit to draw the template
   override render() {
 
     const alert = this._getAlert();
