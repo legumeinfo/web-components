@@ -13,7 +13,7 @@
   <script src="../node_modules/lit/polyfill-support.js"></script>
   <!-- GraphQL -->
   <script type="text/javascript" src="./graphql.js"></script>
-  <!-- example gene search -->
+  <!-- example gene search and trait search -->
   <script src="./example.js"></script>
   <!-- web components -->
   <script type="module" src="../dist/index.js"></script>
@@ -23,13 +23,24 @@
 
   <div class="uk-container">
     <!-- the custom gene search element -->
-    <lis-gene-search-element id="search"></lis-gene-search-element>
+    <lis-gene-search-element id="gene-search"></lis-gene-search-element>
   </div>
 
   <!-- set the search function by property because functions can't be set as attributes -->
   <script type="text/javascript">
-    const searchElement = document.getElementById('search');
+    const searchElement = document.getElementById('gene-search');
     searchElement.searchFunction = getGenes;
+  </script>
+
+  <div class="uk-container">
+    <!-- the custom trait search element -->
+    <lis-trait-search-element id="trait-search"></lis-trait-search-element>
+  </div>
+
+  <!-- set the search function by property because functions can't be set as attributes -->
+  <script type="text/javascript">
+    const traitSearchElement = document.getElementById('trait-search');
+    traitSearchElement.searchFunction = getTraits;
   </script>
 
 </body>
