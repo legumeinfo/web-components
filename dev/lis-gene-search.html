@@ -13,8 +13,6 @@
   <script src="../node_modules/lit/polyfill-support.js"></script>
   <!-- GraphQL -->
   <script type="text/javascript" src="./graphql.js"></script>
-  <!-- example gene search -->
-  <script src="./example.js"></script>
   <!-- web components -->
   <script type="module" src="../dist/index.js"></script>
 </head>
@@ -28,8 +26,34 @@
 
   <!-- set the search function by property because functions can't be set as attributes -->
   <script type="text/javascript">
+
+    // an example gene search query for the LIS GraphQL API
+    const query = `
+      query ExampleQuery($keyword: String!, $start: Int, $size: Int) {
+        geneSearch(keyword: $keyword, start: $start, size: $size) {
+          name
+          description
+        }
+      }
+      `;
+    
+    // the search function given to the LIS gene search Web Component
+    function getGenes(formData, page=1) {
+      const keyword = formData.get('query');
+      const pageSize = 10;
+      const start = (page-1)*pageSize;
+      const variables = {keyword, start, size: pageSize};
+      // returns a Promise that resolves to an array of Gene objects the gene search
+      // Web Component knows how to parse: {name: string, description: string}[]
+      return graphqlQuery(uri, query, variables)
+        .then(({data}) => {
+          return data.geneSearch;
+        });
+    }
+
     const searchElement = document.getElementById('search');
     searchElement.searchFunction = getGenes;
+
   </script>
 
 </body>
