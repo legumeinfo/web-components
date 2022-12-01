@@ -15,55 +15,33 @@ type Constructor<T = {}, Params extends any[] = any[]> =
 
 
 // the search function
-//export type SearchFunction<SearchObject, SearchResult> =
-//  (searchData: SearchObject, page: number) => Promise<SearchResult[]>;
-export type SearchFunction =
-  (searchData: any, page: number) => Promise<any[]>;
+export type SearchFunction<SearchData, SearchResult> =
+  (searchData: SearchData, page: number) => Promise<SearchResult[]>;
 
 
 // define an interface for type casting because TypeScript can't infer
 // private/protected members, i.e. it will throw a compiler error
-//export declare class LisPaginatedSearchElementInterface<SearchObject, SearchResult> {
-export declare class LisPaginatedSearchElementInterface {
+export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult> {
   // public properties
-  //searchFunction: SearchFunction<SearchResult>;
-  searchFunction: SearchFunction;
+  searchFunction: SearchFunction<SearchData, SearchResult>;
   // protected properties
   protected resultAttributes: string[];
   protected tableHeader: Object;
   // can optionally be overridden
-  //protected formToObject(formData: FormData): SearchObject;
-  protected formToObject(formData: FormData): any;
+  protected formToObject(formData: FormData): SearchData;
   // "abstract" method, i.e. must be implemented in concrete class
   protected renderForm(): unknown;
-  // private properties
-  //private _data: Object;
-  //private _alertMessage: string;
-  //private _alertModifier: AlertModifier;
-  //private _table: LisSimpleTableElement;
-  //private _paginator: LisPaginationElement;
-  // private methods
-  //private _updateData(e: CustomEvent): void;
-  //private _changePage(e: CustomEvent): void;
-  //private _search(): void;
-  //private _searchSuccess(results: any[]): void;
-  //private _searchFailure(error: Error): void;
-  //private _setAlert(): void;
-  //private _renderAlert(): unknown;
 }
 
 
 // the mixin factory
 export const LisPaginatedSearchMixin =
-  <T extends Constructor<LitElement>>(superClass: T) => {
+  // HACK: curried function because TypeScript doesn't support partial type
+  // argument inference: https://github.com/microsoft/TypeScript/issues/26242
+  <T extends Constructor<LitElement>> (superClass: T) => <SearchData, SearchResult>() => {
 
 // the mixin class
-//class LisPaginatedSearchElement<SearchObject, SearchResult> extends superClass {
 class LisPaginatedSearchElement extends superClass {
-
-  //constructor(...rest: any[]) {
-  //  super(...rest);
-  //}
 
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
@@ -73,9 +51,7 @@ class LisPaginatedSearchElement extends superClass {
   // the search callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  //searchFunction: SearchFunction<SearchResult> =
-  //  () => Promise.reject(new Error('No search function provided'));
-  searchFunction: SearchFunction =
+  searchFunction: SearchFunction<SearchData, SearchResult> =
     () => Promise.reject(new Error('No search function provided'));
 
   // attributes of result objects in the concrete class
@@ -88,7 +64,7 @@ class LisPaginatedSearchElement extends superClass {
 
   // keep a copy of the search form data for pagination
   @state()
-  private _data: Object | undefined = undefined;
+  private _data: SearchData | undefined = undefined;
 
   // messages sent to the user about search status
   @state()
@@ -110,9 +86,8 @@ class LisPaginatedSearchElement extends superClass {
   // the searchFunction
   // this is a default implementation and should be override in the concrete
   // class if any ambiguity in the FormData needs to be resolved
-  //protected formToObject(formData: FormData): SearchObject {
-  protected formToObject(formData: FormData): any {
-    return Object.fromEntries(formData);
+  protected formToObject(formData: FormData): SearchData {
+    return Object.fromEntries(formData) as unknown as SearchData;
   }
 
   // called when a search term is submitted
@@ -139,16 +114,14 @@ class LisPaginatedSearchElement extends superClass {
       this._setAlert(message, 'primary');
       this.searchFunction(this._data, page)
         .then(
-          //(results: SearchResult[]) => this._searchSuccess(results),
-          (results: any[]) => this._searchSuccess(results),
+          (results: SearchResult[]) => this._searchSuccess(results),
           (error: Error) => this._searchFailure(error),
         );
     }
   }
 
   // updates the table and alert with the search result data
-  //private _searchSuccess(results: SearchResult[]): void {
-  private _searchSuccess(results: any[]): void {
+  private _searchSuccess(results: SearchResult[]): void {
     const plural = results.length == 1 ? '' : 's';
     const message = `${results.length} result${plural} found`;
     const modifier = results.length ? 'success' : 'warning';
@@ -215,7 +188,8 @@ class LisPaginatedSearchElement extends superClass {
 
 }
 
-  // TODO: how do we get rid of the "unknown" cast in the middle?
-  return LisPaginatedSearchElement as unknown as Constructor<LisPaginatedSearchElementInterface> & T;
+  return LisPaginatedSearchElement as
+    unknown as  // TODO: get rid of this intermediate cast
+    Constructor<LisPaginatedSearchElementInterface<SearchData, SearchResult>> & T;
 
 };

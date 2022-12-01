@@ -4,18 +4,20 @@ import {customElement} from 'lit/decorators.js';
 import {LisPaginatedSearchMixin} from './mixins';
 
 
-//export type GeneSearchResult = {
-//  name: string;
-//  description: string;
-//};
+export type GeneSearchData = {
+  query: string;
+};
 
 
-// TODO: use template function
-//export type GeneSearchFunction = SearchFunction;
+export type GeneSearchResult = {
+  name: string;
+  description: string;
+};
 
 
 @customElement('lis-gene-search-element')
-export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement) {
+export class LisGeneSearchElement extends
+LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   constructor() {
     super();
