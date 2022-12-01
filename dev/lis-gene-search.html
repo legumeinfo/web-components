@@ -38,8 +38,8 @@
       `;
     
     // the search function given to the LIS gene search Web Component
-    function getGenes(formData, page=1) {
-      const keyword = formData.get('query');
+    function getGenes(searchData, page=1) {
+      const keyword = searchData['query'];
       const pageSize = 10;
       const start = (page-1)*pageSize;
       const variables = {keyword, start, size: pageSize};

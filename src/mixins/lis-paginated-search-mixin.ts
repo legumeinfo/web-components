@@ -15,15 +15,15 @@ type Constructor<T = {}, Params extends any[] = any[]> =
 
 
 // the search function
-//export type SearchFunction<SearchResult> =
-//  (query: FormData, page: number) => Promise<SearchResult[]>;
+//export type SearchFunction<SearchObject, SearchResult> =
+//  (searchData: SearchObject, page: number) => Promise<SearchResult[]>;
 export type SearchFunction =
-  (query: FormData, page: number) => Promise<any[]>;
+  (searchData: any, page: number) => Promise<any[]>;
 
 
 // define an interface for type casting because TypeScript can't infer
 // private/protected members, i.e. it will throw a compiler error
-//export declare class LisPaginatedSearchElementInterface<SearchResult> {
+//export declare class LisPaginatedSearchElementInterface<SearchObject, SearchResult> {
 export declare class LisPaginatedSearchElementInterface {
   // public properties
   //searchFunction: SearchFunction<SearchResult>;
@@ -31,10 +31,13 @@ export declare class LisPaginatedSearchElementInterface {
   // protected properties
   protected resultAttributes: string[];
   protected tableHeader: Object;
+  // can optionally be overridden
+  //protected formToObject(formData: FormData): SearchObject;
+  protected formToObject(formData: FormData): any;
   // "abstract" method, i.e. must be implemented in concrete class
   protected renderForm(): unknown;
   // private properties
-  //private _data: FormData;
+  //private _data: Object;
   //private _alertMessage: string;
   //private _alertModifier: AlertModifier;
   //private _table: LisSimpleTableElement;
@@ -55,7 +58,7 @@ export const LisPaginatedSearchMixin =
   <T extends Constructor<LitElement>>(superClass: T) => {
 
 // the mixin class
-//class LisPaginatedSearchElement<SearchResult> extends superClass {
+//class LisPaginatedSearchElement<SearchObject, SearchResult> extends superClass {
 class LisPaginatedSearchElement extends superClass {
 
   //constructor(...rest: any[]) {
@@ -85,7 +88,7 @@ class LisPaginatedSearchElement extends superClass {
 
   // keep a copy of the search form data for pagination
   @state()
-  private _data: FormData | undefined = undefined;
+  private _data: Object | undefined = undefined;
 
   // messages sent to the user about search status
   @state()
@@ -103,11 +106,20 @@ class LisPaginatedSearchElement extends superClass {
   @query('lis-pagination-element')
   private _paginator!: LisPaginationElement;
 
+  // converts the given FormData instance into an Object that will be passed to
+  // the searchFunction
+  // this is a default implementation and should be override in the concrete
+  // class if any ambiguity in the FormData needs to be resolved
+  //protected formToObject(formData: FormData): SearchObject {
+  protected formToObject(formData: FormData): any {
+    return Object.fromEntries(formData);
+  }
+
   // called when a search term is submitted
   private _updateData(e: CustomEvent): void {
     e.preventDefault();
     e.stopPropagation();  // we'll emit our own event
-    this._data = e.detail.data;
+    this._data = this.formToObject(e.detail.data);
     this._paginator.page = 1;
     this._search();
   }
