@@ -14,9 +14,15 @@ type Constructor<T = {}, Params extends any[] = any[]> =
   new (...args: Params) => T;
 
 
+export type PaginatedSearchResults<SearchResult> = {
+  hasNext: boolean;
+  results: SearchResult[];
+};
+
+
 // the search function
 export type SearchFunction<SearchData, SearchResult> =
-  (searchData: SearchData, page: number) => Promise<SearchResult[]>;
+  (searchData: SearchData, page: number) => Promise<PaginatedSearchResults<SearchResult>>;
 
 
 // define an interface for type casting because TypeScript can't infer
@@ -114,19 +120,25 @@ class LisPaginatedSearchElement extends superClass {
       this._setAlert(message, 'primary');
       this.searchFunction(this._data, page)
         .then(
-          (results: SearchResult[]) => this._searchSuccess(results),
+          (results: PaginatedSearchResults<SearchResult>) => this._searchSuccess(results),
           (error: Error) => this._searchFailure(error),
         );
     }
   }
 
   // updates the table and alert with the search result data
-  private _searchSuccess(results: SearchResult[]): void {
+  private _searchSuccess(paginatedResults: PaginatedSearchResults<SearchResult>): void {
+    // destruct the paginated search result
+    const {hasNext, results} = paginatedResults;
+    // report the success in the alert
     const plural = results.length == 1 ? '' : 's';
     const message = `${results.length} result${plural} found`;
     const modifier = results.length ? 'success' : 'warning';
     this._setAlert(message, modifier);
+    // display the results in the table
     this._table.data = results;
+    // update the pagination element
+    this._paginator.hasNext = hasNext;
   }
 
   // updates the alert with an error message and throws the actual error so it
