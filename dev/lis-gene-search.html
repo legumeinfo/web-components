@@ -51,7 +51,7 @@
           // compute if there's a next page
           const hasNext = pageSize+1 === data.geneSearch.length;
           // remove the lookahead result
-          data.geneSearch.pop();
+          if (hasNext) data.geneSearch.pop();
           // construct the expected paginated results object
           const paginatedResults = {
             hasNext,

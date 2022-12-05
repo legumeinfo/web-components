@@ -51,7 +51,7 @@
           // compute if there's a next page
           const hasNext = pageSize+1 === data.traitSearch.length;
           // remove the lookahead result
-          data.traitSearch.pop();
+          if (hasNext) data.traitSearch.pop();
           // construct the expected paginated results object
           const paginatedResults = {
             hasNext,
