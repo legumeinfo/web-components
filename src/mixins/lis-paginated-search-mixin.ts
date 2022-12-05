@@ -15,7 +15,7 @@ type Constructor<T = {}, Params extends any[] = any[]> =
 
 
 export type PaginatedSearchResults<SearchResult> = {
-  hasNext: boolean;
+  hasNext?: boolean;
   results: SearchResult[];
 };
 
@@ -129,7 +129,11 @@ class LisPaginatedSearchElement extends superClass {
   // updates the table and alert with the search result data
   private _searchSuccess(paginatedResults: PaginatedSearchResults<SearchResult>): void {
     // destruct the paginated search result
-    const {hasNext, results} = paginatedResults;
+    const {hasNext, results} = {
+        // provide a default value for hasNext based on if there's any results
+        hasNext: Boolean(paginatedResults.results.length),
+        ...paginatedResults,
+      };
     // report the success in the alert
     const plural = results.length == 1 ? '' : 's';
     const message = `${results.length} result${plural} found`;
