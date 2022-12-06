@@ -21,6 +21,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   constructor() {
     super();
+    // configure query string parameters
+    this.requiredQueryStringParams = ['query'];
     // configure results table
     this.resultAttributes = ['name', 'description'];
     this.tableHeader = {name: 'Name', description: 'Description'};
@@ -37,7 +39,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
               class="uk-input"
               type="text"
               placeholder="Input"
-              aria-label="Input">
+              aria-label="Input"
+              value=${this.queryStringController.getParameter('query')}>
           </div>
           <div class="uk-margin">
             <button type="submit" class="uk-button uk-button-primary">Search</button>
