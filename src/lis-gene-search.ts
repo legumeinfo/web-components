@@ -40,7 +40,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
               type="text"
               placeholder="Input"
               aria-label="Input"
-              value=${this.queryStringController.getParameter('query')}>
+              .value=${this.queryStringController.getParameter('query')}>
           </div>
           <div class="uk-margin">
             <button type="submit" class="uk-button uk-button-primary">Search</button>
