@@ -3,6 +3,11 @@ import {property, query, state} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {
+  LisDomContentLoadedController,
+  LisQueryStringParametersController,
+} from '../controllers';
+import {
+  LisFormWrapperElement,
   LisPaginationElement,
   LisSimpleTableElement,
 } from '../core';
@@ -30,7 +35,11 @@ export type SearchFunction<SearchData, SearchResult> =
 export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult> {
   // public properties
   searchFunction: SearchFunction<SearchData, SearchResult>;
+  submit(): void;
   // protected properties
+  protected queryStringController: LisQueryStringParametersController;
+  protected domContentLoadedController: LisDomContentLoadedController;
+  protected requiredQueryStringParams: string[];
   protected resultAttributes: string[];
   protected tableHeader: Object;
   // can optionally be overridden
@@ -49,16 +58,50 @@ export const LisPaginatedSearchMixin =
 // the mixin class
 class LisPaginatedSearchElement extends superClass {
 
+  /////////////////
+  // controllers //
+  /////////////////
+
+  // a controller for interacting with URL query string parameters
+  protected queryStringController = new LisQueryStringParametersController(this);
+
+  // a controller for adding a DOM Content Loaded event listener
+  protected domContentLoadedController = new LisDomContentLoadedController(this);
+
+  /////////////////
+  // constructor //
+  /////////////////
+
+  constructor(...rest: any[]) {
+    super(...rest);
+    // submit the form after the DOM is finished loading
+    this.domContentLoadedController.addListener(this._queryStringSubmit);
+    // submit the form whenever the query string parameters change
+    this.queryStringController.addListener(this._queryStringSubmit);
+  }
+
+  ////////////
+  // styles //
+  ////////////
+
   // disable shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
+
+  //////////////////////////
+  // properties and state //
+  //////////////////////////
 
   // the search callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
   searchFunction: SearchFunction<SearchData, SearchResult> =
     () => Promise.reject(new Error('No search function provided'));
+
+  // what form parts are required to submit a search
+  @state()
+  protected requiredQueryStringParams: string[] = [];
 
   // attributes of result objects in the concrete class
   @state()
@@ -88,21 +131,40 @@ class LisPaginatedSearchElement extends superClass {
   @query('lis-pagination-element')
   private _paginator!: LisPaginationElement;
 
-  // converts the given FormData instance into an Object that will be passed to
-  // the searchFunction
-  // this is a default implementation and should be override in the concrete
-  // class if any ambiguity in the FormData needs to be resolved
-  protected formToObject(formData: FormData): SearchData {
-    return Object.fromEntries(formData) as unknown as SearchData;
+  // bind to the form wrapper element in the template
+  @query('lis-form-wrapper-element')
+  private _formWrapper!: LisFormWrapperElement;
+
+  // what page should be used for the first search
+  // TODO: is there a better way to handle the page in the query string search?
+  private _searchPage = 1;
+
+  ////////////////////
+  // search methods //
+  ////////////////////
+
+  // allows the form in the paginated search element to be submitted programmatically
+  submit(): void {
+    // throw an error if the form wrapper is missing
+    if (this._formWrapper === null) {
+      throw new Error('No form wrapper in the template');
+    }
+    // submit the form via the form wrapper
+    this._formWrapper.submit();
   }
 
-  // called when a search term is submitted
-  private _updateData(e: CustomEvent): void {
-    e.preventDefault();
-    e.stopPropagation();  // we'll emit our own event
-    this._data = this.formToObject(e.detail.data);
-    this._paginator.page = 1;
-    this._search();
+  // submits the form if it was populated from querystring parameters
+  private _queryStringSubmit(): void {
+    // submit the form if every required query string is present
+    const hasFields = this.requiredQueryStringParams.every((field) => {
+        return Boolean(this.queryStringController.getParameter(field));
+      });
+    if (hasFields) {
+      this._searchPage = Number(this.queryStringController.getParameter('page', '1'));
+      this.submit();
+    } else {
+      this._resetComponent();
+    }
   }
 
   // called when the page changes
@@ -118,6 +180,7 @@ class LisPaginatedSearchElement extends superClass {
       const page = this._paginator.page;
       const message = `<span uk-spinner></span> Loading page ${page}`;
       this._setAlert(message, 'primary');
+      this.queryStringController.setParameters({page, ...this._data});
       this.searchFunction(this._data, page)
         .then(
           (results: PaginatedSearchResults<SearchResult>) => this._searchSuccess(results),
@@ -128,6 +191,8 @@ class LisPaginatedSearchElement extends superClass {
 
   // updates the table and alert with the search result data
   private _searchSuccess(paginatedResults: PaginatedSearchResults<SearchResult>): void {
+    // reset the initial page
+    this._searchPage = 1;
     // destruct the paginated search result
     const {hasNext, results} = {
         // provide a default value for hasNext based on if there's any results
@@ -153,10 +218,53 @@ class LisPaginatedSearchElement extends superClass {
     throw error;
   }
 
+  //////////////////////////
+  // update state methods //
+  //////////////////////////
+
+  // converts the given FormData instance into an Object that will be passed to
+  // the searchFunction
+  // this is a default implementation and should be overridden in the concrete class
+  // class if any ambiguity in the FormData needs to be resolved
+  protected formToObject(formData: FormData): SearchData {
+    return Object.fromEntries(formData) as unknown as SearchData;
+  }
+
+  // resets the component to its initial state
+  private _resetComponent(): void {
+    // update the search data
+    this._data = undefined;
+    // update the alert element
+    this._setAlert('', 'primary');
+    // update the table element
+    this._table.data = [];
+    // update the pagination element
+    this._paginator.page = 1;
+    this._paginator.hasNext = false;
+  }
+
+  // called when a search term is submitted
+  private _updateData(e: CustomEvent): void {
+    e.preventDefault();
+    e.stopPropagation();  // we'll emit our own event
+    this._data = this.formToObject(e.detail.data);
+    this._paginator.page = this._searchPage;
+    this._search();
+  }
+
   // sets the alert element style and content
   private _setAlert(message: string, modifier: AlertModifier): void {
     this._alertMessage = message;
     this._alertModifier = modifier;
+  }
+
+  ////////////////////
+  // render methods //
+  ////////////////////
+
+  // a method the concrete class must implement to render the form
+  protected renderForm(): unknown {
+    throw new Error('Method not implemented');
   }
 
   // generates an alert element using the current alert state
@@ -169,11 +277,6 @@ class LisPaginatedSearchElement extends superClass {
         <p>${unsafeHTML(this._alertMessage)}</p>
       </div>
     `;
-  }
-
-  // a method the concrete class must implement to render the form
-  protected renderForm(): unknown {
-    throw new Error('Method not implemented');
   }
 
   override render(): unknown {
@@ -197,7 +300,10 @@ class LisPaginatedSearchElement extends superClass {
         .header=${this.tableHeader}>
       </lis-simple-table-element>
 
-      <lis-pagination-element @pageChange=${this._changePage}></lis-pagination-element>
+      <lis-pagination-element
+        page=${this.queryStringController.getParameter('page', '1')}
+        @pageChange=${this._changePage}>
+      </lis-pagination-element>
 
     `;
   }
