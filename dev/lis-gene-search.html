@@ -38,7 +38,7 @@
       `;
     
     // the search function given to the LIS gene search Web Component
-    function getGenes(searchData, page=1) {
+    function getGenes(searchData, page, {abortSignal}) {
       const keyword = searchData['query'];
       const pageSize = 10;
       const start = (page-1)*pageSize;
@@ -46,7 +46,7 @@
       const variables = {keyword, start, size: pageSize+1};
       // returns a Promise that resolves to an array of Gene objects the gene search
       // Web Component knows how to parse: {name: string, description: string}[]
-      return graphqlQuery(uri, geneQuery, variables)
+      return graphqlQuery(uri, geneQuery, variables, abortSignal)
         .then(({data}) => {
           // compute if there's a next page
           const hasNext = pageSize+1 === data.geneSearch.length;
