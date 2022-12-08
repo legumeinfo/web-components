@@ -26,7 +26,7 @@ export type PaginatedSearchResults<SearchResult> = {
 };
 
 // optional parameters that may be given to a search
-export type SearchOptions = {signal?: AbortSignal};
+export type SearchOptions = {abortSignal?: AbortSignal};
 
 // the search function
 export type SearchFunction<SearchData, SearchResult> =
@@ -190,7 +190,7 @@ class LisPaginatedSearchElement extends superClass {
       this._setAlert(message, 'primary');
       this.queryStringController.setParameters({page, ...this._data});
       this.cancelPromiseController.cancel();
-      const options = {signal: this.cancelPromiseController.abortSignal};
+      const options = {abortSignal: this.cancelPromiseController.abortSignal};
       const searchPromise = this.searchFunction(this._data, page, options);
       this.cancelPromiseController.wrapPromise(searchPromise)
         .then(
