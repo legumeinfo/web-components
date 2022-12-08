@@ -3,6 +3,7 @@ import {property, query, state} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {
+  LisCancelPromiseController,
   LisDomContentLoadedController,
   LisQueryStringParametersController,
 } from '../controllers';
@@ -24,10 +25,13 @@ export type PaginatedSearchResults<SearchResult> = {
   results: SearchResult[];
 };
 
+// optional parameters that may be given to a search
+export type SearchOptions = {signal?: AbortSignal};
 
 // the search function
 export type SearchFunction<SearchData, SearchResult> =
-  (searchData: SearchData, page: number) => Promise<PaginatedSearchResults<SearchResult>>;
+  (searchData: SearchData, page: number, options: SearchOptions) =>
+    Promise<PaginatedSearchResults<SearchResult>>;
 
 
 // define an interface for type casting because TypeScript can't infer
@@ -39,6 +43,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
   // protected properties
   protected queryStringController: LisQueryStringParametersController;
   protected domContentLoadedController: LisDomContentLoadedController;
+  protected cancelPromiseController: LisCancelPromiseController;
   protected requiredQueryStringParams: string[];
   protected resultAttributes: string[];
   protected tableHeader: Object;
@@ -67,6 +72,9 @@ class LisPaginatedSearchElement extends superClass {
 
   // a controller for adding a DOM Content Loaded event listener
   protected domContentLoadedController = new LisDomContentLoadedController(this);
+
+  // a controller that allows in-flight seaches to be cancelled
+  protected cancelPromiseController = new LisCancelPromiseController(this);
 
   /////////////////
   // constructor //
@@ -181,10 +189,18 @@ class LisPaginatedSearchElement extends superClass {
       const message = `<span uk-spinner></span> Loading page ${page}`;
       this._setAlert(message, 'primary');
       this.queryStringController.setParameters({page, ...this._data});
-      this.searchFunction(this._data, page)
+      this.cancelPromiseController.cancel();
+      const options = {signal: this.cancelPromiseController.abortSignal};
+      const searchPromise = this.searchFunction(this._data, page, options);
+      this.cancelPromiseController.wrapPromise(searchPromise)
         .then(
           (results: PaginatedSearchResults<SearchResult>) => this._searchSuccess(results),
-          (error: Error) => this._searchFailure(error),
+          (error: Error) => {
+            // do nothing if the request was aborted
+            if ((error as any).type !== 'abort') {
+              this._searchFailure(error);
+            }
+          },
         );
     }
   }
