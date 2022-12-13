@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Web-Components Demo</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../node_modules/lit/polyfill-support.js"></script>
+  <!-- GraphQL -->
+  <script type="text/javascript" src="./graphql.js"></script>
+  <!-- web components -->
+  <script type="module" src="../dist/index.js"></script>
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <!-- the custom gene search element -->
+    <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+  </div>
+
+  <!-- set the search function by property because functions can't be set as attributes -->
+  <script type="text/javascript">
+
+    // an example gene search query for the LIS GraphQL API
+    const geneQuery = `
+      query ExampleGeneQuery($keyword: String!, $start: Int, $size: Int) {
+        geneSearch(keyword: $keyword, start: $start, size: $size) {
+          name
+          description
+        }
+      }
+      `;
+    
+    // the search function given to the LIS gene search Web Component
+    function getGenes(searchData, page, {abortSignal}) {
+      const keyword = searchData['query'];
+      const pageSize = 10;
+      const start = (page-1)*pageSize;
+      // pageSize+1 because we want to see if there's a "next" page
+      const variables = {keyword, start, size: pageSize+1};
+      // returns a Promise that resolves to an array of Gene objects the gene search
+      // Web Component knows how to parse: {name: string, description: string}[]
+      return graphqlQuery(uri, geneQuery, variables, abortSignal)
+        .then(({data}) => {
+          // compute if there's a next page
+          const hasNext = pageSize+1 === data.geneSearch.length;
+          // remove the lookahead result
+          if (hasNext) data.geneSearch.pop();
+          // construct the expected paginated results object
+          const paginatedResults = {
+            hasNext,
+            results: data.geneSearch,
+          };
+          return paginatedResults;
+        });
+    }
+
+    const geneSearchElement = document.getElementById('gene-search');
+    geneSearchElement.searchFunction = getGenes;
+
+  </script>
+
+</body>
+
+</html>

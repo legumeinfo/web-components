@@ -99,6 +99,12 @@ export class LisPaginationElement extends LitElement {
   page: number = 1;
 
   /**
+   * Whether or not the next button should be enabled.
+   */
+  @property({type: Boolean})
+  hasNext: boolean = false;
+
+  /**
    * Programmatically go to the previous page.
    *
    * @param e - An optional {@link !Event | `Event`} that can be passed if
@@ -143,12 +149,32 @@ export class LisPaginationElement extends LitElement {
 
   /** @ignore */
   // used by Lit to draw the template
+  private _renderPreviousClass(): string {
+    if (this.page > 1) {
+      return '';
+    }
+    return 'uk-disabled';
+  }
+
+  /** @ignore */
+  // used by Lit to draw the template
+  private _renderNextClass(): string {
+    if (this.hasNext) {
+      return '';
+    }
+    return 'uk-disabled';
+  }
+
   override render() {
+
+    const previousClass = this._renderPreviousClass();
+    const nextClass = this._renderNextClass();
+
     return html`
       <ul class="uk-pagination">
-          <li><a href="" @click=${this.previous}><span class="uk-margin-small-right" uk-pagination-previous></span> Previous</a></li>
+          <li class="${previousClass}"><a href="" @click=${this.previous}><span class="uk-margin-small-right" uk-pagination-previous></span> Previous</a></li>
           <li class="uk-active"><span>Page ${this.page}</span></li>
-          <li class="uk-margin-auto-left"><a href="" @click=${this.next}>Next <span class="uk-margin-small-left" uk-pagination-next></span></a></li>
+          <li class="uk-margin-auto-left ${nextClass}"><a href="" @click=${this.next}>Next <span class="uk-margin-small-left" uk-pagination-next></span></a></li>
       </ul>
     `;
   }
