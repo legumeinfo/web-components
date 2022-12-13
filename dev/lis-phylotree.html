@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Web-Components Demo</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../node_modules/lit/polyfill-support.js"></script>
+  <!-- GraphQL -->
+  <script type="text/javascript" src="./graphql.js"></script>
+  <!-- example gene search and trait search -->
+  <script src="./example.js"></script>
+  <!-- d3 and TnT for trees -->
+  <!-- D3.js -->
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <!-- TnT -->
+  <link rel="stylesheet" href="https://tntvis.github.io/tnt/build/tnt.css" type="text/css" />
+  <script src="https://tntvis.github.io/tnt/build/tnt.min.js"></script>
+  <!-- web components
+  <script type="module" src="../dist/index.js"></script>
+  -->
+  <script type="module" src="../dist/web-components.bundled.js"></script>
+
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <!-- the custom gene search element -->
+    <lis-phylotree-element id="test-tree" treename="newick-test" newick=""></lis-phylotree-element>
+  </div>
+
+</body>
+
+</html>
