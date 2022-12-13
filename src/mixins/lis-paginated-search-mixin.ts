@@ -12,7 +12,7 @@ import {
   LisPaginationElement,
   LisSimpleTableElement,
 } from '../core';
-import {AlertModifier} from '../models';
+import {AlertModifierModel} from '../models';
 
 
 // used to type constrain the super class
@@ -129,7 +129,7 @@ class LisPaginatedSearchElement extends superClass {
 
   // the style of the alert element
   @state()
-  private _alertModifier: AlertModifier = 'primary';
+  private _alertModifier: AlertModifierModel = 'primary';
 
   // bind to the table element in the template
   @query('lis-simple-table-element')
@@ -269,7 +269,7 @@ class LisPaginatedSearchElement extends superClass {
   }
 
   // sets the alert element style and content
-  private _setAlert(message: string, modifier: AlertModifier): void {
+  private _setAlert(message: string, modifier: AlertModifierModel): void {
     this._alertMessage = message;
     this._alertModifier = modifier;
   }

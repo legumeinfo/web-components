@@ -1,1 +1,1 @@
-export type AlertModifier = 'primary' | 'success' | 'warning' | 'danger';
+export type AlertModifierModel = 'primary' | 'success' | 'warning' | 'danger';
