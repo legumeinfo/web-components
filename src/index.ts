@@ -1,11 +1,11 @@
 /**
  * This module contains higher-order Web Components that implement rich
  * functionality for end users of this library. This module re-exports
- * components from the {@link core} module for functionality reasons; we do not
- * recoomend that end users use components from the {@link core} module.
+ * components from the core module for functionality reasons; the components
+ * from the core module are not intended for users of this library.
  *
  *
- * @module lis
+ * @module user components
  */
 export * from './core';
 export * from './lis-gene-search-element';

@@ -136,6 +136,7 @@ export class LisPaginationElement extends LitElement {
     this._dispatchPageChange();
   }
 
+  /** @ignore */
   // emits a 'pageChange' event
   private _dispatchPageChange(): void {
     const options = {
@@ -165,6 +166,8 @@ export class LisPaginationElement extends LitElement {
     return 'uk-disabled';
   }
 
+  /** @ignore */
+  // the template
   override render() {
 
     const previousClass = this._renderPreviousClass();

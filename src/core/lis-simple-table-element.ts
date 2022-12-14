@@ -34,10 +34,10 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  *   // get the simple table element
  *   const tableElement = document.getElementById('table');
  *   // set the element's properties
- *   paginationElement.caption = 'My cheesy table';
- *   paginationElement.dataAttributes = ['cheese', 'region'];
- *   paginationElement.header = {cheese: 'Cheese', region: 'Region'};
- *   paginationElement.data = [
+ *   tableElement.caption = 'My cheesy table';
+ *   tableElement.dataAttributes = ['cheese', 'region'];
+ *   tableElement.header = {cheese: 'Cheese', region: 'Region'};
+ *   tableElement.data = [
  *     {cheese: 'Brie', region: 'France'},
  *     {cheese: 'Burrata', region: 'Italy'},
  *     {cheese: 'Feta', region: 'Greece'},
@@ -125,6 +125,7 @@ export class LisSimpleTableElement extends LitElement {
   @property({type: Array<Object>, attribute: false})
   data: Array<Object> = [];
 
+  /** @ignore */
   // converts an object to a table row
   private _objectToRow(o: Object, cellTag: string='td') {
     const startTag = `<${cellTag}>`;
@@ -137,6 +138,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<tr>${unsafeHTML(cells.join(''))}</tr>`;
   }
 
+  /** @ignore */
   // computes the caption part of the component's table
   private _getCaption() {
     if (!this.caption) {
@@ -145,6 +147,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<caption>${this.caption}</caption>`;
   }
 
+  /** @ignore */
   // computes the header part of the component's table
   private _getHeader() {
     if (!this.header) {
@@ -154,6 +157,7 @@ export class LisSimpleTableElement extends LitElement {
     return html`<thead>${row}</thead>`;
   }
 
+  /** @ignore */
   // computes the rows for the component's table
   private _getBody() {
     if (!this.data) {
