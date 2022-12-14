@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Web-Components Demo</title>
+  <title>LIS Web-Components - &lt;lis-simple-table-element&gt;</title>
   <!-- CSS framework -->
   <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
   <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -20,12 +20,23 @@
 <body>
 
   <div class="uk-container">
+    <h1>&lt;lis-simple-table-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-simple-table-element&gt;</code> provides a generic component for building tables programmatically.
+      Specifically, the table is built and populated based on objects and lists provided to the component as attributes/properties.
+      The properties are reactive so the table and its contents can be changed dynamically in response to user input.
+      In this example, the table is built and populated using only JavaScript.
+      See the source code for details.
+      The component is available in the console via the <code>tableElement</code> variable.
+      Use this to try dynamically changing the table and its contents.
+    </p>
+    <hr>
+
     <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
-    <lis-simple-table-element id=table"></lis-simple-table-element>
+    <lis-simple-table-element id="table"></lis-simple-table-element>
   </div>
 
   <!-- set all attributes/properties via JavaScript -->
-  <lis-simple-table-element id="table"></lis-simple-table-element>
   <script type="text/javascript">
     // get the simple table element
     const tableElement = document.getElementById('table');

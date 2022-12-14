@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Web-Components Demo</title>
+  <title>LIS Web-Components - &lt;lis-pagination-element&gt;</title>
   <!-- CSS framework -->
   <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
   <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -20,6 +20,18 @@
 <body>
 
   <div class="uk-container">
+    <h1>&lt;lis-pagination-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-pagination-element&gt;</code> provides a generic pagination element.
+      When the page changes the component emits a custom <code>'pageChange'</code> event containing the new page number.
+      The component will automatically disable the previous button when the page is <code>1</code> and the next button is disabled based on the value of the component's <code>hasNext</code> attribute/property (<code>false</code> by default).
+      The component also supports changing the page programmatically via its <code>previous()</code> and <code>next()</code> methods.
+      In this example, an event listener is added to the component that prints the page number to the console when the page changes.
+      The component is available in the console via the <code>paginationElement</code> variable.
+      Use this to try changing the page programmatically.
+    </p>
+    <hr>
+
     <!-- the custom pagination element -->
     <lis-pagination-element hasNext=true id="pagination"></lis-pagination-element>
   </div>
