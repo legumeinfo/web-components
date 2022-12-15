@@ -94,12 +94,17 @@ export class LisPaginationElement extends LitElement {
 
   /**
    * What page the element is currently on.
+   *
+   * @attribute
+   * @reflected
    */
-  @property({type: Number})
+  @property({type: Number, reflect: true})
   page: number = 1;
 
   /**
    * Whether or not the next button should be enabled.
+   *
+   * @attribute
    */
   @property({type: Boolean})
   hasNext: boolean = false;

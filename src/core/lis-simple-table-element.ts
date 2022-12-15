@@ -97,6 +97,8 @@ export class LisSimpleTableElement extends LitElement {
 
   /**
    * The caption shown above the table.
+   *
+   * @attribute
    */
   @property({type: String})
   caption: string = '';
@@ -104,6 +106,8 @@ export class LisSimpleTableElement extends LitElement {
   /**
    * An ordered list of attributes in the input data objects used to populate
    * table rows. Assumed to be invariant if assigned as an attribute.
+   *
+   * @attribute
    */
   @property({type: Array<string>})
   dataAttributes: Array<string> = [];
@@ -111,6 +115,8 @@ export class LisSimpleTableElement extends LitElement {
   /**
    * A single object mapping attributes to header labels. Assumed to be
    * invariant if assigned as an attribute.
+   *
+   * @attribute
    */
   @property({type: Object})
   header: Object = {};
