@@ -3,6 +3,10 @@
     "tagDefinitions": [
         {
             "tagName": "@htmlElement",
+            "syntaxKind": "modifier"
+        },
+        {
+            "tagName": "@queryStringParameters",
             "syntaxKind": "block"
         }
     ]

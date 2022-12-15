@@ -11,7 +11,7 @@
     "visibilityFilters": {
         "protected": false,
         "private": false,
-        "inherited": false,
+        "inherited": true,
         "external": false
     },
     // add to these links as needed

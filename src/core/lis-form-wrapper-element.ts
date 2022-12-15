@@ -3,10 +3,10 @@ import {customElement, queryAssignedElements} from 'lit/decorators.js';
 
 
 /**
+ * @htmlElement `<lis-form-wrapper-element>`
+ *
  * A Web Component that provides boilerplate functionality for the form it wraps,
  * i.e. the form in its slot.
- *
- * @htmlElement `<lis-form-wrapper-element>`
  *
  * @example 
  * As the name suggests, the component should enclose a form. For example:

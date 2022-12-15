@@ -45,6 +45,8 @@ export type GeneSearchFunction =
 
 
 /**
+ * @htmlElement `<lis-gene-search-element>`
+ *
  * A Web Component that provides an interface for performing keyword searches
  * for genes and displaying results in a paginated table. Note that the
  * component saves its state to the URL query string parameters and a search
@@ -53,7 +55,9 @@ export type GeneSearchFunction =
  * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See
  * the mixin docs for further details.
  *
- * @htmlElement `<lis-gene-search-element>`
+ * @queryStringParameters
+ * - **query:** The text in the query field of the search form.
+ * - **page:** What page of results is loaded.
  *
  * @example 
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
