@@ -97,9 +97,9 @@ Prettier has not been configured to run when committing files so be sure to run 
 
 ## Static Site
 
-This project includes a simple website generated with the [eleventy](11ty.dev) static site generator and the templates and pages in `/docs-src`. The site is generated to `/docs` and intended to be checked in so that GitHub pages can serve the site [from `/docs` on the master branch](https://help.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+This project includes a website generated with the [TypeDoc](https://typedoc.org/) documentation generator. The site is generated to the `/docs` directory and intended to be checked in so that GitHub pages can serve the site [from `/docs` on the main branch](https://help.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-To enable the site go to the GitHub settings and change the GitHub Pages &quot;Source&quot; setting to &quot;master branch /docs folder&quot;.</p>
+To enable the site, go to the GitHub settings and change the GitHub Pages &quot;Source&quot; setting to &quot;main branch `/docs` folder&quot;.</p>
 
 To build the site, run:
 
@@ -111,12 +111,6 @@ To serve the site locally, run:
 
 ```bash
 npm run docs:serve
-```
-
-To watch the site files, and re-build automatically, run:
-
-```bash
-npm run docs:watch
 ```
 
 The site will usually be served at http://localhost:8000.

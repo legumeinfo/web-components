@@ -1,0 +1,62 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+      "./src/core/index.ts",
+      "./src/index.ts",
+      "./src/controllers/index.ts",
+      "./src/mixins/index.ts",
+      "./src/models/index.ts"
+    ],
+    "out": "./docs",
+    "visibilityFilters": {
+        "protected": false,
+        "private": false,
+        "inherited": true,
+        "external": false
+    },
+    // add to these links as needed
+    "externalSymbolLinkMappings": {
+        // e.g. used by {@link !Promise}
+        "global": {
+            // Errors
+            "Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+            // Events
+            "Event": "https://developer.mozilla.org/en-US/docs/Web/API/Event/Event",
+            "CustomEvent": "https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent",
+            "DOMContentLoaded": "https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event",
+            "AbortSignal": "https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal",
+            "AbortController": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+            "popstate": "https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event",
+            // Fundamental objects
+            "Object": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+            "Function": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+            // Indexed collections
+            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            // Control abstraction objects
+            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+            // Custom Elements
+            "HTMLElement": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement"
+        },
+        // e.g. used by type Foo = Promise<string>
+        "typescript": {
+            // Errors
+            "Error": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+            // Events
+            "Event": "https://developer.mozilla.org/en-US/docs/Web/API/Event/Event",
+            "CustomEvent": "https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent",
+            "DOMContentLoaded": "https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event",
+            "AbortSignal": "https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal",
+            "AbortController": "https://developer.mozilla.org/en-US/docs/Web/API/AbortController",
+            "popstate": "https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event",
+            // Fundamental objects
+            "Object": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+            "Function": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+            // Indexed collections
+            "Array": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            // Control abstraction objects
+            "Promise": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+            // Custom Elements
+            "HTMLElement": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement"
+        }
+    }
+}

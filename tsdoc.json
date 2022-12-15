@@ -1,0 +1,26 @@
+{
+    "extends": ["typedoc/tsdoc.json"],
+    "tagDefinitions": [
+        // indicates a class adds a custom HTML element
+        {
+            "tagName": "@htmlElement",
+            "syntaxKind": "modifier"
+        },
+        // describes what query string parameters a component uses
+        {
+            "tagName": "@queryStringParameters",
+            "syntaxKind": "block"
+        },
+        // indicates a component property is also an HTML element attribute
+        {
+            "tagName": "@attribute",
+            "syntaxKind": "modifier"
+        },
+        // indicates that changes to a component property will be reflected to
+        // its HTML element attribute
+        {
+            "tagName": "@reflected",
+            "syntaxKind": "modifier"
+        }
+    ]
+}

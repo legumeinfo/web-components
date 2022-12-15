@@ -14,15 +14,10 @@
     "lint:eslint": "eslint 'src/**/*.ts'",
     "lint:lit-analyzer": "lit-analyzer",
     "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --ignore-path ./.eslintignore --write",
-    "docs": "npm run docs:clean && npm run build && npm run analyze && npm run docs:build && npm run docs:assets && npm run docs:gen",
+    "docs": "npm run docs:clean && npm run docs:gen",
     "docs:clean": "rimraf docs",
-    "docs:gen": "eleventy --config=.eleventy.cjs",
-    "docs:gen:watch": "eleventy --config=.eleventy.cjs --watch",
-    "docs:build": "rollup -c --file docs/web-components.bundled.js",
-    "docs:assets": "cp node_modules/prismjs/themes/prism-okaidia.css docs/",
+    "docs:gen": "npx typedoc --options typedoc.json",
     "docs:serve": "wds --root-dir=docs --node-resolve --watch",
-    "analyze": "cem analyze --litelement --globs \"src/**/*.ts\"",
-    "analyze:watch": "cem analyze --litelement --globs \"src/**/*.ts\" --watch",
     "serve": "wds --watch",
     "serve:prod": "MODE=prod npm run serve",
     "test": "npm run test:dev && npm run test:prod",
@@ -35,11 +30,10 @@
     "package:watch": "rollup -c -w"
   },
   "keywords": [
+    "lit",
     "web-components",
-    "lit-element",
     "typescript",
-    "legumes",
-    "lit"
+    "legumes"
   ],
   "author": "Legume Information System",
   "license": "Apache-2.0",
@@ -48,9 +42,8 @@
     "lit": "^2.2.4"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^1.0.1",
+    "@11ty/eleventy": "^1.0.2",
     "@11ty/eleventy-plugin-syntaxhighlight": "^4.0.0",
-    "@custom-elements-manifest/analyzer": "^0.6.3",
     "@open-wc/testing": "^3.1.5",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
@@ -68,6 +61,7 @@
     "rollup": "^2.73.0",
     "rollup-plugin-summary": "^1.4.3",
     "rollup-plugin-terser": "^7.0.2",
+    "typedoc": "^0.23.21",
     "typescript": "~4.7.4",
     "uikit": "^3.14.3"
   }

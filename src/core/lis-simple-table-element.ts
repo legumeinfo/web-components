@@ -1,38 +1,139 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
+/**
+ * @htmlElement `<lis-simple-table-element>`
+ *
+ * A Web Component that provides a generic table element.
+ *
+ * @slot - Adds content after the content defined via the component properties.
+ * Can be used to manually create a table that has the same styling as the
+ * component.
+ *
+ * @example
+ * The simple table element's
+ * {@link caption | `caption`}, {@link dataAttributes | `dataAttributes`}, and
+ * {@link header | `header`} attributes/properties can be set via HTML or
+ * JavaScript. However, {@link !HTMLElement | `HTMLElement`} properties can only
+ * be set via JavaScript, meaning the {@link data | `data`} property can only be
+ * set via a `<lis-simple-table-element>` tag's instance of the
+ * {@link LisSimpleTableElement | `LisSimpleTableElement`} class. For example:
+ * ```html
+ * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
+ * <lis-simple-table-element
+ *   caption="My cheesy table"
+ *   dataAttributes="['cheese', 'region']"
+ *   header="{cheese: 'Cheese', region: 'Region'}">
+ * </lis-simple-table-element>
+ *
+ * <!-- set all attributes/properties via JavaScript -->
+ * <lis-simple-table-element id="table"></lis-simple-table-element>
+ * <script type="text/javascript">
+ *   // get the simple table element
+ *   const tableElement = document.getElementById('table');
+ *   // set the element's properties
+ *   tableElement.caption = 'My cheesy table';
+ *   tableElement.dataAttributes = ['cheese', 'region'];
+ *   tableElement.header = {cheese: 'Cheese', region: 'Region'};
+ *   tableElement.data = [
+ *     {cheese: 'Brie', region: 'France'},
+ *     {cheese: 'Burrata', region: 'Italy'},
+ *     {cheese: 'Feta', region: 'Greece'},
+ *     {cheese: 'Gouda', region: 'Netherlands'},
+ *   ];
+ * </script>
+ * ```
+ *
+ * @example
+ * Any or all of a simple table's parts can be written in HTML using the
+ * element's slot:
+ * ```html
+ * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
+ * <!-- NOTE: this is the table produced by the previous example -->
+ * <lis-simple-table-element>
+ *   <caption>My cheesy table</caption>
+ *   <thead>
+ *     <tr>
+ *       <th>Cheese</th>
+ *       <th>Region</th>
+ *     </tr>
+ *   </thead>
+ *   <tbody>
+ *     <tr>
+ *       <td>Brie</td>
+ *       <td>France</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Burrata</td>
+ *       <td>Italy</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Feta</td>
+ *       <td>Greece</td>
+ *     </tr>
+ *     <tr>
+ *       <td>Gouda</td>
+ *       <td>Netherlands</td>
+ *     </tr>
+ *   </tbody>
+ * </lis-simple-table-element>
+ * ```
+ */
 @customElement('lis-simple-table-element')
 export class LisSimpleTableElement extends LitElement {
 
-  // disable shadow DOM to inherit global styles
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
+
+  /** @ignore */
+  // disable Shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
   }
 
-  // the caption shown above the table
+  /**
+   * The caption shown above the table.
+   *
+   * @attribute
+   */
   @property({type: String})
   caption: string = '';
 
-  // an ordered list of attributes in the input data objects used to populate
-  // table rows; assumed to be static if assigned as an attribute
+  /**
+   * An ordered list of attributes in the input data objects used to populate
+   * table rows. Assumed to be invariant if assigned as an attribute.
+   *
+   * @attribute
+   */
   @property({type: Array<string>})
-  dataAttributes: string[] = [];
+  dataAttributes: Array<string> = [];
 
-  // a single object mapping attributes to header labels; assumed to be static
-  // if assigned as an attribute
+  /**
+   * A single object mapping attributes to header labels. Assumed to be
+   * invariant if assigned as an attribute.
+   *
+   * @attribute
+   */
   @property({type: Object})
   header: Object = {};
 
-  // the data to display in the table; not an attribute because Arrays (i.e.
-  // Objects) don't trigger Lit change detection
+  /**
+   * The data to display in the table. Only attributes defined in the
+   * {@link dataAttributes | `dataAttributes`} property will be parsed from the
+   * objects.
+   */
+  // not an attribute because Arrays (i.e. Objects) don't trigger Lit change
+  // detection
   @property({type: Array<Object>, attribute: false})
-  data: Object[] = [];
+  data: Array<Object> = [];
 
+  /** @ignore */
   // converts an object to a table row
   private _objectToRow(o: Object, cellTag: string='td') {
-    //const startTag = unsafeHTML(`<${cellTag}>`);
     const startTag = `<${cellTag}>`;
     const endTag = `</${cellTag}>`;
     const cells = this.dataAttributes.map((a) => {
@@ -43,7 +144,8 @@ export class LisSimpleTableElement extends LitElement {
     return html`<tr>${unsafeHTML(cells.join(''))}</tr>`;
   }
 
-  // computes the table caption
+  /** @ignore */
+  // computes the caption part of the component's table
   private _getCaption() {
     if (!this.caption) {
       return html``;
@@ -51,7 +153,8 @@ export class LisSimpleTableElement extends LitElement {
     return html`<caption>${this.caption}</caption>`;
   }
 
-  // computes the table header
+  /** @ignore */
+  // computes the header part of the component's table
   private _getHeader() {
     if (!this.header) {
       return html``;
@@ -60,7 +163,8 @@ export class LisSimpleTableElement extends LitElement {
     return html`<thead>${row}</thead>`;
   }
 
-  // computes the rows for the table
+  /** @ignore */
+  // computes the rows for the component's table
   private _getBody() {
     if (!this.data) {
       return html``;
@@ -69,13 +173,9 @@ export class LisSimpleTableElement extends LitElement {
     return html`<tbody>${rows}</tbody>`;
   }
 
+  /** @ignore */
+  // used by Lit to draw the template
   override render() {
-    // show what's inside the tags if there's no data
-    //if (!this.data) {
-    //  return html`
-    //    <slot></slot>
-    //  `;
-    //}
 
     // compute table parts
     const caption = this._getCaption();
@@ -88,6 +188,7 @@ export class LisSimpleTableElement extends LitElement {
         ${caption}
         ${header}
         ${body}
+        <slot></slot>
       </table>
     `;
   }

@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Web-Components Demo</title>
+  <title>LIS Web-Components - &lt;lis-form-wrapper-element&gt;</title>
   <!-- CSS framework -->
   <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
   <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -20,6 +20,17 @@
 <body>
 
   <div class="uk-container">
+    <h1>&lt;lis-form-wrapper-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-form-wrapper-element&gt;</code> provides boilerplate functionality for the form it wraps, i.e. the form that's in its slot.
+      Specifically, when the wrapped form is submitted the component prevents the page from reloading and emits a custom <code>'submit'</code> event containing a <code><a href="https://developer.mozilla.org/en-US/docs/Web/API/FormData">FormData</a></code> instance with the contents of the submitted form.
+      The component also provides a <code>submit()</code> method that allows the wrapped form to be submitted programmatically.
+      In this example, the component wraps a form with a variety of inputs and an event listener is added to the wrapper that prints the <code>FormData</code> instance to the console when the form is submitted.
+      The component is available in the console via the <code>formElement</code> variable.
+      Use this to try submitting the form programmatically.
+    </p>
+    <hr>
+
     <!-- the custom form wrapper element -->
     <lis-form-wrapper-element id="form-wrapper">
       <!-- the form that's being wrapped -->
@@ -55,6 +66,7 @@
         </div>
       </form>
     </lis-form-wrapper-element>
+
   </div>
 
   <!-- get the form data whenever the form is submitted -->

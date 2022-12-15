@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>LIS Web-Components - &lt;lis-simple-table-element&gt;</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../node_modules/lit/polyfill-support.js"></script>
+  <!-- GraphQL -->
+  <script type="text/javascript" src="../graphql.js"></script>
+  <!-- web components -->
+  <script type="module" src="../../dist/index.js"></script>
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <h1>&lt;lis-simple-table-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-simple-table-element&gt;</code> provides a generic component for building tables programmatically.
+      Specifically, the table is built and populated based on objects and lists provided to the component as attributes/properties.
+      The properties are reactive so the table and its contents can be changed dynamically in response to user input.
+      In this example, the table is built and populated using only JavaScript.
+      See the source code for details.
+      The component is available in the console via the <code>tableElement</code> variable.
+      Use this to try dynamically changing the table and its contents.
+    </p>
+    <hr>
+
+    <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
+    <lis-simple-table-element id="table"></lis-simple-table-element>
+  </div>
+
+  <!-- set all attributes/properties via JavaScript -->
+  <script type="text/javascript">
+    // get the simple table element
+    const tableElement = document.getElementById('table');
+    // set the element's properties
+    tableElement.caption = 'My cheesy table';
+    tableElement.dataAttributes = ['cheese', 'region'];
+    tableElement.header = {cheese: 'Cheese', region: 'Region'};
+    tableElement.data = [
+      {cheese: 'Brie', region: 'France'},
+      {cheese: 'Burrata', region: 'Italy'},
+      {cheese: 'Feta', region: 'Greece'},
+      {cheese: 'Gouda', region: 'Netherlands'},
+    ];
+  </script>
+
+</body>
+
+</html>
