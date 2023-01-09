@@ -34,7 +34,7 @@ export type TraitSearchResult = {
  * submitted.
  * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
- * @param options Optional parameters that aren't required to perform a gene
+ * @param options Optional parameters that aren't required to perform a trait
  * search but may be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
