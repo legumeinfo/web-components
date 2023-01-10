@@ -38,9 +38,9 @@
     <!-- set the search function by property because functions can't be set as attributes -->
     <script type="text/javascript">
 
-      // an example qtl search query for the LIS GraphQL API
+      // QTL trait search query for the LIS GraphQL API
       const qtlQuery = `
-      query ExampleQTLQuery($traitName: String!, $start: Int, $size: Int) {
+      query Query($traitName: String!, $start: Int, $size: Int) {
         qtls(traitName: $traitName, start: $start, size: $size) {
           trait {
              name

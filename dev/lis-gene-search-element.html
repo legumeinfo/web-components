@@ -40,9 +40,9 @@
     <!-- set the search function by property because functions can't be set as attributes -->
     <script type="text/javascript">
 
-      // an example gene search query for the LIS GraphQL API
+      // gene description search query for the LIS GraphQL API
       const geneQuery = `
-      query ExampleGeneQuery($description: String!, $start: Int, $size: Int) {
+      query Query($description: String!, $start: Int, $size: Int) {
         genes(description: $description, start: $start, size: $size) {
           name
           description
