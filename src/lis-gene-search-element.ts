@@ -10,7 +10,7 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type GeneSearchData = {
-  query: string;
+    query: string;
 };
 
 
@@ -19,8 +19,8 @@ export type GeneSearchData = {
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class.
  */
 export type GeneSearchResult = {
-  name: string;
-  description: string;
+    name: string;
+    description: string;
 };
 
 
@@ -41,7 +41,7 @@ export type GeneSearchResult = {
  * objects.
  */
 export type GeneSearchFunction =
-  (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<GeneSearchResult>>;
+    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<GeneSearchResult>>;
 
 
 /**
@@ -85,49 +85,55 @@ export type GeneSearchFunction =
 export class LisGeneSearchElement extends
 LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
-  /** @ignore */
-  // used by Lit to style the Shadow DOM
-  // not necessary but exclusion breaks TypeDoc
-  static override styles = css``;
+    /** @ignore */
+    // used by Lit to style the Shadow DOM
+    // not necessary but exclusion breaks TypeDoc
+    static override styles = css``;
 
-  constructor() {
-    super();
-    // configure query string parameters
-    this.requiredQueryStringParams = ['query'];
-    // configure results table
-    this.resultAttributes = ['name', 'description'];
-    this.tableHeader = {name: 'Name', description: 'Description'};
-  }
+    constructor() {
+        super();
+        // configure query string parameters
+        this.requiredQueryStringParams = ['query'];
+        // configure results table
+        this.resultAttributes = [
+            'name',
+            'description'
+        ];
+        this.tableHeader = {
+            name: 'Name',
+            description: 'Description'
+        };
+    }
 
-  /** @ignore */
-  // used by LisPaginatedSearchMixin to draw the template
-  override renderForm() {
-    return html`
-      <form>
-        <fieldset class="uk-fieldset">
-          <legend class="uk-legend">Gene search</legend>
-          <div class="uk-margin">
-            <input
-              name="query"
-              class="uk-input"
-              type="text"
-              placeholder="Input"
-              aria-label="Input"
-              .value=${this.queryStringController.getParameter('query')}>
-          </div>
-          <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary">Search</button>
-          </div>
-        </fieldset>
-      </form>
-    `;
-  }
+    /** @ignore */
+    // used by LisPaginatedSearchMixin to draw the template
+    override renderForm() {
+        return html`
+<form>
+<fieldset class="uk-fieldset">
+<legend class="uk-legend">Gene search (e.g. photosystem II)</legend>
+<div class="uk-margin">
+<input
+name="query"
+class="uk-input"
+type="text"
+placeholder="Input"
+aria-label="Input"
+.value=${this.queryStringController.getParameter('query')}>
+</div>
+<div class="uk-margin">
+<button type="submit" class="uk-button uk-button-primary">Search</button>
+</div>
+</fieldset>
+</form>
+`;
+    }
 
 }
 
 
 declare global {
-  interface HTMLElementTagNameMap {
-    'lis-gene-search-element': LisGeneSearchElement;
-  }
+    interface HTMLElementTagNameMap {
+        'lis-gene-search-element': LisGeneSearchElement;
+    }
 }

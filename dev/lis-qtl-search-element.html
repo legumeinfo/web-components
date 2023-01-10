@@ -42,13 +42,22 @@
       const qtlQuery = `
       query ExampleQTLQuery($traitName: String!, $start: Int, $size: Int) {
         qtls(traitName: $traitName, start: $start, size: $size) {
+          trait {
+             name
+          }
           identifier
+          linkageGroup {
+             geneticMap {
+                identifier
+             }
+             identifier
+          }
           start
           end
           markerNames
         }
       }
-    `;
+     `;
       
       // the search function given to the LIS qtl search Web Component
       function getQTLs(searchData, page, {abortSignal}) {
@@ -65,10 +74,12 @@
                   const hasNext = pageSize+1 === data.qtls.length;
                   // remove the lookahead result
                   if (hasNext) data.qtls.pop();
+                  // flatten results that contain objects
+                  const results = data.qtls.map(qtl => flatten(qtl));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-                      results: data.qtls,
+                      results,
                   };
                   return paginatedResults;
               });

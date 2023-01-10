@@ -96,8 +96,16 @@ LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
         // configure query string parameters
         this.requiredQueryStringParams = ['query'];
         // configure results table
-        this.resultAttributes = ['identifier', 'name', 'description'];
-        this.tableHeader = {identifier: 'Identifier', name: 'Name', description: 'Description'};
+        this.resultAttributes = [
+            'name',
+            'identifier',
+            'description'
+        ];
+        this.tableHeader = {
+            name: 'Name',
+            identifier: 'Identifier',
+            description: 'Description'
+        };
     }
 
     /** @ignore */
@@ -106,7 +114,7 @@ LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
         return html`
 <form>
 <fieldset class="uk-fieldset">
-<legend class="uk-legend">Trait search</legend>
+<legend class="uk-legend">Trait search (e.g. flower)</legend>
 <div class="uk-margin">
 <input
 name="query"
