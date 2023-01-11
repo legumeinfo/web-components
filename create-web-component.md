@@ -13,7 +13,7 @@ page on a separate web site. The key things here are
 2. the GraphQL query, held in the constant `publicationQuery` here
 3. the function given to the web component search function, called `getPublications` here
 
-```
+```html
 <html>
   <head>
     <meta charset="utf-8" />
@@ -102,7 +102,7 @@ query Query($title: String!, $start: Int, $size: Int) {
 ## `src/lis-publication-search-element.ts` ##
 Create your web component by defining it in this new Typescript file. This file lists the flattened attributes provided by the function defined in the
 HTML file above, and associates them with columns in the output table.
-```
+```typescript
 import {LitElement, css, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
 
@@ -276,7 +276,7 @@ and then display them in a table with the following headers:
 
 ## src/index.ts ##
 Export our new web component:
-```
+```typescript
 /**
  * This module contains higher-order Web Components that implement rich
  * functionality for end users of this library. This module re-exports
@@ -295,7 +295,7 @@ export * from './lis-publication-search-element';
 ## index.html ##
 This development web page lists all the web components for testing within the **web-components** repo. Link the dev page you wrote in the 
 first step here.
-```
+```html
     <ul class="uk-list uk-list-disc">
       <li><a href="/dev/lis-gene-search-element.html">&lt;lis-gene-search-element&gt;</a></li>
       ... other components ...
