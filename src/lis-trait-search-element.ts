@@ -114,7 +114,7 @@ LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
         return html`
 <form>
 <fieldset class="uk-fieldset">
-<legend class="uk-legend">Trait search (e.g. flower)</legend>
+<legend class="uk-legend">Trait name search (e.g. flower)</legend>
 <div class="uk-margin">
 <input
 name="query"
