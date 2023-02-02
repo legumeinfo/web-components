@@ -5,3 +5,5 @@
 /dist/
 # only generated for size check
 web-components.bundled.js
+# emacs backups from Sammy
+*~

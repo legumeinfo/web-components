@@ -10,7 +10,7 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * search is performed.
  */
 export type TraitSearchData = {
-  query: string;
+    query: string;
 };
 
 
@@ -19,8 +19,9 @@ export type TraitSearchData = {
  * {@link LisTraitSearchElement | `LisTraitSearchElement`} class.
  */
 export type TraitSearchResult = {
-  name: string;
-  description: string;
+    identifier: string;
+    name: string;
+    description: string;
 };
 
 
@@ -33,7 +34,7 @@ export type TraitSearchResult = {
  * submitted.
  * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
- * @param options Optional parameters that aren't required to perform a gene
+ * @param options Optional parameters that aren't required to perform a trait
  * search but may be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
@@ -41,7 +42,7 @@ export type TraitSearchResult = {
  * objects.
  */
 export type TraitSearchFunction =
-  (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<TraitSearchResult>>;
+    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<TraitSearchResult>>;
 
 
 /**
@@ -85,49 +86,57 @@ export type TraitSearchFunction =
 export class LisTraitSearchElement extends
 LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
 
-  /** @ignore */
-  // used by Lit to style the Shadow DOM
-  // not necessary but exclusion breaks TypeDoc
-  static override styles = css``;
+    /** @ignore */
+    // used by Lit to style the Shadow DOM
+    // not necessary but exclusion breaks TypeDoc
+    static override styles = css``;
 
-  constructor() {
-    super();
-    // configure query string parameters
-    this.requiredQueryStringParams = ['query'];
-    // configure results table
-    this.resultAttributes = ['name', 'description'];
-    this.tableHeader = {name: 'Name', description: 'Description'};
-  }
+    constructor() {
+        super();
+        // configure query string parameters
+        this.requiredQueryStringParams = ['query'];
+        // configure results table
+        this.resultAttributes = [
+            'name',
+            'identifier',
+            'description'
+        ];
+        this.tableHeader = {
+            name: 'Name',
+            identifier: 'Identifier',
+            description: 'Description'
+        };
+    }
 
-  /** @ignore */
-  // used by LisPaginatedSearchMixin to draw the template
-  override renderForm() {
-    return html`
-      <form>
-        <fieldset class="uk-fieldset">
-          <legend class="uk-legend">Trait search</legend>
-          <div class="uk-margin">
-            <input
-              name="query"
-              class="uk-input"
-              type="text"
-              placeholder="Input"
-              aria-label="Input"
-              .value=${this.queryStringController.getParameter('query')}>
-          </div>
-          <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary">Search</button>
-          </div>
-        </fieldset>
-      </form>
-    `;
-  }
+    /** @ignore */
+    // used by LisPaginatedSearchMixin to draw the template
+    override renderForm() {
+        return html`
+<form>
+<fieldset class="uk-fieldset">
+<legend class="uk-legend">Trait name search (e.g. flower)</legend>
+<div class="uk-margin">
+<input
+name="query"
+class="uk-input"
+type="text"
+placeholder="Input"
+aria-label="Input"
+.value=${this.queryStringController.getParameter('query')}>
+</div>
+<div class="uk-margin">
+<button type="submit" class="uk-button uk-button-primary">Search</button>
+</div>
+</fieldset>
+</form>
+`;
+    }
 
 }
 
 
 declare global {
-  interface HTMLElementTagNameMap {
-    'lis-trait-search-element': LisTraitSearchElement;
-  }
+    interface HTMLElementTagNameMap {
+        'lis-trait-search-element': LisTraitSearchElement;
+    }
 }

@@ -4,7 +4,7 @@
 
   <head>
     <meta charset="utf-8" />
-    <title>LIS Web-Components - &lt;lis-trait-search-element&gt;</title>
+    <title>LIS Web-Components - &lt;lis-publication-search-element&gt;</title>
     <!-- CSS framework -->
     <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
     <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -20,63 +20,66 @@
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-trait-search-element&gt;</h1>
+      <h1>&lt;lis-publication-search-element&gt;</h1>
       <p>
-        The <code>&lt;lis-trait-search-element&gt;</code> provides a form for performing trait searches and displays the results in a paginated table.
+        The <code>&lt;lis-publication-search-element&gt;</code> provides a form for performing publication searches and displays the results in a paginated table.
         The search is performed using an external function provided to the component when it is added to the page.
-        In this example, the component performs a path query search for legume traits using the LIS GraphQL API query <code>traits</code>.
+        In this example, the component performs a path query search for Publications using the LIS GraphQL API query <code>publications</code>.
         See the source code for details.
         Note that the form's input and page values are kept up to date in the URL query string parametrers.
         This allows users to share specific pages from a search via the URL and for the search history to be navigated via the Web browser's forward and back buttons.
         If the query string parameters are present when the component loads then a search will be automatically performed with the query string parameter values.
       </p>
       <hr>
-
-      <!-- the custom trait search element -->
-      <lis-trait-search-element id="trait-search"></lis-trait-search-element>
-
+      <!-- the custom publication search element -->
+      <lis-publication-search-element id="publication-search"></lis-publication-search-element>
     </div>
 
     <!-- set the search function by property because functions can't be set as attributes -->
     <script type="text/javascript">
 
-      // trait name search query for the LIS GraphQL API
-      const traitQuery = `
-      query Query($name: String!, $start: Int, $size: Int) {
-        traits(name: $name, start: $start, size: $size) {
-          identifier
-          name
-          description
-        }
-      }
-    `;
+      // publication title search query for the LIS GraphQL API
+      const publicationQuery = `
+query Query($title: String!, $start: Int, $size: Int) {
+  publications(title: $title, start: $start, size: $size) {
+    year
+    title
+    journal
+    firstAuthor
+    doi
+    pubMedId
+  }
+}
+`;
       
-      // the search function given to the LIS gene search Web Component
-      function getTraits(searchData, page, {abortSignal}) {
-          const name = searchData['query'];
+      // the search function given to the LIS publication search Web Component
+      function getPublications(searchData, page, {abortSignal}) {
+          const title = searchData['query'];
           const pageSize = 10;
           const start = (page-1)*pageSize;
           // pageSize+1 because we want to see if there's a "next" page
-          const variables = {name, start, size: pageSize+1};
-          // returns a Promise that resolves to an array of Trait objects the trait search
+          const variables = {title, start, size: pageSize+1};
+          // returns a Promise that resolves to an array of Publication objects the publication search
           // Web Component knows how to parse: {name: string, name: string}[]
-          return graphqlQuery(uri, traitQuery, variables, abortSignal)
+          return graphqlQuery(uri, publicationQuery, variables, abortSignal)
               .then(({data}) => {
                   // compute if there's a next page
-                  const hasNext = pageSize+1 === data.traits.length;
+                  const hasNext = pageSize+1 === data.publications.length;
                   // remove the lookahead result
-                  if (hasNext) data.traits.pop();
+                  if (hasNext) data.publications.pop();
+                  // flatten results if they contain objects
+                  const results = data.publications.map(publication => flatten(publication));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-                      results: data.traits,
+                      results,
                   };
                   return paginatedResults;
               });
       }
 
-      const traitSearchElement = document.getElementById('trait-search');
-      traitSearchElement.searchFunction = getTraits;
+      const publicationSearchElement = document.getElementById('publication-search');
+      publicationSearchElement.searchFunction = getPublications;
 
     </script>
 

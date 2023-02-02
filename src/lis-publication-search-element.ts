@@ -6,49 +6,53 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
 /**
  * The data that will be passed to the search function by the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class when a search is
+ * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class when a search is
  * performed.
  */
-export type GeneSearchData = {
+export type PublicationSearchData = {
     query: string;
 };
 
 
 /**
- * A single result of a gene search performed by the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class.
+ * A single result of a Publication search performed by the
+ * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class.
  */
-export type GeneSearchResult = {
-    name: string;
-    description: string;
+export type PublicationSearchResult = {
+    year: number;
+    title: string;
+    journal: string;
+    firstAuthor: string;
+    doi: string;
+    pubMedId: string;
 };
 
 
 /**
  * The signature of the function the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
- * performing a gene search.
+ * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class requires for
+ * performing a Publication search.
  *
  * @param query The search term in the input element when the search form was
  * submitted.
  * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
- * @param options Optional parameters that aren't required to perform a gene
+ * @param options Optional parameters that aren't required to perform a Publication
  * search but may be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
+ * {@link !Array | `Array`} of {@link PublicationSearchResult | `PublicationSearchResult`}
  * objects.
  */
-export type GeneSearchFunction =
-    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<GeneSearchResult>>;
+export type PublicationSearchFunction =
+    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<PublicationSearchResult>>;
 
 
 /**
- * @htmlElement `<lis-gene-search-element>`
+ * @htmlElement `<lis-publication-search-element>`
  *
  * A Web Component that provides an interface for performing keyword searches
- * for genes and displaying results in a paginated table. Note that the
+ * for Publications and displaying results in a paginated table. Note that the
  * component saves its state to the URL query string parameters and a search
  * will be automatically performed if the parameters are present when the
  * componnent is loaded. The component uses the
@@ -62,28 +66,28 @@ export type GeneSearchFunction =
  * @example 
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
- * must be set on a `<lis-gene-search-element>` tag's instance of the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class. For example:
+ * must be set on a `<lis-publication-search-element>` tag's instance of the
+ * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
- * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <lis-publication-search-element id="publication-search"></lis-publication-search-element>
  *
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
- *   // a site-specific function that sends a request to a gene search API
- *   function getGenes(searchText, page, {abortSignal}) {
+ *   // a site-specific function that sends a request to a Publication search API
+ *   function getPublications(searchText, page, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
- *   // get the gene search element
- *   const searchElement = document.getElementById('gene-search');
+ *   // get the Publication search element
+ *   const searchElement = document.getElementById('publication-search');
  *   // set the element's searchFunction property
- *   searchElement.searchFunction = getGenes;
+ *   searchElement.searchFunction = getPublications;
  * </script>
  * ```
  */
-@customElement('lis-gene-search-element')
-export class LisGeneSearchElement extends
-LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
+@customElement('lis-publication-search-element')
+export class LisPublicationSearchElement extends
+LisPaginatedSearchMixin(LitElement)<PublicationSearchData, PublicationSearchResult>() {
 
     /** @ignore */
     // used by Lit to style the Shadow DOM
@@ -96,12 +100,20 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
         this.requiredQueryStringParams = ['query'];
         // configure results table
         this.resultAttributes = [
-            'name',
-            'description'
+            'year',
+            'title',
+            'journal',
+            'firstAuthor',
+            'doi',
+            'pubMedId'
         ];
         this.tableHeader = {
-            name: 'Name',
-            description: 'Description'
+            'year': 'Year',
+            'title': 'Title',
+            'journal': 'Journal',
+            'firstAuthor': 'First Author',
+            'doi': 'DOI',
+            'pubMedId': 'PubMed'
         };
     }
 
@@ -111,7 +123,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
         return html`
 <form>
 <fieldset class="uk-fieldset">
-<legend class="uk-legend">Gene description search (e.g. photosystem II)</legend>
+<legend class="uk-legend">Publication title search (e.g. expression)</legend>
 <div class="uk-margin">
 <input
 name="query"
@@ -134,6 +146,6 @@ aria-label="Input"
 
 declare global {
     interface HTMLElementTagNameMap {
-        'lis-gene-search-element': LisGeneSearchElement;
+        'lis-publication-search-element': LisPublicationSearchElement;
     }
 }
