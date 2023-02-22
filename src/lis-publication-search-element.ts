@@ -84,6 +84,34 @@ export type PublicationSearchFunction =
  *   searchElement.searchFunction = getPublications;
  * </script>
  * ```
+ *
+ * @example 
+ * The {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class inherits the
+ * {@link resultAttributes | `resultAttributes`} and
+ * {@link tableHeader | `tableHeader`} properties from
+ * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. These are
+ * used to define what attributes of the results provided by the
+ * {@link searchFunction | `searchFunction`} will be shown in the results table and
+ * what their corresponding headers will be in the table. These properties can be
+ * overridden via JavaScript. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-publication-search-element id="publication-search"></lis-publication-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the publication search element
+ *   const searchElement = document.getElementById('publication-search');
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["title", "firstAuthor", "doi"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     title: "Title",
+ *     firstAuthor: "First Author",
+ *     doi: "DOI",
+ *   };
+ * </script>
+ * ```
  */
 @customElement('lis-publication-search-element')
 export class LisPublicationSearchElement extends

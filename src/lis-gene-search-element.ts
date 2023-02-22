@@ -80,6 +80,34 @@ export type GeneSearchFunction =
  *   searchElement.searchFunction = getGenes;
  * </script>
  * ```
+ *
+ * @example 
+ * The {@link LisGeneSearchElement | `LisGeneSearchElement`} class inherits the
+ * {@link resultAttributes | `resultAttributes`} and
+ * {@link tableHeader | `tableHeader`} properties from
+ * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. These are
+ * used to define what attributes of the results provided by the
+ * {@link searchFunction | `searchFunction`} will be shown in the results table and
+ * what their corresponding headers will be in the table. These properties can be
+ * overridden via JavaScript. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the gene search element
+ *   const searchElement = document.getElementById('gene-search');
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["name", "description", "link"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     name: "Name",
+ *     description: "Description",
+ *     link: "Link",
+ *   };
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends

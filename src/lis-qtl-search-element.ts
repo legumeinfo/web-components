@@ -85,6 +85,34 @@ export type QTLSearchFunction =
  *   searchElement.searchFunction = getQTLs;
  * </script>
  * ```
+ *
+ * @example 
+ * The {@link LisQTLSearchElement | `LisQTLSearchElement`} class inherits the
+ * {@link resultAttributes | `resultAttributes`} and
+ * {@link tableHeader | `tableHeader`} properties from
+ * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. These are
+ * used to define what attributes of the results provided by the
+ * {@link searchFunction | `searchFunction`} will be shown in the results table and
+ * what their corresponding headers will be in the table. These properties can be
+ * overridden via JavaScript. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-qtl-search-element id="qtl-search"></lis-qtl-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the qtl search element
+ *   const searchElement = document.getElementById('qtl-search');
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["trait_name", "identifier", "link"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     trait_name: "Trait Name",
+ *     identifier: "Identifier",
+ *     link: "Link",
+ *   };
+ * </script>
+ * ```
  */
 @customElement('lis-qtl-search-element')
 export class LisQTLSearchElement extends

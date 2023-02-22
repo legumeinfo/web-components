@@ -81,6 +81,35 @@ export type TraitSearchFunction =
  *   searchElement.searchFunction = getTraits;
  * </script>
  * ```
+ *
+ * @example 
+ * The {@link LisTraitSearchElement | `LisTraitSearchElement`} class inherits the
+ * {@link resultAttributes | `resultAttributes`} and
+ * {@link tableHeader | `tableHeader`} properties from
+ * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. These are
+ * used to define what attributes of the results provided by the
+ * {@link searchFunction | `searchFunction`} will be shown in the results table and
+ * what their corresponding headers will be in the table. These properties can be
+ * overridden via JavaScript. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-trait-search-element id="trait-search"></lis-trait-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the trait search element
+ *   const searchElement = document.getElementById('trait-search');
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["name", "identifier", "description", "link"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     name: "Name",
+ *     identifier: "Identifier",
+ *     description: "Description",
+ *     link: "Link",
+ *   };
+ * </script>
+ * ```
  */
 @customElement('lis-trait-search-element')
 export class LisTraitSearchElement extends
