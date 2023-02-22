@@ -157,7 +157,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * correctly parse and display the results in a table. These attributes
    * can be specified by setting this property in a component's constructor.
    */
-  protected resultAttributes: string[];
+  public resultAttributes: string[];
 
   /**
    * Components that use the
@@ -167,7 +167,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * table is set from an object that has these attributes. The object can
    * be specified by setting this property in a component's constructor.
    */
-  protected tableHeader: Object;
+  public tableHeader: Object;
 
   /**
    * When the form of a component that use the
