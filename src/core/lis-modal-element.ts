@@ -30,12 +30,12 @@ export class LisModalElement extends LitElement {
   }
 
   /**
-   * The caption shown for the modal window.
+   * The header for the modal.
    *
    * @attribute
    */
   @property({type: String})
-  caption: string = '';
+  header: string = '';
 
   /**
    * Text to populate the modal.
@@ -43,49 +43,24 @@ export class LisModalElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  modalString: string = "";
-
-  /**
-   * An ordered list of objects to populate the modal.
-   *
-   * @attribute
-   */
-  @property({type: Array<string>})
-  modalList: Array<string> = [];
-
+  content: string = '';
 
   /** @ignore */
-  // converts an object to a table row. If link is not null build <a> else <p>
-  private _objectToTable(o: string, cellTag: string='td') {
-    const startTag = `<${cellTag}>`;
-    const endTag = `</${cellTag}>`;
-//    const link = o.hasOwnProperty('href') ? o['href' as keyof typeof o] : null;
-//    const text = o.hasOwnProperty('text') ? o['text' as keyof typeof o] : '';
-//    const linkout = link ? `<a href="${link}">${text}</a>` : `<p>${text}</p>`;
-//    const cell = startTag + linkout + endTag;
-    const cell = startTag + o + endTag;
-    return html`<tr>${unsafeHTML(cell)}</tr>`;
-  }
-
-  /** @ignore */
-  // computes the caption part of the component's table
-  private _getCaption() {
-    if (!this.caption) {
+  // returns the modal header portion of the component
+  private _getHeader() {
+    if (!this.header) {
       return html``;
     }
-    return html`<caption>${this.caption}</caption>`;
+    return html`<div class="uk-modal-header">${this.header}</div>`;
   }
 
   /** @ignore */
+  // returns the modal content of the component
   private _getBody() {
-    if (!(this.modalString || this.modalList)) {
+    if (!this.content) {
       return html``;
     }
-    if(this.modalString){
-      return html`<p>${unsafeHTML(this.modalString)}</p>`
-    }
-    const rows = this.modalList.map((o) => this._objectToTable(o));
-    return html`<table><tbody>${rows}</tbody></table>`;
+    return html`<div class="uk-modal-body" uk-overflow-auto>${unsafeHTML(this.content)}</div>`;
   }
 
   /** @ignore */
@@ -93,7 +68,7 @@ export class LisModalElement extends LitElement {
   override render() {
 
     // compute modal parts
-    const caption = this._getCaption();
+    const header = this._getHeader();
     const body = this._getBody();
 
     // draw the modal
@@ -101,12 +76,8 @@ export class LisModalElement extends LitElement {
       <div id="lis-modal" class="uk-modal">
         <div class="uk-modal-dialog">
           <button class="uk-modal-close-default" type="button" uk-close></button>
-          <div class="uk-modal-header">
-            ${caption}
-          </div>
-          <div class="uk-modal-body" uk-overflow-auto>
-            ${body}
-          </div>
+          ${header}
+          ${body}
         </div>
         <slot></slot>
       </div>
