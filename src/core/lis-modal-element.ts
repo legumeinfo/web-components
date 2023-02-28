@@ -63,7 +63,8 @@ export class LisModalElement extends LitElement {
 //    const text = o.hasOwnProperty('text') ? o['text' as keyof typeof o] : '';
 //    const linkout = link ? `<a href="${link}">${text}</a>` : `<p>${text}</p>`;
 //    const cell = startTag + linkout + endTag;
-    return html`<tr>${unsafeHTML(o)}</tr>`;
+    const cell = startTag + o + endTag;
+    return html`<tr>${unsafeHTML(cell)}</tr>`;
   }
 
   /** @ignore */
@@ -77,10 +78,9 @@ export class LisModalElement extends LitElement {
 
   /** @ignore */
   private _getBody() {
-    if (!(this.modalString or this.modalList)) {
+    if (!(this.modalString || this.modalList)) {
       return html``;
     }
-    const rows = null;
     if(this.modalString){
       return html`<p>${unsafeHTML(this.modalString)}</p>`
     }
