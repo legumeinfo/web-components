@@ -1,5 +1,5 @@
 import {LitElement, html, css} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement} from 'lit/decorators.js';
 
 
 /**
@@ -28,50 +28,33 @@ export class LisModalElement extends LitElement {
     return this;
   }
 
-  /**
-   * The header for the modal.
-   *
-   * @attribute
-   */
-  @property({type: String})
-  header: string = '';
-
-  /**
-   * Text to populate the modal.
-   *
-   * @attribute
-   */
-  @property({type: String})
-  content: string = '';
-
   /** @ignore */
   // returns the modal header portion of the component
-  private _getHeader() {
-    if (!this.header) {
-      return html``;
-    }
-    return html`<div class="uk-modal-header">${this.header}</div>`;
-  }
+  //private _getHeader() {
+  //  if (!this.header) {
+  //    return html``;
+  //  }
+  //  return html`<div class="uk-modal-header">${this.header}</div>`;
+  //}
 
 
   /** @ignore */
   // used by Lit to draw the template
   override render() {
 
-    // compute modal parts
-    const header = this._getHeader();
-
     // draw the modal
     return html`
-      <div id="lis-modal" class="uk-modal">
-        <div class="uk-modal-dialog">
-          <button class="uk-modal-close-default" type="button" uk-close></button>
-          ${header}
-	  <div class="uk-modal-body" uk-overflow-auto>
-            <slot></slot>
-	  </div>
+    <div id="modal-overflow" uk-modal>
+      <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="modal-header">
+          <slot name="header"><h1>Modal Header</h1></slot>
+        </div>
+        <div class="uk-modal-body" uk-overflow-auto>
+          <slot></slot>
         </div>
       </div>
+    </div>
     `;
   }
 }
