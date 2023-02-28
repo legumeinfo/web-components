@@ -1,6 +1,5 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
 /**
@@ -54,14 +53,6 @@ export class LisModalElement extends LitElement {
     return html`<div class="uk-modal-header">${this.header}</div>`;
   }
 
-  /** @ignore */
-  // returns the modal content of the component
-  private _getBody() {
-    if (!this.content) {
-      return html``;
-    }
-    return html`<div class="uk-modal-body" uk-overflow-auto>${unsafeHTML(this.content)}</div>`;
-  }
 
   /** @ignore */
   // used by Lit to draw the template
@@ -69,7 +60,6 @@ export class LisModalElement extends LitElement {
 
     // compute modal parts
     const header = this._getHeader();
-    const body = this._getBody();
 
     // draw the modal
     return html`
@@ -77,9 +67,10 @@ export class LisModalElement extends LitElement {
         <div class="uk-modal-dialog">
           <button class="uk-modal-close-default" type="button" uk-close></button>
           ${header}
-          ${body}
+	  <div class="uk-modal-body" uk-overflow-auto>
+            <slot></slot>
+	  </div>
         </div>
-        <slot></slot>
       </div>
     `;
   }
