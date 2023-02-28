@@ -38,23 +38,32 @@ export class LisModalElement extends LitElement {
   caption: string = '';
 
   /**
+   * Text to populate the modal.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  modalString: string = "";
+
+  /**
    * An ordered list of objects to populate the modal.
    *
    * @attribute
    */
   @property({type: Array<string>})
-  data: Array<string> = [];
+  modalList: Array<string> = [];
+
 
   /** @ignore */
   // converts an object to a table row. If link is not null build <a> else <p>
-  private _objectToTable(o: Object, cellTag: string='td') {
+  private _objectToTable(o: string, cellTag: string='td') {
     const startTag = `<${cellTag}>`;
     const endTag = `</${cellTag}>`;
-    const link = o.hasOwnProperty('href') ? o['href' as keyof typeof o] : null;
-    const text = o.hasOwnProperty('text') ? o['text' as keyof typeof o] : '';
-    const linkout = link ? `<a href="${link}">${text}</a>` : `<p>${text}</p>`;
-    const cell = startTag + linkout + endTag;
-    return html`<tr>${unsafeHTML(cell)}</tr>`;
+//    const link = o.hasOwnProperty('href') ? o['href' as keyof typeof o] : null;
+//    const text = o.hasOwnProperty('text') ? o['text' as keyof typeof o] : '';
+//    const linkout = link ? `<a href="${link}">${text}</a>` : `<p>${text}</p>`;
+//    const cell = startTag + linkout + endTag;
+    return html`<tr>${unsafeHTML(o)}</tr>`;
   }
 
   /** @ignore */
@@ -68,11 +77,15 @@ export class LisModalElement extends LitElement {
 
   /** @ignore */
   private _getBody() {
-    if (!this.data) {
+    if (!(this.modalString or this.modalList)) {
       return html``;
     }
-    const rows = this.data.map((o) => this._objectToTable(o));
-    return html`<tbody>${rows}</tbody>`;
+    const rows = null;
+    if(this.modalString){
+      return html`<p>${unsafeHTML(this.modalString)}</p>`
+    }
+    const rows = this.modalList.map((o) => this._objectToTable(o));
+    return html`<table><tbody>${rows}</tbody></table>`;
   }
 
   /** @ignore */
@@ -92,9 +105,7 @@ export class LisModalElement extends LitElement {
             ${caption}
           </div>
           <div class="uk-modal-body" uk-overflow-auto>
-            <table>
-              ${body}
-            </table>
+            ${body}
           </div>
         </div>
         <slot></slot>
