@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>LIS Web-Components - &lt;lis-modal-element&gt;</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../node_modules/lit/polyfill-support.js"></script>
+  <!-- GraphQL -->
+  <script type="text/javascript" src="../graphql.js"></script>
+  <!-- web components 
+  <script type="module" src="../../dist/index.js"></script>-->
+  <script type="module" src="../../dist/web-components.bundled.js"></script>
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <h1>&lt;lis-modal-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-modal-element&gt;</code> provides a generic component for rendering a modal.
+      In this example, the modal is built and populated with the lis-simple-table-element.
+      See the source code for details.
+    </p>
+    <hr>
+
+	    <!--        <lis-simple-table-element id="table"></lis-simple-table-element>-->
+    <a class="uk-button uk-button-default" href="#modal-overflow" uk-toggle>Open</a>
+    <lis-modal-element>
+	    Test Modal Content
+    </lis-modal-element>
+  </div>
+
+  <!-- set all attributes/properties via JavaScript
+  <script type="text/javascript">
+    // get the simple table element
+    const tableElement = document.getElementById('table');
+    // set the element's properties
+    tableElement.caption = 'My cheesy table';
+    tableElement.dataAttributes = ['cheese', 'region'];
+    tableElement.header = {cheese: 'Cheese', region: 'Region'};
+    tableElement.data = [
+      {cheese: 'Brie', region: 'France'},
+      {cheese: 'Burrata', region: 'Italy'},
+      {cheese: 'Feta', region: 'Greece'},
+      {cheese: 'Gouda', region: 'Netherlands'},
+    ];
+  </script>-->
+
+</body>
+
+</html>
