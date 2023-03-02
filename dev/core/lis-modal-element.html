@@ -31,12 +31,15 @@
 
 	    <!--        <lis-simple-table-element id="table"></lis-simple-table-element>-->
     <a class="uk-button uk-button-default" href="#modal-overflow" uk-toggle>Open</a>
-    <lis-modal-element header="Test Header" content="test content"></lis-modal-element>
+    <lis-modal-element header="Test Header" content="<lis-simple-table-element id='table'></lis-simple-table-element>"></lis-modal-element>
   </div>
 
-  <!-- set all attributes/properties via JavaScript
+  <!  set all attributes/properties via JavaScript-->
   <script type="text/javascript">
     // get the simple table element
+   window.onload = (event) => {
+    console.log("page is fully loaded");
+
     const tableElement = document.getElementById('table');
     // set the element's properties
     tableElement.caption = 'My cheesy table';
@@ -48,7 +51,8 @@
       {cheese: 'Feta', region: 'Greece'},
       {cheese: 'Gouda', region: 'Netherlands'},
     ];
-  </script>-->
+   }
+  </script>
 
 </body>
 
