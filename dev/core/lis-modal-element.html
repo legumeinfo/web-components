@@ -24,20 +24,19 @@
     <h1>&lt;lis-modal-element&gt;</h1>
     <p>
       The <code>&lt;lis-modal-element&gt;</code> provides a generic component for rendering a modal.
-      In this example, the modal is built and populated with the lis-simple-table-element.
-      See the source code for details.
+      In this example, the modal is populated with the lis-simple-table-element web component.
+      See the source code and documentation for details.
     </p>
     <hr>
     <a class="uk-button uk-button-default" href="#modal-test" uk-toggle>Open</a>
-    <lis-modal-element id="modal-test" header="Test Header" content="<lis-simple-table-element id='table'></lis-simple-table-element>"></lis-modal-element>
+    <lis-modal-element name="modal-test" heading="Cheesy Table Modal" content="<lis-simple-table-element id='table'></lis-simple-table-element>"></lis-modal-element>
   </div>
 
-  <!  set all attributes/properties via JavaScript-->
+  <!--Set all attributes/properties via JavaScript for lis-simple-table-element-->
   <script type="text/javascript">
     // get the simple table element
    window.onload = (event) => {
     console.log("page is fully loaded");
-
     const tableElement = document.getElementById('table');
     // set the element's properties
     tableElement.caption = 'My cheesy table';
