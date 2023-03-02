@@ -8,12 +8,59 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  *
  * A Web Component that provides a generic modal element.
  *
- * @slot - Adds content after the content defined via the component properties.
- * Can be used to manually create a modal that has the same styling as the
- * component.
+ * @example
+ * The modal element's
+ * {@link name | `name`}, {@link heading | `heading`}, and
+ * {@link content | `content`} attributes/properties can be set via HTML or
+ * javascript.
+ *
+ * For example:
+ * ```html
+ * <!-- set the name, heading and content via HTML -->
+ * <lis-modal-element
+ *   name="modal-test"
+ *   heading="Test Modal"
+ *   content="<p>Some HTML or text to be rendered</p>">
+ * </lis-modal-element>
+ * ```
  *
  * @example
- * ADD FULL EXAMPLES
+ * In the example below, the lis-simple-table-element web component
+ * is rendered within the lis-modal-element.
+ *
+ * The attributes/properties for lis-simple-table-element are set below
+ * in javascript. Please see the documentation for lis-simple-table-element
+ * for more information.
+ *
+ * ```html
+ * <lis-modal-element 
+ *   name="modal-test" 
+ *   heading="Cheesy Table Modal"
+ *   content="
+ *   <lis-simple-table-element 
+ *   id='table'>
+ *   </lis-simple-table-element>">
+ * </lis-modal-element>
+ * 
+ * <script type="text/javascript">
+ *  // get the simple table element after page loads.
+ *  window.onload = (event) => {
+ *   console.log("page is fully loaded");
+ *
+ *   const tableElement = document.getElementById('table');
+ *   // set the element's properties
+ *   tableElement.caption = 'My cheesy table';
+ *   tableElement.dataAttributes = ['cheese', 'region'];
+ *   tableElement.header = {cheese: 'Cheese', region: 'Region'};
+ *   tableElement.data = [
+ *     {cheese: 'Brie', region: 'France'},
+ *     {cheese: 'Burrata', region: 'Italy'},
+ *     {cheese: 'Feta', region: 'Greece'},
+ *     {cheese: 'Gouda', region: 'Netherlands'},
+ *   ];
+ *  }
+ * </script>
+ * ```
  */
 @customElement('lis-modal-element')
 export class LisModalElement extends LitElement {
@@ -30,12 +77,21 @@ export class LisModalElement extends LitElement {
   }
 
   /**
+   * The text to use as the Id for the uk-modal.
+   * This is used to bind buttons to show/hide.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  name: string = "lis-modal";
+
+  /**
    * The text or HTML to populate uk-modal-header
    *
    * @attribute
    */
   @property({type: String})
-  header: string = "";
+  heading: string = "";
 
   /**
    * The text or HTML to populate uk-modal-body
@@ -46,14 +102,16 @@ export class LisModalElement extends LitElement {
   content: string = "";
 
   /** @ignore */
-  // returns the modal header portion of the component
-  private _getHeader() {
-    if (!this.header) {
+  // returns the modal heading portion of the component
+  private _getHeading() {
+    if (!this.heading) {
       return html``;
     }
-    return html`<div class="uk-modal-header">${unsafeHTML(this.header)}</div>`;
+    return html`<div class="uk-modal-header">${unsafeHTML(this.heading)}</div>`;
   }
 
+  /** @ignore */
+  // returns the content provided in the modal-body
   private _getContent() {
     if (!this.content) {
       return html``;
@@ -61,19 +119,18 @@ export class LisModalElement extends LitElement {
     return html`<div class="uk-modal-body" uk-overflow-auto>${unsafeHTML(this.content)}</div>`;
   }
 
-
   /** @ignore */
   // used by Lit to draw the template
   override render() {
     
-    const header = this._getHeader();
+    const heading = this._getHeading();
     const content = this._getContent();
     // draw the modal
     return html`
-    <div id="modal-overflow" uk-modal>
+    <div id="${this.name}" uk-modal>
       <div class="uk-modal-dialog">
         <button class="uk-modal-close-default" type="button" uk-close></button>
-	${header}
+	${heading}
 	${content}
       </div>
     </div>
