@@ -13,9 +13,8 @@
   <script src="../../node_modules/lit/polyfill-support.js"></script>
   <!-- GraphQL -->
   <script type="text/javascript" src="../graphql.js"></script>
-  <!-- web components 
-  <script type="module" src="../../dist/index.js"></script>-->
-  <script type="module" src="../../dist/web-components.bundled.js"></script>
+  <!-- web components -->
+  <script type="module" src="../../dist/index.js"></script>
 </head>
 
 <body>
@@ -24,12 +23,16 @@
     <h1>&lt;lis-modal-element&gt;</h1>
     <p>
       The <code>&lt;lis-modal-element&gt;</code> provides a generic component for rendering a modal.
-      In this example, the modal is populated with the lis-simple-table-element web component.
+      In this example, the modal is populated with the <code>&lt;lis-simple-table-element&gt;</code> web component.
       See the source code and documentation for details.
+
+      The modal is a wrapper for the UIkit modal and can be interacted with using the UIkit API.
+
+      See, <a href="https://getuikit.com/docs/modal">UIkit Modals</a> for more information.
     </p>
     <hr>
     <a class="uk-button uk-button-default" href="#modal-test" uk-toggle>Open</a>
-    <lis-modal-element name="modal-test" heading="Cheesy Table Modal">
+    <lis-modal-element modalId="modal-test" heading="Cheesy Table Modal">
       <lis-simple-table-element id="table"></lis-simple-table-element>
     </lis-modal-element>
   </div>
@@ -38,7 +41,6 @@
   <script type="text/javascript">
     // get the simple table element
    window.onload = (event) => {
-    console.log("page is fully loaded");
     const tableElement = document.getElementById('table');
     // set the element's properties
     tableElement.caption = 'My cheesy table';
