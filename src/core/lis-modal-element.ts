@@ -8,17 +8,23 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  *
  * A Web Component that provides a generic modal element.
  *
+ * The modal is a wrapper for the UIkit modal and can be interacted with using the UIkit API. See, https://getuikit.com/docs/modal, for more information.
+ *
+ * @slot - Adds content after the content defined via the component properties.
+ * Can be used to manually create markup that has the same styling as the
+ * component.
+ *
  * @example
  * The modal element's
- * {@link name | `name`}, {@link heading | `heading`}, and
- * {@link content | `content`} attributes/properties can be set via HTML or
+ * {@link modalId | `modalId`} and {@link heading | `heading`}
+ * attributes/properties can be set via HTML or
  * javascript.
  *
  * For example:
  * ```html
- * <!-- set the name, heading and content via HTML -->
+ * <!-- set the modalId, heading and content via HTML -->
  * <lis-modal-element
- *   name="modal-test"
+ *   modalId="modal-test"
  *   heading="Test Modal">
  *     <p>Some HTML or text to be rendered</p>
  * </lis-modal-element>
@@ -34,7 +40,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  *
  * ```html
  * <lis-modal-element 
- *   name="modal-test" 
+ *   modalId="modal-test" 
  *   heading="Cheesy Table Modal">
  *     <lis-simple-table-element
  *       id="table">
@@ -82,7 +88,7 @@ export class LisModalElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  name: string = "lis-modal";
+  modalId: string = "lis-modal";
 
   /**
    * The text or HTML to populate uk-modal-header
@@ -102,11 +108,12 @@ export class LisModalElement extends LitElement {
   }
 
   /** @ignore */
-  // returns the content provided in the modal-body
+  // returns the children of lis-modal-element as the modal-body
   private _getContent() {
     if (!this.children) {
       return html``;
     }
+    console.log(this);
     return html`<div class="uk-modal-body" uk-overflow-auto>${Array.from(this.children)}</div>`;
   }
 
@@ -118,11 +125,11 @@ export class LisModalElement extends LitElement {
     const content = this._getContent();
     // draw the modal
     return html`
-    <div id="${this.name}" uk-modal>
+    <div id="${this.modalId}" uk-modal>
       <div class="uk-modal-dialog">
         <button class="uk-modal-close-default" type="button" uk-close></button>
-	${heading}
-	${content}
+          ${heading}
+          ${content}
       </div>
     </div>
     `;
