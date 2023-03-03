@@ -50,7 +50,6 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * <script type="text/javascript">
  *  // get the simple table element after page loads.
  *  window.onload = (event) => {
- *   console.log("page is fully loaded");
  *
  *   const tableElement = document.getElementById('table');
  *   // set the element's properties
@@ -113,7 +112,6 @@ export class LisModalElement extends LitElement {
     if (!this.children) {
       return html``;
     }
-    console.log(this);
     return html`<div class="uk-modal-body" uk-overflow-auto>${Array.from(this.children)}</div>`;
   }
 
