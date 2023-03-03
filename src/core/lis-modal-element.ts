@@ -19,8 +19,8 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * <!-- set the name, heading and content via HTML -->
  * <lis-modal-element
  *   name="modal-test"
- *   heading="Test Modal"
- *   content="<p>Some HTML or text to be rendered</p>">
+ *   heading="Test Modal">
+ *     <p>Some HTML or text to be rendered</p>
  * </lis-modal-element>
  * ```
  *
@@ -35,11 +35,10 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * ```html
  * <lis-modal-element 
  *   name="modal-test" 
- *   heading="Cheesy Table Modal"
- *   content="
- *   <lis-simple-table-element 
- *   id='table'>
- *   </lis-simple-table-element>">
+ *   heading="Cheesy Table Modal">
+ *     <lis-simple-table-element
+ *       id="table">
+ *     </lis-simple-table-element>
  * </lis-modal-element>
  * 
  * <script type="text/javascript">
@@ -93,14 +92,6 @@ export class LisModalElement extends LitElement {
   @property({type: String})
   heading: string = "";
 
-  /**
-   * The text or HTML to populate uk-modal-body
-   *
-   * @attribute
-   */
-  @property({type: String})
-  content: string = "";
-
   /** @ignore */
   // returns the modal heading portion of the component
   private _getHeading() {
@@ -113,10 +104,10 @@ export class LisModalElement extends LitElement {
   /** @ignore */
   // returns the content provided in the modal-body
   private _getContent() {
-    if (!this.content) {
+    if (!this.children) {
       return html``;
     }
-    return html`<div class="uk-modal-body" uk-overflow-auto>${unsafeHTML(this.content)}</div>`;
+    return html`<div class="uk-modal-body" uk-overflow-auto>${Array.from(this.children)}</div>`;
   }
 
   /** @ignore */
