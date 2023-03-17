@@ -1,6 +1,9 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+
+import {LisSlotController} from '../controllers';
 
 
 /**
@@ -47,37 +50,41 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * ```
  *
  * @example
- * Any or all of a simple table's parts can be written in HTML using the
- * element's slot:
+ * Alternatively, a simple table's contents can be written in HTML using the element's
+ * slot. This content must be wrapped in a `<template>` tag so the Web Browser
+ * doesn't strip the tags as invalid since they occur outside of actual `<table>` tags.
+ * Note that this will override any content assigned via JavaScript:
  * ```html
  * <!-- set the caption, dataAttributes, and header attributes/properties via HTML -->
  * <!-- NOTE: this is the table produced by the previous example -->
  * <lis-simple-table-element>
- *   <caption>My cheesy table</caption>
- *   <thead>
- *     <tr>
- *       <th>Cheese</th>
- *       <th>Region</th>
- *     </tr>
- *   </thead>
- *   <tbody>
- *     <tr>
- *       <td>Brie</td>
- *       <td>France</td>
- *     </tr>
- *     <tr>
- *       <td>Burrata</td>
- *       <td>Italy</td>
- *     </tr>
- *     <tr>
- *       <td>Feta</td>
- *       <td>Greece</td>
- *     </tr>
- *     <tr>
- *       <td>Gouda</td>
- *       <td>Netherlands</td>
- *     </tr>
- *   </tbody>
+ *   <template>
+ *     <caption>My cheesy table</caption>
+ *     <thead>
+ *       <tr>
+ *         <th>Cheese</th>
+ *         <th>Region</th>
+ *       </tr>
+ *     </thead>
+ *     <tbody>
+ *       <tr>
+ *         <td>Brie</td>
+ *         <td>France</td>
+ *       </tr>
+ *       <tr>
+ *         <td>Burrata</td>
+ *         <td>Italy</td>
+ *       </tr>
+ *       <tr>
+ *         <td>Feta</td>
+ *         <td>Greece</td>
+ *       </tr>
+ *       <tr>
+ *         <td>Gouda</td>
+ *         <td>Netherlands</td>
+ *       </tr>
+ *     </tbody>
+ *   </template>
  * </lis-simple-table-element>
  * ```
  */
@@ -94,6 +101,11 @@ export class LisSimpleTableElement extends LitElement {
   override createRenderRoot() {
     return this;
   }
+
+  protected defaultSlotRef: Ref<HTMLSlotElement> = createRef();
+
+  // a controller the preserves slot functionality when the Shadow DOM is disabled
+  protected slotController: LisSlotController;
 
   /**
    * The caption shown above the table.
@@ -130,6 +142,11 @@ export class LisSimpleTableElement extends LitElement {
   // detection
   @property({type: Array<Object>, attribute: false})
   data: Array<Object> = [];
+
+  constructor() {
+    super();
+    this.slotController = new LisSlotController(this, this.defaultSlotRef);
+  }
 
   /** @ignore */
   // converts an object to a table row
@@ -184,11 +201,10 @@ export class LisSimpleTableElement extends LitElement {
 
     // draw the table
     return html`
-      <table class="uk-table uk-table-divider uk-table-small">
+      <table class="uk-table uk-table-divider uk-table-small" ${ref(this.defaultSlotRef)}>
         ${caption}
         ${header}
         ${body}
-        <slot></slot>
       </table>
     `;
   }
