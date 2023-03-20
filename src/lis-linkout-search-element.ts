@@ -48,8 +48,9 @@ export class LisLinkoutSearchElement extends LitElement {
     return this;
   }
 
+  /** @ignore */
+  // overrides the default attributeChangedCallback to add this._fetchLinkouts() after constructor callback
   override attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
-    console.log('attribute change: ', name, newVal);
     super.attributeChangedCallback(name, oldVal, newVal);
     this._fetchLinkouts();
   }
