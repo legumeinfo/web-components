@@ -25,7 +25,6 @@
     "test:watch": "wtr --watch",
     "test:prod": "MODE=prod wtr",
     "test:prod:watch": "MODE=prod wtr --watch",
-    "checksize": "rollup -c ; cat web-components.bundled.js | gzip -9 | wc -c ; rm web-components.bundled.js",
     "bundle": "rollup -c rollup.config.js",
     "bundle:watch": "rollup -c -w"
   },
