@@ -2,14 +2,14 @@
   "name": "@legumeinfo/web-components",
   "version": "0.0.1",
   "description": "Web components for the Legume Information System and other AgBio databases",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "clean": "rimraf dist/**/*.{d.ts,d.ts.map,js,js.map} test/**/*.{d.ts,d.ts.map,js,js.map} test/**/*.{d.ts,d.ts.map,js,js.map}",
+    "clean": "rimraf lib/**/*.{d.ts,d.ts.map,js,js.map} dist/**/*.{d.ts,d.ts.map,js,js.map} test/**/*.{d.ts,d.ts.map,js,js.map}",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint 'src/**/*.ts'",
     "lint:lit-analyzer": "lit-analyzer",
@@ -26,8 +26,8 @@
     "test:prod": "MODE=prod wtr",
     "test:prod:watch": "MODE=prod wtr --watch",
     "checksize": "rollup -c ; cat web-components.bundled.js | gzip -9 | wc -c ; rm web-components.bundled.js",
-    "package": "rollup -c rollup.config.js",
-    "package:watch": "rollup -c -w"
+    "bundle": "rollup -c rollup.config.js",
+    "bundle:watch": "rollup -c -w"
   },
   "keywords": [
     "lit",
