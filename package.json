@@ -1,5 +1,5 @@
 {
-  "name": "legumeinfo/web-components",
+  "name": "@legumeinfo/web-components",
   "private": true,
   "version": "0.0.1",
   "description": "Web components for the Legume Information System and other AgBio databases",
