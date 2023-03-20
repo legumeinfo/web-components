@@ -12,7 +12,7 @@ import replace from '@rollup/plugin-replace';
 export default {
   input: 'lib/index.js',
   output: {
-    file: 'dist/web-components.bundled.js',
+    file: 'dist/web-components.min.js',
     format: 'esm',
   },
   onwarn(warning) {

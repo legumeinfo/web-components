@@ -311,6 +311,6 @@ first step here.
 ## Bundle your web component ##
 If your web component is working correctly,
 
-`$ npm run bundle` to bundle it into `dist/web-components.bundled.js`.
+`$ npm run bundle` to bundle it into `dist/web-components.min.js`.
 
-You may now copy `web-components.bundled.js` to a web site where you want to implement your new web component.
+You may now copy `web-components.min.js` to a web site where you want to implement your new web component.

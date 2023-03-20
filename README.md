@@ -118,7 +118,7 @@ The site will usually be served at http://localhost:8000.
 ## Bundling and minification
 
 Bundling and minification is performed in a single step using [Rollup](https://rollupjs.org/guide/en/).
-The follow commands will bundle and minify whatever code is already in the `lib/` directory and place the bundled code in the `dist/` directory.
+The follow commands will bundle and minify whatever code is already in the `lib/` directory and place the bundled code in the file `dist/web-components.min.js`.
 
 To bundle and minify the code, run:
 ```bash
