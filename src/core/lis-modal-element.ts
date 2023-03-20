@@ -1,6 +1,9 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+
+import {LisSlotController} from '../controllers';
 
 
 /**
@@ -80,6 +83,16 @@ export class LisModalElement extends LitElement {
     return this;
   }
 
+  protected defaultSlotRef: Ref<HTMLSlotElement> = createRef();
+
+  // a controller the preserves slot functionality when the Shadow DOM is disabled
+  protected slotController: LisSlotController;
+
+  constructor() {
+    super();
+    this.slotController = new LisSlotController(this, this.defaultSlotRef);
+  }
+
   /**
    * The text to use as the Id for the uk-modal.
    * This is used to bind buttons to show/hide.
@@ -107,27 +120,18 @@ export class LisModalElement extends LitElement {
   }
 
   /** @ignore */
-  // returns the children of lis-modal-element as the modal-body
-  private _getContent() {
-    if (!this.children) {
-      return html``;
-    }
-    return html`<div class="uk-modal-body" uk-overflow-auto>${Array.from(this.children)}</div>`;
-  }
-
-  /** @ignore */
   // used by Lit to draw the template
   override render() {
-    
     const heading = this._getHeading();
-    const content = this._getContent();
     // draw the modal
     return html`
     <div id="${this.modalId}" uk-modal>
       <div class="uk-modal-dialog">
         <button class="uk-modal-close-default" type="button" uk-close></button>
-          ${heading}
-          ${content}
+        ${heading}
+        <div class="uk-modal-body" uk-overflow-auto>
+          <slot ${ref(this.defaultSlotRef)}></slot>
+        <div>
       </div>
     </div>
     `;
