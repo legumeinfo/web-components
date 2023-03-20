@@ -36,7 +36,6 @@
   ],
   "author": "Legume Information System",
   "license": "Apache-2.0",
-  "customElements": "custom-elements.json",
   "dependencies": {
     "lit": "^2.2.4"
   },
