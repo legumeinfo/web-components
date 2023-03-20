@@ -48,6 +48,12 @@ export class LisLinkoutSearchElement extends LitElement {
     return this;
   }
 
+  override attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
+    console.log('attribute change: ', name, newVal);
+    super.attributeChangedCallback(name, oldVal, newVal);
+    this._fetchLinkouts();
+  }
+
   /**
    * The query string for the linkout service.
    *
@@ -98,7 +104,6 @@ export class LisLinkoutSearchElement extends LitElement {
   override render() {
 
     // compute table parts
-    this._fetchLinkouts();
     const dataAttributes = ['linkout']
     const header = {'linkout': 'Linkouts'};
     // draw the table
