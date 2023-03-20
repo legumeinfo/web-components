@@ -24,15 +24,9 @@ export type LinkoutResult = {
   method: string;
 }
 
-// LikoutSearchResults array for LinkoutResult objects.
-export type LinkoutSearchResults<LinkoutResult> = {
-  results: LinkoutResult[];
-};
-
 // Function for searching the linkout microservice.
 export type LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
   (searchData: LinkoutSearchData) =>
-//    Promise<LinkoutSearchResults<LinkoutResult>>;
     Promise<Array<LinkoutResult>>;
 
 @customElement('lis-linkout-search-element')
@@ -59,6 +53,8 @@ export class LisLinkoutSearchElement extends LitElement {
 
   /**
    * The query string for the linkout service.
+   * Reflect is true so that the attribute will trigger
+   * when set with JS
    *
    * @attribute
    */
