@@ -5,25 +5,31 @@ import {LisSimpleTableElement} from './core';
 /**
  * @htmlElement `<lis-linkout-search-element>`
  *
- * A Web Component that provides a generic table element.
+ * A Web Component for querying an instance of
+ * the LIS linkout microservice and displaying 
+ * the results in an instance of `<lis-simple-table-element>`
  *
  */
 
+// LinkoutSearchData. Provide a query and a service.
 export type LinkoutSearchData = {
   query: string;
   service: string;
 }
 
+// LinkoutResult object from linkout microservice.
 export type LinkoutResult = {
   href: string;
   text: string;
   method: string;
 }
 
+// LikoutSearchResults array for LinkoutResult objects.
 export type LinkoutSearchResults<LinkoutResult> = {
   results: LinkoutResult[];
 };
 
+// Function for searching the linkout microservice.
 export type LinkoutSearchFunction<LinkoutSearchData> =
   (searchData: LinkoutSearchData) =>
     Promise<LinkoutSearchResults<LinkoutResult>>;
@@ -69,7 +75,7 @@ export class LisLinkoutSearchElement extends LitElement {
   private _table!: LisSimpleTableElement;
 
   /** @ignore */
-  // computes the rows for the component's table replace with search function
+  // Fetches results from the linkout service and returns an Array of objects containing hyperlinks
   private _fetchLinkouts() {
     if(!this.queryString){
       return html``;
