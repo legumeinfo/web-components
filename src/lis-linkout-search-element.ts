@@ -30,9 +30,10 @@ export type LinkoutSearchResults<LinkoutResult> = {
 };
 
 // Function for searching the linkout microservice.
-export type LinkoutSearchFunction<LinkoutSearchData> =
+export type LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
   (searchData: LinkoutSearchData) =>
-    Promise<LinkoutSearchResults<LinkoutResult>>;
+//    Promise<LinkoutSearchResults<LinkoutResult>>;
+    Promise<Array<LinkoutResult>>;
 
 @customElement('lis-linkout-search-element')
 export class LisLinkoutSearchElement extends LitElement {
@@ -51,6 +52,7 @@ export class LisLinkoutSearchElement extends LitElement {
   /** @ignore */
   // overrides the default attributeChangedCallback to add this._fetchLinkouts() after constructor callback
   override attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
+    console.log('attribute changed: ', name, oldVal, newVal);
     super.attributeChangedCallback(name, oldVal, newVal);
     this._fetchLinkouts();
   }
@@ -60,7 +62,7 @@ export class LisLinkoutSearchElement extends LitElement {
    *
    * @attribute
    */
-  @property({type: String})
+  @property({type: String, reflect: true})
   queryString: string = '';
 
   /**
@@ -74,7 +76,7 @@ export class LisLinkoutSearchElement extends LitElement {
   // the search callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  searchFunction: LinkoutSearchFunction<LinkoutSearchData> =
+  linkoutFunction: LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
     () => Promise.reject(new Error('No search function provided'));
 
   // bind to the table element in the template
@@ -87,17 +89,15 @@ export class LisLinkoutSearchElement extends LitElement {
     if(!this.queryString){
       return html``;
     }
-    const domain = 'https://cicer.legumeinfo.org';
-    const attributes = `${this.service}?${this.queryString}/json`;
-    const url = domain + '/services/' + attributes;
-    const linkoutRequest = fetch(url).then((response) => response.json()).then(
-     (data) => {
-                 const results = data.map(
-                                       (d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`})
-                                      );
-                 this._table.data = results;
-               });
-    return linkoutRequest;
+    const linkoutData = {query: this.queryString, service: this.service};
+    const results = this.linkoutFunction(linkoutData).then((data) => {
+	                                                               const results = data.map(
+                                                                                                (d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`})
+                                                                                               );
+                                                                       this._table.data = results;
+								       return data;
+                                                                     });
+    return results;
   }
 
   /** @ignore */
