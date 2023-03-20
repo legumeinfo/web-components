@@ -24,7 +24,7 @@ export type LinkoutSearchResults<LinkoutResult> = {
   results: LinkoutResult[];
 };
 
-export type SearchFunction<LinkoutSearchData> =
+export type LinkoutSearchFunction<LinkoutSearchData> =
   (searchData: LinkoutSearchData) =>
     Promise<LinkoutSearchResults<LinkoutResult>>;
 
@@ -61,7 +61,7 @@ export class LisLinkoutSearchElement extends LitElement {
   // the search callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  searchFunction: SearchFunction<LinkoutSearchData> =
+  searchFunction: LinkoutSearchFunction<LinkoutSearchData> =
     () => Promise.reject(new Error('No search function provided'));
 
   // bind to the table element in the template
