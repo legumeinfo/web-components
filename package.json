@@ -4,6 +4,7 @@
   "description": "Web components for the Legume Information System and other AgBio databases",
   "main": "dist/index.js",
   "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
