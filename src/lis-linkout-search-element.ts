@@ -100,11 +100,11 @@ export class LisLinkoutSearchElement extends LitElement {
     // compute table parts
     this._fetchLinkouts();
     const dataAttributes = ['linkout']
-    const header = {'linkout': 'Description'};
+    const header = {'linkout': 'Linkouts'};
     // draw the table
     return html`
       <lis-simple-table-element
-        caption="Linkout Results"
+        caption=""
         .dataAttributes=${dataAttributes}
         .header=${header}>
       </lis-simple-table-element>
