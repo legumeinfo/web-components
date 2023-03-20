@@ -84,20 +84,24 @@ export class LisLinkoutSearchElement extends LitElement {
   private _table!: LisSimpleTableElement;
 
   /** @ignore */
+  // Maps Array of LinkoutResult objects, d, to return a simple linkout object
+  // ({linkout: `<a href="${d.href}">${d.text}.</a>`})
+  private _mapLinkouts(data: LinkoutResult[]) {
+    return data.map((d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`}));
+  }
+
+  /** @ignore */
   // Fetches results from the linkout service and returns an Array of objects containing hyperlinks
   private _fetchLinkouts() {
     if(!this.queryString){
       return html``;
     }
     const linkoutData = {query: this.queryString, service: this.service};
-    const results = this.linkoutFunction(linkoutData).then((data) => {
-	                                                               const results = data.map(
-                                                                                                (d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`})
-                                                                                               );
-                                                                       this._table.data = results;
-								       return data;
-                                                                     });
-    return results;
+    return this.linkoutFunction(linkoutData).then((data) => {
+                                                              const results = this._mapLinkouts(data);
+                                                              this._table.data = results;
+                                                              return data;
+                                                             });
   }
 
   /** @ignore */
