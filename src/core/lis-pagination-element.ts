@@ -137,8 +137,10 @@ export class LisPaginationElement extends LitElement {
     if (e !== undefined) {
       e.preventDefault();
     }
-    this.page += 1;
-    this._dispatchPageChange();
+    if (this.hasNext) {
+      this.page += 1;
+      this._dispatchPageChange();
+    }
   }
 
   /** @ignore */
