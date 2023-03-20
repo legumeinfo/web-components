@@ -4,25 +4,25 @@
 
   <head>
     <meta charset="utf-8" />
-    <title>LIS Web-Components - &lt;lis-gene-search-element&gt;</title>
+    <title>LIS Web-Components - &lt;lis-linkout-search-element&gt;</title>
     <!-- CSS framework -->
     <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
     <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
     <!-- web components polyfills -->
     <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../node_modules/lit/polyfill-support.js"></script>
-    <!-- GraphQL -->
-    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- GraphQL 
+    <script type="text/javascript" src="./linkout.js"></script>-->
     <!-- web components -->
-    <script type="module" src="../dist/index.js"></script>
+    <script type="module" src="../dist/web-components.bundled.js"></script>
   </head>
 
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-gene-search-element&gt;</h1>
+      <h1>&lt;lis-linkout-search-element&gt;</h1>
       <p>
-        The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated table.
+        The <code>&lt;lis-linkout-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated table.
         The search is performed using an external function provided to the component when it is added to the page.
         In this example, the component performs a path query search for legume genes using the LIS GraphQL API query <code>genes</code>.
         See the source code for details.
@@ -33,49 +33,20 @@
       <hr>
 
       <!-- the custom gene search element -->
-      <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+      <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
+      <lis-modal-element modalId="test-linkout">
+        <lis-linkout-search-element
+          id="linkout-search" 
+          queryString="genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600">
+	</lis-linkout-search-element>
+      </lis-modal-element>
 
     </div>
 
     <!-- set the search function by property because functions can't be set as attributes -->
     <script type="text/javascript">
-
-      // gene description search query for the LIS GraphQL API
-      const geneQuery = `
-      query Query($description: String!, $start: Int, $size: Int) {
-        genes(description: $description, start: $start, size: $size) {
-          name
-          description
-        }
-      }
-      `;
       
       // the search function given to the LIS gene search Web Component
-      function getGenes(searchData, page, {abortSignal}) {
-          const description = searchData['query'];
-          const pageSize = 10;
-          const start = (page-1)*pageSize;
-          // pageSize+1 because we want to see if there's a "next" page
-          const variables = {description: description, start: start, size: pageSize+1};
-          // returns a Promise that resolves to an array of Gene objects the gene search
-          // Web Component knows how to parse: {name: string, description: string}[]
-          return graphqlQuery(uri, geneQuery, variables, abortSignal)
-              .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = pageSize+1 === data.genes.length;
-                  // remove the lookahead result
-                  if (hasNext) data.genes.pop();
-                  // construct the expected paginated results object
-                  const paginatedResults = {
-                      hasNext,
-                      results: data.genes,
-                  };
-                  return paginatedResults;
-              });
-      }
-
-      const geneSearchElement = document.getElementById('gene-search');
-      geneSearchElement.searchFunction = getGenes;
 
     </script>
 
