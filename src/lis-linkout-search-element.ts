@@ -127,6 +127,9 @@ export class LisLinkoutSearchElement extends LitElement {
   // Maps Array of LinkoutResult objects, d, to return a simple linkout object
   // ({linkout: `<a href="${d.href}">${d.text}.</a>`})
   private _mapLinkouts(data: LinkoutResult[]) {
+    if(!data.length){
+      return [{linkout: 'No Results'}];
+    }
     return data.map((d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`}));
   }
 
@@ -141,7 +144,7 @@ export class LisLinkoutSearchElement extends LitElement {
                                                               const results = this._mapLinkouts(data);
                                                               this._table.data = results;
                                                               return data;
-                                                             });
+                                                            });
   }
 
   /** @ignore */
