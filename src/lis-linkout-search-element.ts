@@ -25,9 +25,9 @@ export type LinkoutResult = {
 }
 
 /**
- * The signature of the function the
- * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class requires for
- * performing a gene search.
+ * The signature of the function of the
+ * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class required for
+ * performing a linkout search.
  *
  * @param queryString The search term sent to the linkout function/
  * @param service The service used by the linkout function.
