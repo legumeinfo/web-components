@@ -2,33 +2,78 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
 import {LisSimpleTableElement} from './core';
 
-/**
- * @htmlElement `<lis-linkout-search-element>`
- *
- * A Web Component for querying an instance of
- * the LIS linkout microservice and displaying 
- * the results in an instance of `<lis-simple-table-element>`
- *
- */
 
-// LinkoutSearchData. Provide a query and a service.
+/**
+ * The data that will be sent to the search function by the
+ * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class when a search is
+ * performed.
+ */
 export type LinkoutSearchData = {
   query: string;
   service: string;
 }
 
-// LinkoutResult object from linkout microservice.
+/**
+ * The data that will be returned to the search function by the
+ * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class when a search is
+ * performed.
+ */
 export type LinkoutResult = {
   href: string;
   text: string;
   method: string;
 }
 
-// Function for searching the linkout microservice.
+/**
+ * The signature of the function the
+ * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class requires for
+ * performing a gene search.
+ *
+ * @param queryString The search term sent to the linkout function/
+ * @param service The service used by the linkout function.
+ *
+ * @returns A {@link !Promise | `Promise`} that resolves to an
+ * {@link !Array | `Array`} of {@link LinkoutResult | `LinkoutResult`}
+ * objects.
+ */
 export type LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
   (searchData: LinkoutSearchData) =>
     Promise<Array<LinkoutResult>>;
 
+/**
+ * @htmlElement `<lis-linkout-search-element>`
+ *
+ * A Web Component that provides an interface for performing "full yuck" queries
+ * against an instance of the lis linkout microservice. 
+ * The results from this are displayed in a table with button linkouts.
+ *
+ * @queryStringParameters
+ * - **queryString:** The string to be used by the linkout search function.
+ * - **service:** The service to be used by the linkout search function.
+ *
+ * @example
+ * {@link !HTMLElement | `HTMLElement`} properties can only be set via
+ * JavaScript. This means the {@link searchFunction | `searchFunction`} property
+ * must be set on a `<lis-linkout-search-element>` tag's instance of the
+ * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class. For example:
+ * ```html
+ *    <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
+ *    <lis-modal-element modalId="test-linkout">
+ *      <lis-linkout-search-element
+ *        id="linkout-search">
+ *      </lis-linkout-search-element>
+ *    </lis-modal-element>
+ *
+ *    <!-- set the search function by property because functions can't be set as attributes -->
+ *    <script type="text/javascript">
+ *      const linkoutSearchElement = document.getElementById('linkout-search');
+ *      linkoutSearchElement.linkoutFunction = getLinkouts;
+ *      window.onload = (event) => {
+ *        linkoutSearchElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
+ *      }
+ *   </script>
+ * ```
+ */
 @customElement('lis-linkout-search-element')
 export class LisLinkoutSearchElement extends LitElement {
 
@@ -46,7 +91,6 @@ export class LisLinkoutSearchElement extends LitElement {
   /** @ignore */
   // overrides the default attributeChangedCallback to add this._fetchLinkouts() after constructor callback
   override attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
-    console.log('attribute changed: ', name, oldVal, newVal);
     super.attributeChangedCallback(name, oldVal, newVal);
     this._fetchLinkouts();
   }
