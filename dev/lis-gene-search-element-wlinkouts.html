@@ -14,7 +14,7 @@
     <!-- GraphQL -->
     <script type="text/javascript" src="./graphql.js"></script>
     <script type="text/javascript" src="./linkout.js"></script>
-    <!-- web components -->
+    <!-- web components-->
     <script type="module" src="../dist/index.js"></script>
   </head>
 
@@ -74,7 +74,7 @@
                   // remove the lookahead result
                   if (hasNext) data.genes.pop();
                   console.log(data.genes);
-                  const clickableGenes = data.genes.map((d) => ({name: `<a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle id="${d.name}">${d.name}</a>`, 
+                  const clickableGenes = data.genes.map((d) => ({name: `<a class="uk-button uk-button-default lis-linkouts" href="#test-linkout" type="submit" uk-toggle id="${d.name}">${d.name}</a>`, 
                                                                  description: d.description}));
                   // construct the expected paginated results object
                   const paginatedResults = {
@@ -101,7 +101,8 @@
 
       document.addEventListener('click', function (event) {
 	// If the clicked element doesn't have the right selector, bail
-	if (!event.target.matches('.uk-button')) return;
+	console.log(event.target);
+	if (!event.target.matches('.lis-linkouts')) return;
 	// Don't follow the link
 	event.preventDefault();
 	// set the queryString to fire the linkout search component
