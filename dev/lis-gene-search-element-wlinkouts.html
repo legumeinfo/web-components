@@ -52,6 +52,7 @@
       const geneQuery = `
       query Query($description: String!, $start: Int, $size: Int) {
         genes(description: $description, start: $start, size: $size) {
+          identifier
           name
           description
         }
@@ -74,7 +75,7 @@
                   // remove the lookahead result
                   if (hasNext) data.genes.pop();
                   console.log(data.genes);
-                  const clickableGenes = data.genes.map((d) => ({name: `<a class="uk-button uk-button-default lis-linkouts" href="#test-linkout" type="submit" uk-toggle id="${d.name}">${d.name}</a>`, 
+                  const clickableGenes = data.genes.map((d) => ({name: `<a class="uk-button uk-button-default lis-linkouts" href="#test-linkout" type="submit" uk-toggle id="${d.identifier}">${d.name}</a>`, 
                                                                  description: d.description}));
                   // construct the expected paginated results object
                   const paginatedResults = {
