@@ -78,42 +78,34 @@
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-//                      results: data.genes,
                       results: clickableGenes,
                   };
                   return paginatedResults;
               });
       }
 
+      // the linkout function to give to the linkout search component
       function getLinkouts(linkoutData){
           const domain = 'https://cicer.legumeinfo.org';
+          // returns a function with a promise to be used by the linkout search component
+	  // to populate the simple table element
           return queryLinkouts(domain, linkoutData);
       }
 
+      // Get the components and attach their search functions
       const geneSearchElement = document.getElementById('gene-search');
       const linkoutSearchElement = document.getElementById('linkout-search');
       geneSearchElement.searchFunction = getGenes;
       linkoutSearchElement.linkoutFunction = getLinkouts;
 
       document.addEventListener('click', function (event) {
-
 	// If the clicked element doesn't have the right selector, bail
 	if (!event.target.matches('.uk-button')) return;
-
 	// Don't follow the link
 	event.preventDefault();
-
-	// Log the clicked element in the console
+	// set the queryString to fire the linkout search component
         linkoutSearchElement.queryString = `genes=${event.target.id}`;
-	console.log(event.target.id);
-
       }, false);
-
-      window.onload = (event) => {
-//        linkoutSearchElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
-        
-      }
-
 
     </script>
 
