@@ -14,8 +14,9 @@
     <!-- GraphQL -->
     <script type="text/javascript" src="./graphql.js"></script>
     <script type="text/javascript" src="./linkout.js"></script>
-    <!-- web components -->
-    <script type="module" src="../dist/index.js"></script>
+    <!-- web components 
+    <script type="module" src="../dist/index.js"></script>-->
+    <script type="module" src="../dist/web-components.bundled.js"></script>
   </head>
 
   <body>
@@ -38,7 +39,6 @@
 
       <!-- the custom gene search element -->
       <lis-gene-search-element id="gene-search"></lis-gene-search-element>
-      <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
       <lis-modal-element modalId="test-linkout">
         <lis-linkout-search-element
           id="linkout-search">
