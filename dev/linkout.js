@@ -1,13 +1,8 @@
-// query a local instance of the LIS GraphQL server:
-// https://github.com/legumeinfo/graphql-server
-
-// Note: using port 4444 since port 4000 is default for jekyll site
-// const domain = 'https://cicer.legumeinfo.org/services/';
-// const attributes = 'gene_linkouts?genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600/json';
-// const uri = domain + attributes;
-
-// A function that gets data from a GraphQL server via a POST request.
-// Adapted from https://graphql.org/graphql-js/graphql-clients/
+// A function that gets data from an instance of the lis linkout microservice
+// queryObject has two attributes, query and service.
+// The query url is built from the domain and the attributes strings
+// the domain is the url of the service. example: 'https://cicer.legumeinfo.org';
+// The function returns a promise with a json reponse function.
 function queryLinkouts(domain, queryObject) {
     const attributes = `${queryObject.service}?${queryObject.query}/json`;
     const url = domain + '/services/' + attributes;
