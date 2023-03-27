@@ -4,19 +4,17 @@ import {LisSimpleTableElement} from './core';
 
 
 /**
- * The data that will be sent to the search function by the
- * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class when a search is
- * performed.
+ * The data that will be sent to the linkout function by the
+ * {@link LisLinkoutElement | `LisLinkoutElement`} class.
  */
-export type LinkoutSearchData = {
+export type LinkoutData = {
   query: string;
   service: string;
 }
 
 /**
- * The data that will be returned to the search function by the
- * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class when a search is
- * performed.
+ * The data that will be returned to the linkout function by the
+ * {@link LisLinkoutElement | `LisLinkoutElement`} class.
  */
 export type LinkoutResult = {
   href: string;
@@ -26,56 +24,55 @@ export type LinkoutResult = {
 
 /**
  * The signature of the function of the
- * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class required for
- * performing a linkout search.
+ * {@link LisLinkoutElement | `LisLinkoutElement`} class required for
+ * performing a linkout.
  *
- * @param queryString The search term sent to the linkout function/
+ * @param queryString The terms sent to the linkout function.
  * @param service The service used by the linkout function.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
  * {@link !Array | `Array`} of {@link LinkoutResult | `LinkoutResult`}
  * objects.
  */
-export type LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
-  (searchData: LinkoutSearchData) =>
+export type LinkoutFunction<LinkoutData, LinkoutResult> =
+  (linkoutData: LinkoutData) =>
     Promise<Array<LinkoutResult>>;
 
 /**
- * @htmlElement `<lis-linkout-search-element>`
+ * @htmlElement `<lis-linkout-element>`
  *
  * A Web Component that provides an interface for performing "full yuck" queries
  * against an instance of the lis linkout microservice. 
  * The results from this are displayed in a table with button linkouts.
  *
  * @queryStringParameters
- * - **queryString:** The string to be used by the linkout search function.
- * - **service:** The service to be used by the linkout search function.
+ * - **queryString:** The string to be used by the linkout function.
+ * - **service:** The service to be used by the linkout function.
  *
  * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
- * JavaScript. This means the {@link searchFunction | `searchFunction`} property
- * must be set on a `<lis-linkout-search-element>` tag's instance of the
- * {@link LisLinkoutSearchElement | `LisLinkoutSearchElement`} class. For example:
+ * JavaScript. This means the {@link linkoutFunction | `LinkoutFunction`} property
+ * must be set on a `<lis-linkout-element>` tag's instance of the
+ * {@link LisLinkoutElement | `LisLinkoutElement`} class. For example:
  * ```html
  *    <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
  *    <lis-modal-element modalId="test-linkout">
- *      <lis-linkout-search-element
- *        id="linkout-search">
- *      </lis-linkout-search-element>
+ *      <lis-linkout-element id="linkouts">
+ *      </lis-linkout-element>
  *    </lis-modal-element>
  *
- *    <!-- set the search function by property because functions can't be set as attributes -->
+ *    <!-- set the linkout function by property because functions can't be set as attributes -->
  *    <script type="text/javascript">
- *      const linkoutSearchElement = document.getElementById('linkout-search');
- *      linkoutSearchElement.linkoutFunction = getLinkouts;
+ *      const linkoutElement = document.getElementById('linkouts');
+ *      linkoutElement.linkoutFunction = getLinkouts;
  *      window.onload = (event) => {
- *        linkoutSearchElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
+ *        linkoutElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
  *      }
  *   </script>
  * ```
  */
-@customElement('lis-linkout-search-element')
-export class LisLinkoutSearchElement extends LitElement {
+@customElement('lis-linkout-element')
+export class LisLinkoutElement extends LitElement {
 
   /** @ignore */
   // used by Lit to style the Shadow DOM
@@ -113,11 +110,11 @@ export class LisLinkoutSearchElement extends LitElement {
   @property({type: String})
   service: string = 'gene_linkouts';
 
-  // the search callback function; not an attribute because functions can't be
+  // the linkout callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  linkoutFunction: LinkoutSearchFunction<LinkoutSearchData, LinkoutResult> =
-    () => Promise.reject(new Error('No search function provided'));
+  linkoutFunction: LinkoutFunction<LinkoutData, LinkoutResult> =
+    () => Promise.reject(new Error('No linkout function provided'));
 
   // bind to the table element in the template
   @query('lis-simple-table-element')
@@ -169,6 +166,6 @@ export class LisLinkoutSearchElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lis-linkout-search-element': LisLinkoutSearchElement;
+    'lis-linkout-element': LisLinkoutElement;
   }
 }

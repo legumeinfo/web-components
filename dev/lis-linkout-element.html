@@ -4,7 +4,7 @@
 
   <head>
     <meta charset="utf-8" />
-    <title>LIS Web-Components - &lt;lis-linkout-search-element&gt;</title>
+    <title>LIS Web-Components - &lt;lis-linkout-element&gt;</title>
     <!-- CSS framework -->
     <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
     <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -20,23 +20,21 @@
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-linkout-search-element&gt;</h1>
+      <h1>&lt;lis-linkout-element&gt;</h1>
       <p>
-        The <code>&lt;lis-linkout-search-element&gt;</code> provides a web component that queries an instance of the LIS linkout microservice, https://github.com/legumeinfo/microservices/tree/main/linkouts, and displays the result in an instance of <code>&lt;lis-simple-table-element&gt;</code> with active hyperlinks.
+        The <code>&lt;lis-linkout-element&gt;</code> provides a web component that queries an instance of the LIS linkout microservice, https://github.com/legumeinfo/microservices/tree/main/linkouts, and displays the result in an instance of <code>&lt;lis-simple-table-element&gt;</code> with active hyperlinks.
       </p>
       <hr>
 
-      <!-- the custom gene search element -->
+      <!-- the custom linkout element -->
       <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
       <lis-modal-element modalId="test-linkout">
-        <lis-linkout-search-element
-          id="linkout-search">
-        </lis-linkout-search-element>
+        <lis-linkout-element id="linkouts"></lis-linkout-element>
       </lis-modal-element>
 
     </div>
 
-    <!-- set the search function by property because functions can't be set as attributes -->
+    <!-- set the linkout function by property because functions can't be set as attributes -->
     <script type="text/javascript">
       
       function getLinkouts(linkoutData){
@@ -44,11 +42,11 @@
         return queryLinkouts(domain, linkoutData);
       }
 
-      const linkoutSearchElement = document.getElementById('linkout-search');
-      linkoutSearchElement.linkoutFunction = getLinkouts;
+      const linkoutElement = document.getElementById('linkouts');
+      linkoutElement.linkoutFunction = getLinkouts;
 
       window.onload = (event) => {
-        linkoutSearchElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
+        linkoutElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
       }
 
     </script>
