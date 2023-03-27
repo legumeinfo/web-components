@@ -72,7 +72,6 @@
                   const hasNext = pageSize+1 === data.genes.length;
                   // remove the lookahead result
                   if (hasNext) data.genes.pop();
-                  console.log(data.genes);
                   const clickableGenes = data.genes.map((d) => ({name: `<a class="uk-button uk-button-default lis-linkouts" href="#test-linkout" type="submit" uk-toggle id="${d.identifier}">${d.name}</a>`, 
                                                                  description: d.description}));
                   // construct the expected paginated results object
@@ -85,27 +84,24 @@
       }
 
       // the linkout function to give to the linkout component
-      function getLinkouts(linkoutData){
-          const domain = 'https://cicer.legumeinfo.org';
-          // returns a function with a promise to be used by the linkout component
-	  // to populate the simple table element
-          return queryLinkouts(domain, linkoutData);
+      function linkoutFunction(genes, {abortSignal}){
+        return geneLinkouts(linkoutUri, genes, abortSignal)
+          .then((results) => ({results}));
       }
 
       // Get the components and attach their functions
       const geneSearchElement = document.getElementById('gene-search');
       const linkoutElement = document.getElementById('linkouts');
       geneSearchElement.searchFunction = getGenes;
-      linkoutElement.linkoutFunction = getLinkouts;
+      linkoutElement.linkoutFunction = linkoutFunction;
 
       document.addEventListener('click', function (event) {
-	// If the clicked element doesn't have the right selector, bail
-	console.log(event.target);
-	if (!event.target.matches('.lis-linkouts')) return;
-	// Don't follow the link
-	event.preventDefault();
-	// set the queryString to fire the linkout component
-        linkoutElement.queryString = `genes=${event.target.id}`;
+        // If the clicked element doesn't have the right selector, bail
+        if (!event.target.matches('.lis-linkouts')) return;
+        // Don't follow the link
+        event.preventDefault();
+        // set the queryString to fire the linkout component
+        linkoutElement.getLinkouts([event.target.id]);
       }, false);
 
     </script>

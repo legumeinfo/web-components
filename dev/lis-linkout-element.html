@@ -22,31 +22,34 @@
     <div class="uk-container">
       <h1>&lt;lis-linkout-element&gt;</h1>
       <p>
-        The <code>&lt;lis-linkout-element&gt;</code> provides a web component that queries an instance of the LIS linkout microservice, https://github.com/legumeinfo/microservices/tree/main/linkouts, and displays the result in an instance of <code>&lt;lis-simple-table-element&gt;</code> with active hyperlinks.
+        The <code>&lt;lis-linkout-element&gt;</code> provides a web component for loading and displaying hyperlinks.
+        In this example, links are loaded for genes using the LIS linkout microservice.
+        A new query can be issued using the <code>linkoutElement.getLinkouts(...)</code> method in the web console.
       </p>
       <hr>
 
       <!-- the custom linkout element -->
-      <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
-      <lis-modal-element modalId="test-linkout">
-        <lis-linkout-element id="linkouts"></lis-linkout-element>
-      </lis-modal-element>
+       <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
+       <lis-modal-element modalId="test-linkout">
+         <lis-linkout-element id="linkouts"></lis-linkout-element>
+       </lis-modal-element>
+
 
     </div>
 
     <!-- set the linkout function by property because functions can't be set as attributes -->
     <script type="text/javascript">
       
-      function getLinkouts(linkoutData){
-        const domain = 'https://cicer.legumeinfo.org';
-        return queryLinkouts(domain, linkoutData);
+      function linkoutFunction(genes, {abortSignal}){
+        return geneLinkouts(linkoutUri, genes, abortSignal)
+          .then((results) => ({results}));
       }
 
       const linkoutElement = document.getElementById('linkouts');
-      linkoutElement.linkoutFunction = getLinkouts;
+      linkoutElement.linkoutFunction = linkoutFunction;
 
       window.onload = (event) => {
-        linkoutElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
+        linkoutElement.getLinkouts(['cicar.CDCFrontier.gnm3.ann1.Ca1g000600']);
       }
 
     </script>

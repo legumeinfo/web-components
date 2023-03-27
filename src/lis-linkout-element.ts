@@ -1,53 +1,65 @@
 import {LitElement, html, css} from 'lit';
-import {customElement, property, query} from 'lit/decorators.js';
+import {customElement, property, query, state} from 'lit/decorators.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+
+import {LisCancelPromiseController} from './controllers';
 import {LisSimpleTableElement} from './core';
+import {AlertModifierModel} from './models';
 
 
 /**
- * The data that will be sent to the linkout function by the
- * {@link LisLinkoutElement | `LisLinkoutElement`} class.
- */
-export type LinkoutData = {
-  query: string;
-  service: string;
-}
-
-/**
- * The data that will be returned to the linkout function by the
+ * A single result of a linkout performed by the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class.
  */
 export type LinkoutResult = {
   href: string;
   text: string;
-  method: string;
-}
+};
+
+
+/**
+ * The type of object the {@link LisLinkoutElement | `LisLinkoutElement`} expects back
+ * from the linkout function.
+ */
+export type LinkoutResults = {
+  results: LinkoutResult[];
+};
+
+
+/**
+ * Optional parameters that may be given to the linkout function. The
+ * {@link !AbortSignal | `AbortSignal`} instance will emit if a linkout is performed
+ * before the current linkout completes. This signal should be used to cancel in-flight
+ * requests if the linkout API supports it.
+ */
+export type LinkoutOptions = {abortSignal?: AbortSignal};
+
 
 /**
  * The signature of the function of the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class required for
  * performing a linkout.
  *
- * @param queryString The terms sent to the linkout function.
- * @param service The service used by the linkout function.
+ * @typeParam LinkoutData - The type of the linkout function `linkoutData` parameter.
  *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link LinkoutResult | `LinkoutResult`}
- * objects.
+ * @param linkoutData The data to give to the linkout function.
+ * @param options Optional parameters that aren't required to perform a linkout but may
+ * be useful.
+ *
+ * @returns A {@link !Promise | `Promise`} that resolves to a
+ * {@link LinkoutResults | `LinkoutResults`} object.
  */
-export type LinkoutFunction<LinkoutData, LinkoutResult> =
-  (linkoutData: LinkoutData) =>
-    Promise<Array<LinkoutResult>>;
+export type LinkoutFunction<LinkoutData> =
+  (linkoutData: LinkoutData, options: LinkoutOptions) =>
+    Promise<LinkoutResults>;
+
 
 /**
  * @htmlElement `<lis-linkout-element>`
  *
- * A Web Component that provides an interface for performing "full yuck" queries
- * against an instance of the lis linkout microservice. 
- * The results from this are displayed in a table with button linkouts.
- *
- * @queryStringParameters
- * - **queryString:** The string to be used by the linkout function.
- * - **service:** The service to be used by the linkout function.
+ * A Web Component that provides an interface for performing linkout queries against an
+ * a linkout service. 
+ * The returned links are displayed in a table.
  *
  * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
@@ -55,24 +67,30 @@ export type LinkoutFunction<LinkoutData, LinkoutResult> =
  * must be set on a `<lis-linkout-element>` tag's instance of the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class. For example:
  * ```html
- *    <a class="uk-button uk-button-default" href="#test-linkout" type="submit" uk-toggle>Open</a>
- *    <lis-modal-element modalId="test-linkout">
- *      <lis-linkout-element id="linkouts">
- *      </lis-linkout-element>
- *    </lis-modal-element>
+ *    <lis-linkout-element id="linkouts"></lis-linkout-element>
  *
- *    <!-- set the linkout function by property because functions can't be set as attributes -->
+ *    <!-- configure the Web Component via JavaScript -->
  *    <script type="text/javascript">
+ *      // a site-specific function that sends a request to a linkout API
+ *      function getGeneLinkouts(genes) {
+ *        // returns a Promise that resolves to a linkout results object
+ *      }
+ *      // get the linkout element
  *      const linkoutElement = document.getElementById('linkouts');
- *      linkoutElement.linkoutFunction = getLinkouts;
+ *      // set the element's linkoutFunction property
+ *      linkoutElement.linkoutFunction = getGeneLinkouts;
+ *      // get linkouts when the page is finished loading
  *      window.onload = (event) => {
- *        linkoutElement.queryString = 'genes=cicar.CDCFrontier.gnm3.ann1.Ca1g000600';
+ *        linkoutElement.getLinkouts(['cicar.CDCFrontier.gnm3.ann1.Ca1g000600']);
  *      }
  *   </script>
  * ```
  */
 @customElement('lis-linkout-element')
 export class LisLinkoutElement extends LitElement {
+
+  // a controller that allows in-flight linkouts to be cancelled
+  protected cancelPromiseController = new LisCancelPromiseController(this);
 
   /** @ignore */
   // used by Lit to style the Shadow DOM
@@ -83,13 +101,6 @@ export class LisLinkoutElement extends LitElement {
   // disable Shadow DOM to inherit global styles
   override createRenderRoot() {
     return this;
-  }
-
-  /** @ignore */
-  // overrides the default attributeChangedCallback to add this._fetchLinkouts() after constructor callback
-  override attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
-    super.attributeChangedCallback(name, oldVal, newVal);
-    this._fetchLinkouts();
   }
 
   /**
@@ -113,35 +124,79 @@ export class LisLinkoutElement extends LitElement {
   // the linkout callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  linkoutFunction: LinkoutFunction<LinkoutData, LinkoutResult> =
+  linkoutFunction: LinkoutFunction<unknown> =
     () => Promise.reject(new Error('No linkout function provided'));
+
+  // messages sent to the user about search status
+  @state()
+  private _alertMessage: string = '';
+
+  // the style of the alert element
+  @state()
+  private _alertModifier: AlertModifierModel = 'primary';
 
   // bind to the table element in the template
   @query('lis-simple-table-element')
   private _table!: LisSimpleTableElement;
 
-  /** @ignore */
-  // Maps Array of LinkoutResult objects, d, to return a simple linkout object
-  // ({linkout: `<a href="${d.href}">${d.text}.</a>`})
-  private _mapLinkouts(data: LinkoutResult[]) {
-    if(!data.length){
-      return [{linkout: 'No Results'}];
-    }
-    return data.map((d: LinkoutResult) => ({linkout: `<a href="${d.href}">${d.text}.</a>`}));
+  /**
+   * Gets linkouts for the given data.
+   *
+   * @typeParam LinkoutData - Should match the type of the linkout function `linkoutData`
+   * parameter.
+   *
+   * @param data - The data to get linkouts for.
+   */
+  public getLinkouts<LinkoutData>(data: LinkoutData): void {
+    this._table.data = [];
+    const message = `<span uk-spinner></span> Loading linkouts`;
+    this._setAlert(message, 'primary');
+    this.cancelPromiseController.cancel();
+    const options = {abortSignal: this.cancelPromiseController.abortSignal};
+    const linkoutPromise = this.linkoutFunction(data, options);
+    this.cancelPromiseController.wrapPromise(linkoutPromise)
+      .then(
+        (results: LinkoutResults) => this._linkoutSuccess(results),
+        (error: Error) => {
+          // do nothing if the request was aborted
+          if ((error as any).type !== 'abort') {
+            this._linkoutFailure(error);
+          }
+        },
+      );
   }
 
   /** @ignore */
-  // Fetches results from the linkout service and returns an Array of objects containing hyperlinks
-  private _fetchLinkouts() {
-    if(!this.queryString){
-      return html``;
-    }
-    const linkoutData = {query: this.queryString, service: this.service};
-    return this.linkoutFunction(linkoutData).then((data) => {
-                                                              const results = this._mapLinkouts(data);
-                                                              this._table.data = results;
-                                                              return data;
-                                                            });
+  // updates the table and alert with the search result data
+  private _linkoutSuccess(linkoutResults: LinkoutResults): void {
+    // destruct the linkout result
+    const {results} = linkoutResults;
+    // report the success in the alert
+    const plural = results.length == 1 ? '' : 's';
+    const message = `${results.length} link${plural} loaded`;
+    const modifier = results.length ? 'success' : 'warning';
+    this._setAlert(message, modifier);
+    // display the results in the table
+    const data = results.map((result: LinkoutResult) => {
+      return {linkout: `<a href="${result.href}">${result.text}.</a>`};
+    });
+    this._table.data = data;
+  }
+
+  /** @ignore */
+  // updates the alert with an error message and throws the actual error so it will
+  // appear in the console/debugger
+  private _linkoutFailure(error: Error): void {
+    const message = 'Linkout failed';
+    this._setAlert(message, 'danger');
+    throw error;
+  }
+
+  /** @ignore */
+  // sets the alert element style and content
+  private _setAlert(message: string, modifier: AlertModifierModel): void {
+    this._alertMessage = message;
+    this._alertModifier = modifier;
   }
 
   /** @ignore */
@@ -151,14 +206,17 @@ export class LisLinkoutElement extends LitElement {
     // compute table parts
     const dataAttributes = ['linkout']
     const header = {'linkout': 'Linkouts'};
+
     // draw the table
     return html`
+      <div class="uk-alert uk-alert-${this._alertModifier}">
+        <p>${unsafeHTML(this._alertMessage)}</p>
+      </div>
       <lis-simple-table-element
         caption=""
         .dataAttributes=${dataAttributes}
         .header=${header}>
       </lis-simple-table-element>
-      <slot></slot>
     `;
   }
 }

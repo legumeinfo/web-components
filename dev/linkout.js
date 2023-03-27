@@ -1,11 +1,18 @@
-// A function that gets data from an instance of the lis linkout microservice
-// queryObject has two attributes, query and service.
-// The query url is built from the domain and the attributes strings
-// the domain is the url of the service. example: 'https://cicer.legumeinfo.org';
-// The function returns a promise with a json reponse function.
-function queryLinkouts(domain, queryObject) {
-    const attributes = `${queryObject.service}?${queryObject.query}/json`;
-    const url = domain + '/services/' + attributes;
-    console.log(url);
-    return fetch(url).then((response) => response.json());
+// directly query an LIS linkout service:
+// https://github.com/legumeinfo/microservices/tree/main/linkouts
+
+const linkoutUri = 'https://cicer.legumeinfo.org/services/gene_linkouts';
+
+// A function that gets linkouts for the given list of genes
+function geneLinkouts(uri, genes, abortSignal=undefined) {
+  return fetch(uri, {
+    method: 'POST',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({genes}),
+    signal: abortSignal,
+  }).then((response) => response.json());
 }
