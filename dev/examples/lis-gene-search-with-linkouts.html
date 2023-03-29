@@ -99,7 +99,8 @@
       window.onload = (event) => {
         const modal = document.getElementById('modal');
         modal.addEventListener('toggle', (event) => {
-          const identifier = event.explicitOriginalTarget.dataset.gene;
+          const [{$el: link}, ...uikitComponents] = event.detail;
+          const identifier = link.dataset.gene;
           linkoutElement.getLinkouts([identifier]);
         });
       };
