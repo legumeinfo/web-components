@@ -42,7 +42,7 @@
     "lit": "^2.2.4"
   },
   "devDependencies": {
-    "@11ty/eleventy": "^1.0.2",
+    "@11ty/eleventy": "^2.0.1",
     "@11ty/eleventy-plugin-syntaxhighlight": "^4.0.0",
     "@open-wc/testing": "^3.1.5",
     "@rollup/plugin-node-resolve": "^13.3.0",
