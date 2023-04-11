@@ -3,6 +3,13 @@ import {customElement} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
+// RESULT (up to arrays that are not flattened):
+//   "name": "Gcy10g022939",
+//   "identifier": "glycy.G1267.gnm1.ann1.Gcy10g022939",
+//   "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), IPR011679 (Endoplasmic reticulum, protein ERp29, C-terminal), IPR012336 (Thioredoxin-like fold); GO:0005783 (endoplasmic reticulum), GO:0006662 (glycerol ether metabolic process), GO:0015035 (protein disulfide oxidoreductase activity), GO:0016853 (isomerase activity), GO:0045454 (cell redox homeostasis)",
+//   "organism_genus": "Glycine",
+//   "organism_species": "cyrtoloba",
+//   "strain_identifier": "G1267",
 
 /**
  * The data that will be passed to the search function by the
@@ -10,7 +17,10 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type GeneSearchData = {
-    query: string;
+    genus: string;
+    name: string;
+    identifier: string;
+    description: string;
 };
 
 
@@ -20,7 +30,11 @@ export type GeneSearchData = {
  */
 export type GeneSearchResult = {
     name: string;
+    identifier: string;
     description: string;
+    organism_genus: string;
+    organism_species: string;
+    strain_identifier: string;
 };
 
 
@@ -29,8 +43,8 @@ export type GeneSearchResult = {
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
  * performing a gene search.
  *
- * @param query The search term in the input element when the search form was
- * submitted.
+ * @param genus The organism genus from the search form genus selector
+ * @param description The gene description keyword from the form description text input
  * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  * @param options Optional parameters that aren't required to perform a gene
@@ -40,8 +54,10 @@ export type GeneSearchResult = {
  * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
  * objects.
  */
-export type GeneSearchFunction =
-    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<GeneSearchResult>>;
+export type GeneSearchFunction = (
+    genus: string,
+    description: string,
+    page: number, options: PaginatedSearchOptions) => Promise<Array<GeneSearchResult>>;
 
 
 /**
@@ -70,14 +86,19 @@ export type GeneSearchFunction =
  *
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
- *   // a site-specific function that sends a request to a gene search API
- *   function getGenes(searchText, page, {abortSignal}) {
- *     // returns a Promise that resolves to a search result object
- *   }
  *   // get the gene search element
  *   const searchElement = document.getElementById('gene-search');
- *   // set the element's searchFunction property
- *   searchElement.searchFunction = getGenes;
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["name", "identifier", "description", "organism_genus", "organism_species", "strain_identifier"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     name: "Name",
+ *     identifier: "Identifier",
+ *     description: "Description",
+ *     organism_genus: "Genus",
+ *     organism_species: "Species",
+*      strain_identifier: "Strain"
+ *   };
  * </script>
  * ```
  *
@@ -121,15 +142,23 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     constructor() {
         super();
         // configure query string parameters
-        this.requiredQueryStringParams = ['query'];
+        this.requiredQueryStringParams = ['genus', 'description'];
         // configure results table
         this.resultAttributes = [
             'name',
-            'description'
+            'identifier',
+            'description',
+            'organism_genus',
+            'organism_species',
+            'strain_identifier'
         ];
         this.tableHeader = {
             name: 'Name',
-            description: 'Description'
+            identifier: 'Identifier',
+            description: 'Description',
+            organism_genus: 'Genus',
+            organism_species: 'Species',
+            strain_identifier: 'Accession'
         };
     }
 
@@ -137,23 +166,64 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     // used by LisPaginatedSearchMixin to draw the template
     override renderForm() {
         return html`
-<form>
-<fieldset class="uk-fieldset">
-<legend class="uk-legend">Gene description search (e.g. photosystem II)</legend>
-<div class="uk-margin">
-<input
-name="query"
-class="uk-input"
-type="text"
-placeholder="Input"
-aria-label="Input"
-.value=${this.queryStringController.getParameter('query')}>
-</div>
-<div class="uk-margin">
-<button type="submit" class="uk-button uk-button-primary">Search</button>
-</div>
-</fieldset>
-</form>
+        <form>
+          <fieldset class="uk-fieldset uk-flex">
+            <div class="uk-padding-small">
+              <label class="uk-label">Genus</label><br/>
+              <select class="uk-select uk-form-small" name="genus">
+                <!-- TEMPORARILY HARDCODED -->
+                <option value="">-- any --</option>
+                <option value="Aeschynomene">Aeschynomene</option>
+                <option value="Arachis">Arachis</option>
+                <option value="Cajanus">Cajanus</option>
+                <option value="Cercis">Cercis</option>
+                <option value="Cicer">Cicer</option>
+                <option value="Glycine">Glycine</option>
+                <option value="Lens">Lens</option>
+                <option value="Lotus">Lotus</option>
+                <option value="Lupinus">Lupinus</option>
+                <option value="Medicago">Medicago</option>
+                <option value="Phaseolus">Phaseolus</option>
+                <option value="Pisum">Pisum</option>
+                <option value="Trifolium">Trifolium</option>
+                <option value="Vigna">Vigna</option>
+              </select>
+            </div>
+            <div class="uk-padding-small">
+              <label class="uk-label">species</label><br/>
+              <select class="uk-select uk-form-small" name="species">
+                <option value="">-- any --</option>
+                <option value="">TO DO</option>
+              </select>
+            </div>
+            <div class="uk-padding-small">
+              <label class="uk-label">accession</label><br/>
+              <select class="uk-select uk-form-small" name="strain">
+                <option value="">-- any --</option>
+                <option value="">TO DO</option>
+              </select>
+            </div>
+            <div class="uk-padding-small">
+              <label class="uk-label">identifier</label><br/>
+              <input class="uk-input uk-form-small uk-form-width-medium" name="identifier"/><br/>
+              <i>e.g. Glyma.13G357700</i>
+            </div>
+            <div class="uk-padding-small">
+              <label class="uk-label">description</label><br/>
+              <input class="uk-input uk-form-small uk-form-width-large" name="description"/><br/>
+              <i>e.g. protein disulfide isomerase-like protein</i>
+            </div>
+            <div class="uk-padding-small">
+              <label class="uk-label">gene family ID</label><br/>
+              <input class="uk-input uk-form-small uk-form-width-small" name="geneFamilyIdentifier"/><br/>
+              <i>e.g. L_HZ6G4Z</i>
+            </div>
+            <div class="uk-padding-small">
+              <br/>
+              <button class="uk-button uk-button-primary uk-form-small" type="submit">SEARCH</button>
+            </div>
+          </fieldset>
+        </form>
 `;
     }
 
