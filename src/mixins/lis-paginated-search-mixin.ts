@@ -10,7 +10,6 @@ import {
 import {
   LisFormWrapperElement,
   LisPaginationElement,
-  LisSimpleTableElement,
 } from '../core';
 import {AlertModifierModel} from '../models';
 
@@ -160,6 +159,11 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
   public resultAttributes: string[];
 
   /**
+   * The results returned by the `searchFunction`.
+   */
+  public searchResults: SearchResult[];
+
+  /**
    * Components that use the
    * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin must
    * define what attributes their search results will have so the mixin can
@@ -202,6 +206,18 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * @returns The form portion of the template.
    */
   protected renderForm(): unknown;
+
+  /**
+   * By default, the {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`}
+   * displays search results using the
+   * {@link LisSimpleTableElement | `LisSimpleTableElement`}. Components that use the
+   * mixin can override this portion of the template by implementing their own
+   * `renderResults` method. The results data will be available via the inherited
+   * `searchResults` variable.
+   *
+   * @returns The results portion of the template.
+   */
+  protected renderResults(): unknown;
 }
 
 
@@ -290,6 +306,47 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
  *
  * }
  * ```
+ *
+ * @example
+ * By default, the {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} renders
+ * search results using the {@link LisSimpleTableElement | `LisSimpleTableElement`}.
+ * If this is too restrictive, a class that uses the mixin may override its
+ * `renderResults` method to draw the results portion of the template itself.
+ * For example:
+ * ```js
+ * @customElement('lis-gene-search-element')
+ * export class LisGeneSearchElement extends
+ * LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>()  // <-- curried function call
+ * {
+ *
+ *   // set properties in the constructor
+ *   constructor() {
+ *     super();
+ *     // configure query string parameters
+ *     this.requiredQueryStringParams = ['query'];
+ *     // no need to configure the results table since we're going to override it
+ *   }
+ *
+ *   // define the form part of the template
+ *   override renderForm() {
+ *     ...
+ *   }
+ *
+ *   // define the results part of the template
+ *   override renderResults() {
+ *     // this is actually the default implementation provided by the mixin
+ *     return html`
+ *       <lis-simple-table-element
+ *         caption="Search Results"
+ *         .dataAttributes=${this.resultAttributes}
+ *         .header=${this.tableHeader}
+ *         .data=${this.searchResults}>
+ *       </lis-simple-table-element>
+ *     `;
+ *   }
+ *
+ * }
+ * ```
  */
 // HACK: curried function because TypeScript doesn't support partial type
 // argument inference: https://github.com/microsoft/TypeScript/issues/26242
@@ -351,13 +408,17 @@ class LisPaginatedSearchElement extends superClass {
   @state()
   protected resultAttributes: string[] = [];
 
+  // keep a copy of the search results for template generalization
+  @state()
+  protected searchResults: SearchResult[] = [];
+
   // the tables headers to use in the concrete class
   @state()
   protected tableHeader: Object = {};
 
   // keep a copy of the search form data for pagination
   @state()
-  private _data: SearchData | undefined = undefined;
+  private _searchData: SearchData | undefined = undefined;
 
   // messages sent to the user about search status
   @state()
@@ -366,10 +427,6 @@ class LisPaginatedSearchElement extends superClass {
   // the style of the alert element
   @state()
   private _alertModifier: AlertModifierModel = 'primary';
-
-  // bind to the table element in the template
-  @query('lis-simple-table-element')
-  private _table!: LisSimpleTableElement;
 
   // bind to the pagination element in the template
   @query('lis-pagination-element')
@@ -420,14 +477,14 @@ class LisPaginatedSearchElement extends superClass {
 
   // performs a search via an external function
   private _search(): void {
-    if (this._data !== undefined) {
+    if (this._searchData !== undefined) {
       const page = this._paginator.page;
       const message = `<span uk-spinner></span> Loading page ${page}`;
       this._setAlert(message, 'primary');
-      this.queryStringController.setParameters({page, ...this._data});
+      this.queryStringController.setParameters({page, ...this._searchData});
       this.cancelPromiseController.cancel();
       const options = {abortSignal: this.cancelPromiseController.abortSignal};
-      const searchPromise = this.searchFunction(this._data, page, options);
+      const searchPromise = this.searchFunction(this._searchData, page, options);
       this.cancelPromiseController.wrapPromise(searchPromise)
         .then(
           (results: PaginatedSearchResults<SearchResult>) => this._searchSuccess(results),
@@ -457,7 +514,7 @@ class LisPaginatedSearchElement extends superClass {
     const modifier = results.length ? 'success' : 'warning';
     this._setAlert(message, modifier);
     // display the results in the table
-    this._table.data = results;
+    this.searchResults = results;
     // update the pagination element
     this._paginator.hasNext = hasNext;
   }
@@ -485,11 +542,11 @@ class LisPaginatedSearchElement extends superClass {
   // resets the component to its initial state
   private _resetComponent(): void {
     // update the search data
-    this._data = undefined;
+    this._searchData = undefined;
     // update the alert element
     this._setAlert('', 'primary');
     // update the table element
-    this._table.data = [];
+    this.searchResults = [];
     // update the pagination element
     this._paginator.page = 1;
     this._paginator.hasNext = false;
@@ -499,7 +556,7 @@ class LisPaginatedSearchElement extends superClass {
   private _updateData(e: CustomEvent): void {
     e.preventDefault();
     e.stopPropagation();  // we'll emit our own event
-    this._data = this.formToObject(e.detail.data);
+    this._searchData = this.formToObject(e.detail.data);
     this._paginator.page = this._searchPage;
     this._search();
   }
@@ -519,6 +576,19 @@ class LisPaginatedSearchElement extends superClass {
     throw new Error('Method not implemented');
   }
 
+  // a method that provides a default template for displaying results that can be
+  // overridden by the concrete class
+  protected renderResults(): unknown {
+    return html`
+      <lis-simple-table-element
+        caption="Search Results"
+        .dataAttributes=${this.resultAttributes}
+        .header=${this.tableHeader}
+        .data=${this.searchResults}>
+      </lis-simple-table-element>
+    `;
+  }
+
   // generates an alert element using the current alert state
   private _renderAlert(): unknown {
     if (!this._alertMessage) {
@@ -536,6 +606,7 @@ class LisPaginatedSearchElement extends superClass {
     // render the template parts
     const form = this.renderForm();
     const alert = this._renderAlert();
+    const results = this.renderResults();
 
     // the template
     return html`
@@ -546,11 +617,7 @@ class LisPaginatedSearchElement extends superClass {
 
       ${alert}
 
-      <lis-simple-table-element
-        caption="Search Results"
-        .dataAttributes=${this.resultAttributes}
-        .header=${this.tableHeader}>
-      </lis-simple-table-element>
+      ${results}
 
       <lis-pagination-element
         page=${this.queryStringController.getParameter('page', '1')}
