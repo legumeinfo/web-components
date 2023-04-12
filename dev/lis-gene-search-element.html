@@ -65,10 +65,12 @@
                   const hasNext = pageSize+1 === data.genes.length;
                   // remove the lookahead result
                   if (hasNext) data.genes.pop();
+                  // flatten results that contain objects
+                  const results = data.genes.map(gene => flatten(gene));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-                      results: data.genes,
+                      results: results,
                   };
                   return paginatedResults;
               });
