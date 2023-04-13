@@ -22,9 +22,10 @@
     <div class="uk-container">
       <h1>&lt;lis-gene-search-element&gt;</h1>
       <p>
-        The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated table.
+        The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated view.
         The search is performed using an external function provided to the component when it is added to the page.
         In this example, the component performs a path query search for legume genes using the LIS GraphQL API query <code>genes</code>.
+        The form's genus, species, and strain selectors are also populated from this API.
         See the source code for details.
         Note that the form's input and page values are kept up to date in the URL query string parameters.
         This allows users to share specific pages from a search via the URL and for the search history to be navigated via the Web browser's forward and back buttons.
@@ -40,44 +41,127 @@
     <!-- set the search function by property because functions can't be set as attributes -->
     <script type="text/javascript">
 
+      // uses the LIS GraphQL API to get data used to construct the gene search form
+      const geneFormDataQuery = `
+      query FormDataQuery {
+        organisms {
+          genus
+          species
+          strains {
+            identifier
+          }
+        }
+      }
+      `;
+
+      function getGeneFormData() {
+        return graphqlQuery(uri, geneFormDataQuery)
+          .then(({data}) => {
+            // bin the strains by genus then species
+            const binnedFormData = {};
+            data.organisms.forEach(({genus, species, strains}) => {
+              if (!(genus in binnedFormData)) {
+                binnedFormData[genus] = {}
+              }
+              if (!(species in binnedFormData[genus])) {
+                binnedFormData[genus][species] = [];
+              }
+              binnedFormData[genus][species].push(...strains);
+            });
+            // collapse the bins into arrays of objects
+            const genuses =
+              Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+                const species =
+                  Object.entries(binnedSpecies).map(([species, strainObjects]) => {
+                    const strains = strainObjects.map(({identifier}) => {
+                      return {strain: identifier};
+                    });
+                    return {species, strains};
+                  });
+                return {genus, species};
+              });
+            // return the expected form data object
+            return {genuses};
+          });
+      }
+
       // gene description search query for the LIS GraphQL API
       const geneQuery = `
-      query Query($description: String!, $start: Int, $size: Int) {
-        genes(description: $description, start: $start, size: $size) {
+      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $geneFamilyIdentifier: String) {
+        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, geneFamilyIdentifier: $geneFamilyIdentifier) {
           name
+          identifier
           description
+          organism { genus species }
+          strain { identifier }
+          geneFamilyAssignments { geneFamily { identifier } }
+          locations { chromosome { identifier } start end strand }
         }
       }
       `;
       
       // the search function given to the LIS gene search Web Component
       function getGenes(searchData, page, {abortSignal}) {
-          const description = searchData['query'];
-          const pageSize = 10;
-          const start = (page-1)*pageSize;
-          // pageSize+1 because we want to see if there's a "next" page
-          const variables = {description: description, start: start, size: pageSize+1};
-          // returns a Promise that resolves to an array of Gene objects the gene search
-          // Web Component knows how to parse: {name: string, description: string}[]
-          return graphqlQuery(uri, geneQuery, variables, abortSignal)
-              .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = pageSize+1 === data.genes.length;
-                  // remove the lookahead result
-                  if (hasNext) data.genes.pop();
-                  // flatten results that contain objects
-                  const results = data.genes.map(gene => flatten(gene));
-                  // construct the expected paginated results object
-                  const paginatedResults = {
-                      hasNext,
-                      results: results,
-                  };
-                  return paginatedResults;
+        const genus = searchData['genus'];
+        const species = searchData['species'];
+        const strain = searchData['strain'];
+        const identifier = searchData['identifier'];
+        const description = searchData['description'];
+        const geneFamilyIdentifier = searchData['geneFamilyIdentifier'];
+        const pageSize = 10;
+        const start = (page-1)*pageSize;
+        // pageSize+1 because we want to see if there's a "next" page
+        const variables = {
+          genus,
+          species,
+          strain,
+          identifier,
+          description,
+          geneFamilyIdentifier,
+          start,
+          size: pageSize+1
+        };
+        // returns a Promise that resolves to an array of Gene objects the gene search
+        // Web Component knows how to parse: {name: string, description: string}[]
+        return graphqlQuery(uri, geneQuery, variables, abortSignal)
+          .then(({data}) => {
+            console.log(data);
+            // compute if there's a next page
+            const hasNext = pageSize+1 === data.genes.length;
+            // remove the lookahead result
+            if (hasNext) data.genes.pop();
+            // flatten results
+            const results =
+              data.genes.map(({organism: {genus, species}, strain, ...gene}) => {
+                const geneFamilyAssignments =
+                  gene.geneFamilyAssignments
+                    .map(({geneFamily: {identifier}}) => identifier);
+                const locations =
+                  gene.locations.map(({chromosome: {identifier}, ...location}) => {
+                    return {chromosome: identifier, ...location};
+                  });
+                return {
+                  genus,
+                  species,
+                  strain: strain.identifier,
+                  ...gene,
+                  geneFamilyAssignments,
+                  locations,
+                };
               });
+            // construct the expected paginated results object
+            console.log(results);
+            const paginatedResults = {hasNext, results};
+            return paginatedResults;
+          });
       }
 
-      const geneSearchElement = document.getElementById('gene-search');
-      geneSearchElement.searchFunction = getGenes;
+      // wait for the page to load before binding component properties
+      window.onload = (event) => {
+        const geneSearchElement = document.getElementById('gene-search');
+        geneSearchElement.searchFunction = getGenes;
+        geneSearchElement.formDataFunction = getGeneFormData;
+      }
 
     </script>
 
