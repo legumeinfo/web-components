@@ -1,6 +1,6 @@
 import {LitElement, html} from 'lit';
 import {property, query, state} from 'lit/decorators.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {
   LisCancelPromiseController,
@@ -8,10 +8,10 @@ import {
   LisQueryStringParametersController,
 } from '../controllers';
 import {
+  LisAlertElement,
   LisFormWrapperElement,
   LisPaginationElement,
 } from '../core';
-import {AlertModifierModel} from '../models';
 
 
 /**
@@ -246,7 +246,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
  * @example
  * When using the mixin, the
  * {@link LisPaginatedSearchElementInterface.requiredQueryStringParams | `requiredQueryStringParams`},
- * {@link LisPaginatedSearchElementInterface.resultAttributes | `resultAttributes`},
+ y {@link LisPaginatedSearchElementInterface.resultAttributes | `resultAttributes`},
  * and {@link LisPaginatedSearchElementInterface.tableHeader | `tableHeader`}
  * properties of the extended class must be set in the component's constructor.
  *
@@ -420,13 +420,8 @@ class LisPaginatedSearchElement extends superClass {
   @state()
   private _searchData: SearchData | undefined = undefined;
 
-  // messages sent to the user about search status
-  @state()
-  private _alertMessage: string = '';
-
-  // the style of the alert element
-  @state()
-  private _alertModifier: AlertModifierModel = 'primary';
+  // bind to the alert element in the template
+  private _alertRef: Ref<LisAlertElement> = createRef();
 
   // bind to the pagination element in the template
   @query('lis-pagination-element')
@@ -480,7 +475,7 @@ class LisPaginatedSearchElement extends superClass {
     if (this._searchData !== undefined) {
       const page = this._paginator.page;
       const message = `<span uk-spinner></span> Loading page ${page}`;
-      this._setAlert(message, 'primary');
+      this._alertRef.value?.primary(message);
       this.queryStringController.setParameters({page, ...this._searchData});
       this.cancelPromiseController.cancel();
       const options = {abortSignal: this.cancelPromiseController.abortSignal};
@@ -512,7 +507,7 @@ class LisPaginatedSearchElement extends superClass {
     const plural = results.length == 1 ? '' : 's';
     const message = `${results.length} result${plural} found`;
     const modifier = results.length ? 'success' : 'warning';
-    this._setAlert(message, modifier);
+    this._alertRef.value?.updateAlert(message, modifier);
     // display the results in the table
     this.searchResults = results;
     // update the pagination element
@@ -523,7 +518,7 @@ class LisPaginatedSearchElement extends superClass {
   // will appear in the console/debugger
   private _searchFailure(error: Error): void {
     const message = 'Search failed';
-    this._setAlert(message, 'danger');
+    this._alertRef.value?.danger(message);
     throw error;
   }
 
@@ -544,7 +539,7 @@ class LisPaginatedSearchElement extends superClass {
     // update the search data
     this._searchData = undefined;
     // update the alert element
-    this._setAlert('', 'primary');
+    this._alertRef.value?.basic('');
     // update the table element
     this.searchResults = [];
     // update the pagination element
@@ -559,12 +554,6 @@ class LisPaginatedSearchElement extends superClass {
     this._searchData = this.formToObject(e.detail.data);
     this._paginator.page = this._searchPage;
     this._search();
-  }
-
-  // sets the alert element style and content
-  private _setAlert(message: string, modifier: AlertModifierModel): void {
-    this._alertMessage = message;
-    this._alertModifier = modifier;
   }
 
   ////////////////////
@@ -589,23 +578,10 @@ class LisPaginatedSearchElement extends superClass {
     `;
   }
 
-  // generates an alert element using the current alert state
-  private _renderAlert(): unknown {
-    if (!this._alertMessage) {
-      return html``;
-    }
-    return html`
-      <div class="uk-alert uk-alert-${this._alertModifier}">
-        <p>${unsafeHTML(this._alertMessage)}</p>
-      </div>
-    `;
-  }
-
   override render(): unknown {
 
     // render the template parts
     const form = this.renderForm();
-    const alert = this._renderAlert();
     const results = this.renderResults();
 
     // the template
@@ -615,7 +591,7 @@ class LisPaginatedSearchElement extends superClass {
         ${form}
       </lis-form-wrapper-element>
 
-      ${alert}
+      <lis-alert-element ${ref(this._alertRef)} ?hidden=${!this._alertRef.value?.content}></lis-alert-element>
 
       ${results}
 
