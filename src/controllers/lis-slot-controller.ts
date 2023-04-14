@@ -107,8 +107,11 @@ export class LisSlotController implements ReactiveController {
           .flat();
       // put the children in the slot
       if (slotChildren.length > 0) {
-        //ref.value.assign(...slotChildren);  // renders via Shadow DOM
-        ref.value.replaceChildren(...slotChildren);  // fakes Shadow DOM by moving children
+        // children only need to be moved once; trying again will throw an error
+        try {
+          //ref.value.assign(...slotChildren);  // renders via Shadow DOM
+          ref.value.replaceChildren(...slotChildren);  // fakes Shadow DOM by moving children
+        } catch(error) { }
       }
     });
   }
