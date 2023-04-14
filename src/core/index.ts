@@ -6,6 +6,7 @@
  *
  * @module core components
  */
+export * from './lis-alert-element';
 export * from './lis-form-wrapper-element';
 export * from './lis-pagination-element';
 export * from './lis-simple-table-element';
