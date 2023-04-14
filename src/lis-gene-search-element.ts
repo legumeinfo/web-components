@@ -1,8 +1,8 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
-import {AlertModifierModel} from './models';
+import {LisAlertElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
 
@@ -195,14 +195,6 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   }
 
-  // messages sent to the user about the form status
-  @state()
-  private _formAlertMessage: string = '';
-
-  // the style of the form alert element
-  @state()
-  private _formAlertModifier: AlertModifierModel = 'primary';
-
   // the selected index of the genus select element
   @state()
   private selectedGenus: number = 0;
@@ -215,47 +207,32 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   @state()
   private selectedStrain: number = 0;
 
+  // bind to the alert element in the template
+  private _formAlertRef: Ref<LisAlertElement> = createRef();
+
   constructor() {
     super();
     // configure query string parameters
     //this.requiredQueryStringParams = ['genus', 'description'];
   }
 
-  // sets the form alert element's style and content
-  private _setFormAlert(message: string, modifier: AlertModifierModel): void {
-    this._formAlertMessage = message;
-    this._formAlertModifier = modifier;
-  }
-
   // sets the form alert element to a loading state
   private _alertFormDataLoading() {
     const message = `<span uk-spinner></span> Loading form data`;
-    this._setFormAlert(message, 'primary');
+    this._formAlertRef.value?.primary(message);
   }
 
   // sets the form alert element to a load success state
   private _alertFormDataSuccess() {
     const message = `Form data loaded`;
-    this._setFormAlert(message, 'success');
+    this._formAlertRef.value?.success(message);
   }
 
   // sets the form alert element to a load error state
   private _alertFormDataFailure(error: Error) {
     const message = `Failed to load form data`;
-    this._setFormAlert(message, 'danger');
+    this._formAlertRef.value?.danger(message);
     throw error;
-  }
-
-  // generates an alert element using the current alert state
-  private _renderFormAlert(): unknown {
-    if (!this._formAlertMessage) {
-      return html``;
-    }
-    return html`
-      <div class="uk-alert uk-alert-${this._formAlertModifier}">
-        <p>${unsafeHTML(this._formAlertMessage)}</p>
-      </div>
-    `;
   }
 
   // called when a genus is selected
@@ -340,12 +317,6 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   // used by LisPaginatedSearchMixin to draw the search form part of template
   override renderForm() {
 
-    // render the form's alert element
-    // NOTE: we don't reuse the inherited alert element because query parameters could
-    // trigger a search at the same time the form data is being loaded, causing race
-    // conditions
-    const alert = this._renderFormAlert();
-
     // render the form's selectors
     const genusSelector = this._renderGenusSelector();
     const speciesSelector = this._renderSpeciesSelector();
@@ -356,7 +327,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Gene Search</legend>
-          ${alert}
+          <lis-alert-element closeable="true" ${ref(this._formAlertRef)} ?hidden=${!this._formAlertRef.value?.content}></lis-alert-element>
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
