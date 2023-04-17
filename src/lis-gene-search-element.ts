@@ -2,6 +2,8 @@ import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
+
+import {LisCancelPromiseController} from './controllers';
 import {LisAlertElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
@@ -24,10 +26,20 @@ export type GeneSearchFormData = {
 
 
 /**
+ * Optional parameters that may be given to a form data function. The
+ * {@link !AbortSignal | `AbortSignal`} instance will emit if a new function is provided
+ * before the current function completes. This signal should be used to cancel in-flight
+ * requests if the external API supports it.
+ */
+export type GeneFormDataOptions = {abortSignal?: AbortSignal};
+
+
+/**
  * The type signature of a function that may be used to load the data used to construct
  * the search form in the {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
  */
-export type GeneFormDataFunction = () => Promise<GeneSearchFormData>;
+export type GeneFormDataFunction =
+  (options: GeneFormDataOptions) => Promise<GeneSearchFormData>;
 
 
 /**
@@ -135,8 +147,8 @@ export type GeneSearchFunction =
  * This can be done by setting the form's {@link formData | `formData`}
  * attribute/property directly or by setting the
  * {@link formDataFunction | `formDataFunction`} property. Setting the latter will call
- * the function immediately and report the loading status via an alert element.
- * Note that this method can only be used after the component is loaded. For example:
+ * the function immediately and set the {@link formData | `formData`} value using the
+ * result. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
@@ -147,13 +159,10 @@ export type GeneSearchFunction =
  *   function getFormData() {
  *     // returns a Promise that resolves to a form data object
  *   }
- *   // wait for all elements to be loaded
- *   window.onload = (event) => {
- *     // get the gene search element
- *     const geneSearchElement = document.getElementById('gene-search');
- *     // set the element's formDataFunction property
- *     geneSearchElement.formDataFunction = getGeneFormData;
- *   }
+ *   // get the gene search element
+ *   const geneSearchElement = document.getElementById('gene-search');
+ *   // set the element's formDataFunction property
+ *   geneSearchElement.formDataFunction = getGeneFormData;
  * </script>
  * ```
  */
@@ -175,25 +184,15 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   formData: GeneSearchFormData = {genuses: []}
 
   /**
-   * An optional setter that can be used to load the form data via an external function.
-   * If used, the loading status of the data will be displayed in an alert element.
+   * An optional property that can be used to load the form data via an external function.
+   * If used, the loading status of the data will be displayed in an alert element and
+   * the `formData` attribute/property will be updated using the result.
    *
    * @attribute
    */
-  // NOTE: unlike the GeneSearchFunction, this property is not protected from race
-  // conditions
-  set formDataFunction(getFormData: GeneFormDataFunction) {
-    this._alertFormDataLoading();
-    getFormData()
-      .then(
-        (formData) => {
-          this._alertFormDataSuccess();
-          this.formData = formData;
-        },
-        this._alertFormDataFailure
-      );
-
-  }
+  @property({type: Function, attribute: false})
+  formDataFunction: GeneFormDataFunction =
+    () => Promise.reject(new Error('No form data function provided'));
 
   // the selected index of the genus select element
   @state()
@@ -207,6 +206,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   @state()
   private selectedStrain: number = 0;
 
+  // a controller that allows in-flight form data requests to be cancelled
+  protected formDataCancelPromiseController = new LisCancelPromiseController(this);
+
   // bind to the alert element in the template
   private _formAlertRef: Ref<LisAlertElement> = createRef();
 
@@ -214,6 +216,33 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     super();
     // configure query string parameters
     //this.requiredQueryStringParams = ['genus', 'description'];
+  }
+
+  // listen for changes to components properties
+  override updated(changedProperties: Map<string, any>) {
+    // call the formDataFunction every time its value changes
+    if (changedProperties.has('formDataFunction')) {
+      this._getFormData();
+    }
+  }
+
+  // gets the data for the search form
+  private _getFormData() {
+    // update the alert element
+    this._alertFormDataLoading();
+    // make the form data function cancellable
+    this.formDataCancelPromiseController.cancel();
+    const options = {abortSignal: this.formDataCancelPromiseController.abortSignal};
+    const formDataPromise = this.formDataFunction(options);
+    // call the cancellable function
+    this.formDataCancelPromiseController.wrapPromise(formDataPromise)
+      .then(
+        (formData) => {
+          this._alertFormDataSuccess();
+          this.formData = formData;
+        },
+        this._alertFormDataFailure
+      );
   }
 
   // sets the form alert element to a loading state
