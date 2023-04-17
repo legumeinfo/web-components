@@ -54,8 +54,8 @@
       }
       `;
 
-      function getGeneFormData() {
-        return graphqlQuery(uri, geneFormDataQuery)
+      function getGeneFormData({abortSignal}) {
+        return graphqlQuery(uri, geneFormDataQuery, {}, abortSignal)
           .then(({data}) => {
             // bin the strains by genus then species
             const binnedFormData = {};
@@ -125,7 +125,6 @@
         // Web Component knows how to parse: {name: string, description: string}[]
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
-            console.log(data);
             // compute if there's a next page
             const hasNext = pageSize+1 === data.genes.length;
             // remove the lookahead result
@@ -150,17 +149,16 @@
                 };
               });
             // construct the expected paginated results object
-            console.log(results);
             const paginatedResults = {hasNext, results};
             return paginatedResults;
           });
       }
 
       // wait for the page to load before binding component properties
+      const geneSearchElement = document.getElementById('gene-search');
+      geneSearchElement.searchFunction = getGenes;
+      geneSearchElement.formDataFunction = getGeneFormData;
       window.onload = (event) => {
-        const geneSearchElement = document.getElementById('gene-search');
-        geneSearchElement.searchFunction = getGenes;
-        geneSearchElement.formDataFunction = getGeneFormData;
       }
 
     </script>
