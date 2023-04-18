@@ -156,10 +156,8 @@
 
       // wait for the page to load before binding component properties
       const geneSearchElement = document.getElementById('gene-search');
-      geneSearchElement.searchFunction = getGenes;
       geneSearchElement.formDataFunction = getGeneFormData;
-      window.onload = (event) => {
-      }
+      geneSearchElement.searchFunction = getGenes;
 
     </script>
 
