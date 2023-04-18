@@ -145,9 +145,10 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * automatically perform a search when loaded if certain parameters are
    * present in the URL query string. Components that use the mixin can specify
    * what parameters are necessary by setting this property in their
-   * constructor.
+   * constructor. Specifically, this property represents groups of parameters that will
+   * trigger a search if all parameters within a group are present.
    */
-  protected requiredQueryStringParams: string[];
+  protected requiredQueryStringParams: string[][];
 
   /**
    * Components that use the
@@ -272,7 +273,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
  *   constructor() {
  *     super();
  *     // configure query string parameters
- *     this.requiredQueryStringParams = ['query'];
+ *     this.requiredQueryStringParams = [['query']];
  *     // configure results table
  *     this.resultAttributes = ['name', 'description'];
  *     this.tableHeader = {name: 'Name', description: 'Description'};
@@ -323,7 +324,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
  *   constructor() {
  *     super();
  *     // configure query string parameters
- *     this.requiredQueryStringParams = ['query'];
+ *     this.requiredQueryStringParams = [['query']];
  *     // no need to configure the results table since we're going to override it
  *   }
  *
@@ -402,7 +403,7 @@ class LisPaginatedSearchElement extends superClass {
 
   // what form parts are required to submit a search
   @state()
-  protected requiredQueryStringParams: string[] = [];
+  protected requiredQueryStringParams: string[][] = [];
 
   // attributes of result objects in the concrete class
   @state()
@@ -451,11 +452,14 @@ class LisPaginatedSearchElement extends superClass {
 
   // submits the form if it was populated from querystring parameters
   private _queryStringSubmit(): void {
-    // submit the form if every required query string is present
-    const hasFields = this.requiredQueryStringParams.every((field) => {
+    // submit the form if one or more groups of parameters are present
+    const hasFields = this.requiredQueryStringParams.some((group) => {
+      // check that every parameter in the group is in the querystring
+      return group.length && group.every((field) => {
         return Boolean(this.queryStringController.getParameter(field));
       });
-    if (hasFields) {
+    });
+    if (hasFields && this.requiredQueryStringParams.length) {
       this._searchPage = Number(this.queryStringController.getParameter('page', '1'));
       this.submit();
     } else {
