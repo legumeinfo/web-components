@@ -2,6 +2,7 @@ import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
 import {LisCancelPromiseController} from './controllers';
@@ -477,7 +478,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     const [first, ..._] = gene.locations;
     return html`
       <div>
-        <b>location:</b> ${ first.chromosome }:${ first.start }-${ first.end } (${ first.strand })
+        <b>location:</b> ${unsafeHTML(first.chromosome)}:${ first.start }-${ first.end } (${ first.strand })
       </div>
     `;
   }
@@ -490,7 +491,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     const [first, ..._] = gene.geneFamilyAssignments;
     return html`
       <div>
-        <b>gene family:</b> ${ first }
+        <b>gene family:</b> ${unsafeHTML(first)}
       </div>
     `;
   }
@@ -504,7 +505,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     return html`
       <div>
         <div>
-          <b>${ gene.identifier }</b> (${ gene.name }) <span className="uk-text-italic">${ gene.genus } ${ gene.species }</span> ${ gene.strain }
+          <b>${unsafeHTML(gene.identifier)}</b> (${unsafeHTML(gene.name)}) <span className="uk-text-italic">${unsafeHTML(gene.genus)} ${unsafeHTML(gene.species)}</span> ${unsafeHTML(gene.strain)}
         </div>
         <div className="uk-text-italic">
           ${ gene.description }
