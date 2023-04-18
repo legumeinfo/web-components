@@ -24,14 +24,18 @@ function graphqlQuery(uri, query, variables={}, abortSignal=undefined) {
 
 // Flatten GraphQL results that contain objects
 const flatten = (obj, out={}, prefixes=[]) => {
-    if (obj != null) {
+    if (obj != null && typeof obj == 'object' && !Array.isArray(obj)) {
         Object.keys(obj).forEach(key => {
             const key_prefixes = [...prefixes, key];
             if (typeof obj[key] == 'object' && !Array.isArray(obj[key])) {
                 out = flatten(obj[key], out, key_prefixes);
             } else {
                 const prefix_key = key_prefixes.join('_');
-                out[prefix_key] = obj[key];
+                if (Array.isArray(obj[key])) {
+                    out[prefix_key] = obj[key].map((value) => flatten(value));
+                } else {
+                    out[prefix_key] = obj[key];
+                }
             }
         });
     }

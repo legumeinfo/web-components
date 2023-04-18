@@ -87,46 +87,45 @@
                   const hasNext = pageSize+1 === data.genes.length;
                   // remove the lookahead result
                   if (hasNext) data.genes.pop();
+                  // DEBUG
+                  console.log(data.genes[0]);
+                  //
                   // flatten results that contain objects
                   const results = data.genes.map(gene => flatten(gene));
                   // DEBUG
-                  console.log(results);
+                  console.log(results[0]);
                   //
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-                      results: data.genes,
+                      results: results,
                   };
                   return paginatedResults;
               });
       }
 
       // {
-      //   "name": "Gcy10g022939",
-      //   "identifier": "glycy.G1267.gnm1.ann1.Gcy10g022939",
-      //   "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), IPR011679 (Endoplasmic reticulum, protein ERp29, C-terminal), IPR012336 (Thioredoxin-like fold); GO:0005783 (endoplasmic reticulum), GO:0006662 (glycerol ether metabolic process), GO:0015035 (protein disulfide oxidoreductase activity), GO:0016853 (isomerase activity), GO:0045454 (cell redox homeostasis)",
-      //   "organism_genus": "Glycine",
-      //   "organism_species": "cyrtoloba",
-      //   "strain_identifier": "G1267",
+      //   "name": "Ae04g30110",
+      //   "identifier": "aesev.CIAT22838.gnm1.ann1.Ae04g30110",
+      //   "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), ..., GO:0016853 (isomerase activity), GO:0045454 (cell redox homeostasis)",
+      //   "organism_genus": "Aeschynomene",
+      //   "organism_species": "evenia",
+      //   "strain_identifier": "CIAT22838",
       //   "geneFamilyAssignments": [
       //     {
-      //       "geneFamily": {
-      //         "identifier": "legfed_v1_0.L_4CN551"
-      //       }
+      //       "geneFamily_identifier": "legfed_v1_0.L_3QTWRW"
       //     }
       //   ],
       //   "locations": [
       //     {
-      //       "chromosome": {
-      //         "identifier": "glycy.G1267.gnm1.Chr10"
-      //       },
-      //       "start": 1475653,
-      //       "end": 1480291,
+      //       "chromosome_identifier": "aesev.CIAT22838.gnm1.Ae04",
+      //       "start": 29908706,
+      //       "end": 29912088,
       //       "strand": "1"
       //     }
       //   ]
       // }
-      
+
       const geneSearchElement = document.getElementById('gene-search');
       geneSearchElement.searchFunction = getGenes;
 

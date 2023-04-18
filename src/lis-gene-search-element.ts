@@ -3,13 +3,28 @@ import {customElement} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
-// RESULT (up to arrays that are not flattened):
-//   "name": "Gcy10g022939",
-//   "identifier": "glycy.G1267.gnm1.ann1.Gcy10g022939",
-//   "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), IPR011679 (Endoplasmic reticulum, protein ERp29, C-terminal), IPR012336 (Thioredoxin-like fold); GO:0005783 (endoplasmic reticulum), GO:0006662 (glycerol ether metabolic process), GO:0015035 (protein disulfide oxidoreductase activity), GO:0016853 (isomerase activity), GO:0045454 (cell redox homeostasis)",
-//   "organism_genus": "Glycine",
-//   "organism_species": "cyrtoloba",
-//   "strain_identifier": "G1267",
+// {
+//     "locations": [
+//         {
+//             "strand": "1",
+//             "end": 29912088,
+//             "start": 29908706,
+//             "chromosome_identifier": "aesev.CIAT22838.gnm1.Ae04"
+//         }
+//     ],
+//     "geneFamilyAssignments": [
+//         {
+//             "geneFamily_identifier": "legfed_v1_0.L_3QTWRW"
+//         }
+//     ],
+//     "strain_identifier": "CIAT22838",
+//     "organism_species": "evenia",
+//     "organism_genus": "Aeschynomene",
+//     "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), ..., GO:0045454 (cell redox homeostasis)",
+//     "identifier": "aesev.CIAT22838.gnm1.ann1.Ae04g30110",
+//     "name": "Ae04g30110"
+// }
+
 
 /**
  * The data that will be passed to the search function by the
