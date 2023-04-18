@@ -275,7 +275,12 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
           this._alertFormDataSuccess();
           this.formData = formData;
         },
-        this._alertFormDataFailure
+        (error: Error) => {
+          // do nothing if the request was aborted
+          if ((error as any).type !== 'abort') {
+            this._alertFormDataFailure
+          }
+        },
       );
   }
 
