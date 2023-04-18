@@ -69,7 +69,13 @@ export type GeneSearchResult = {
   species: string;
   strain: string;
   geneFamilyAssignments: string[],
-  locations: {chromosome: string, start: number, end: number, strand: string},
+  locations: {
+    chromosome?: string,
+    supercontig?: string,
+    start: number,
+    end: number,
+    strand: string,
+  },
 };
 
 
@@ -481,9 +487,17 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       return html``;
     }
     const [first, ..._] = gene.locations;
+    let location = html``;
+    if (first.chromosome !== undefined) {
+      location = html`<b>chromosome location:</b> ${unsafeHTML(first.chromosome)}`;
+    } else if (first.supercontig !== undefined) {
+      location = html`<b>supercontig location:</b> ${unsafeHTML(first.supercontig)}`;
+    } else {
+      return html``;
+    }
     return html`
       <div>
-        <b>location:</b> ${unsafeHTML(first.chromosome)}:${ first.start }-${ first.end } (${ first.strand })
+        ${location}:${ first.start }-${ first.end } (${ first.strand })
       </div>
     `;
   }
