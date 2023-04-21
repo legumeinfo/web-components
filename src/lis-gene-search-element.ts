@@ -9,6 +9,28 @@ import {LisCancelPromiseController} from './controllers';
 import {LisAlertElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
+// {
+//     "locations": [
+//         {
+//             "strand": "1",
+//             "end": 29912088,
+//             "start": 29908706,
+//             "chromosome_identifier": "aesev.CIAT22838.gnm1.Ae04"
+//         }
+//     ],
+//     "geneFamilyAssignments": [
+//         {
+//             "geneFamily_identifier": "legfed_v1_0.L_3QTWRW"
+//         }
+//     ],
+//     "strain_identifier": "CIAT22838",
+//     "organism_species": "evenia",
+//     "organism_genus": "Aeschynomene",
+//     "description": "protein disulfide isomerase-like protein; IPR005746 (Thioredoxin), ..., GO:0045454 (cell redox homeostasis)",
+//     "identifier": "aesev.CIAT22838.gnm1.ann1.Ae04g30110",
+//     "name": "Ae04g30110"
+// }
+
 
 /**
  * The data used to construct the search form in the
@@ -94,6 +116,7 @@ export type GeneSearchResult = {
  * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
  * objects.
  */
+
 export type GeneSearchFunction =
   (
     searchData: {
@@ -107,7 +130,6 @@ export type GeneSearchFunction =
     page: number,
     options: PaginatedSearchOptions
   ) => Promise<Array<GeneSearchResult>>;
-
 
 /**
  * @htmlElement `<lis-gene-search-element>`
@@ -145,8 +167,17 @@ export type GeneSearchFunction =
  *   }
  *   // get the gene search element
  *   const searchElement = document.getElementById('gene-search');
- *   // set the element's searchFunction property
- *   searchElement.searchFunction = getGenes;
+ *   // set the element's resultAttributes property
+ *   searchElement.resultAttributes = ["name", "identifier", "description", "organism_genus", "organism_species", "strain_identifier"];
+ *   // set the element's tableHeader property
+ *   searchElement.tableHeader = {
+ *     name: "Name",
+ *     identifier: "Identifier",
+ *     description: "Description",
+ *     organism_genus: "Genus",
+ *     organism_species: "Species",
+*      strain_identifier: "Strain"
+ *   };
  * </script>
  * ```
  *
