@@ -1,7 +1,7 @@
 // directly query an LIS linkout service:
 // https://github.com/legumeinfo/microservices/tree/main/linkouts
 
-const linkoutUri = 'https://cicer.legumeinfo.org/services/gene_linkouts';
+const linkoutUri = 'https://linkouts.services.legumeinfo.org/gene_linkouts';
 
 // A function that gets linkouts for the given list of genes
 function geneLinkouts(uri, genes, abortSignal=undefined) {
