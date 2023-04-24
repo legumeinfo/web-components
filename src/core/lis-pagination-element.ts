@@ -68,11 +68,13 @@ import {customElement, property} from 'lit/decorators.js';
  *   // subscribe to pageChange events
  *   paginationElement.addEventListener('pageChange', eventHandler);
  * </script>
+ * ```
  *
  * @example
- * An optional {@link scrollTarget | `scrollTarget`} property be given an `HTMLElement`
- * via JavaScript. If set, every time a pagination event occurs, the viewport will be
- * scrolled so that the element is visible. For example:
+ * An optional {@link scrollTarget | `scrollTarget`} property can be given an
+ * `HTMLElement` via JavaScript. If set, every time a pagination event occurs, the
+*  viewport will be scrolled so that the element given to the property is visible. For
+*  example:
  * ```html
  * <!-- an element to use as a scroll target -->
  * <p id="paragraph">Some import text</p>
