@@ -417,7 +417,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     return html`
       <select class="uk-select uk-form-small" name="strain"
         .selectedIndex=${live(this.selectedStrain)}
-        @chnage="${this._selectStrain}">
+        @change="${this._selectStrain}">
         <option value="">-- any --</option>
         ${options}
       </select>
