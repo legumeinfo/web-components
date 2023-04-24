@@ -421,16 +421,15 @@ class LisPaginatedSearchElement extends superClass {
   @state()
   private _searchData: SearchData | undefined = undefined;
 
+  // bind to the form (wrapper) element in the template
+  private _formRef: Ref<LisFormWrapperElement> = createRef();
+
   // bind to the alert element in the template
   private _alertRef: Ref<LisAlertElement> = createRef();
 
   // bind to the pagination element in the template
   @query('lis-pagination-element')
   private _paginator!: LisPaginationElement;
-
-  // bind to the form wrapper element in the template
-  @query('lis-form-wrapper-element')
-  private _formWrapper!: LisFormWrapperElement;
 
   // what page should be used for the first search
   // TODO: is there a better way to handle the page in the query string search?
@@ -443,11 +442,11 @@ class LisPaginatedSearchElement extends superClass {
   // allows the form in the paginated search element to be submitted programmatically
   submit(): void {
     // throw an error if the form wrapper is missing
-    if (this._formWrapper === null) {
+    if (this._formRef.value === undefined) {
       throw new Error('No form wrapper in the template');
     }
     // submit the form via the form wrapper
-    this._formWrapper.submit();
+    this._formRef.value?.submit();
   }
 
   // submits the form if it was populated from querystring parameters
@@ -591,7 +590,7 @@ class LisPaginatedSearchElement extends superClass {
     // the template
     return html`
 
-      <lis-form-wrapper-element @submit="${this._updateData}">
+      <lis-form-wrapper-element ${ref(this._formRef)} @submit="${this._updateData}">
         ${form}
       </lis-form-wrapper-element>
 
@@ -600,6 +599,7 @@ class LisPaginatedSearchElement extends superClass {
       ${results}
 
       <lis-pagination-element
+        .scrollTarget=${this._formRef.value}
         page=${this.queryStringController.getParameter('page', '1')}
         @pageChange=${this._changePage}>
       </lis-pagination-element>
