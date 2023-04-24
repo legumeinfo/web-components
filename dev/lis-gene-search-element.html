@@ -95,7 +95,7 @@
           organism { genus species }
           strain { identifier }
           geneFamilyAssignments { geneFamily { identifier } }
-          locations { chromosome { identifier } start end strand }
+          locations { chromosome { identifier } supercontig { identifier } start end strand }
         }
       }
       `;
@@ -136,8 +136,12 @@
                   gene.geneFamilyAssignments
                     .map(({geneFamily: {identifier}}) => identifier);
                 const locations =
-                  gene.locations.map(({chromosome: {identifier}, ...location}) => {
-                    return {chromosome: identifier, ...location};
+                  gene.locations.map(({chromosome, supercontig, ...location}) => {
+                    return {
+                      chromosome: chromosome?.identifier,
+                      supercontig: supercontig?.identifier,
+                      ...location,
+                    };
                   });
                 return {
                   genus,
