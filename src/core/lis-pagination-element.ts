@@ -68,6 +68,27 @@ import {customElement, property} from 'lit/decorators.js';
  *   // subscribe to pageChange events
  *   paginationElement.addEventListener('pageChange', eventHandler);
  * </script>
+ *
+ * @example
+ * An optional {@link scrollTarget | `scrollTarget`} property be given an `HTMLElement`
+ * via JavaScript. If set, every time a pagination event occurs, the viewport will be
+ * scrolled so that the element is visible. For example:
+ * ```html
+ * <!-- an element to use as a scroll target -->
+ * <p id="paragraph">Some import text</p>
+ *
+ * <!-- add the Web Component to your HTML -->
+ * <lis-pagination-element id="pagination"></lis-pagination-element>
+ *
+ * <!-- set the scroll target via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the paragraph element
+ *   const paragraphElement = document.getElementById('paragraph');
+ *   // get the pagination element
+ *   const paginationElement = document.getElementById('pagination');
+ *   // set the scrollTarget property
+ *   paginationElement.scrollTarget = paragraphElement;
+ * </script>
  * ```
  */
 @customElement('lis-pagination-element')
@@ -110,6 +131,14 @@ export class LisPaginationElement extends LitElement {
   hasNext: boolean = false;
 
   /**
+   * The element to scroll to when the page changes.
+   *
+   * @attribute
+   */
+  @property({type: HTMLElement, attribute: false})
+  scrollTarget: HTMLElement|null = null;
+
+  /**
    * Programmatically go to the previous page.
    *
    * @param e - An optional {@link !Event | `Event`} that can be passed if
@@ -123,6 +152,7 @@ export class LisPaginationElement extends LitElement {
     if (this.page > 1) {
       this.page -= 1;
       this._dispatchPageChange();
+      this._scrollToTarget();
     }
   }
 
@@ -140,6 +170,15 @@ export class LisPaginationElement extends LitElement {
     if (this.hasNext) {
       this.page += 1;
       this._dispatchPageChange();
+      this._scrollToTarget();
+    }
+  }
+
+  /** @ignore */
+  // scrolls the view to the scrollTarget element
+  private _scrollToTarget() {
+    if (this.scrollTarget != null) {
+      this.scrollTarget.scrollIntoView({behavior: "smooth"});
     }
   }
 
