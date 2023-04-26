@@ -6,7 +6,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
 import {LisCancelPromiseController} from './controllers';
-import {LisAlertElement} from './core';
+import {LisLoadingElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
 
@@ -193,8 +193,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   /**
    * An optional property that can be used to load the form data via an external function.
-   * If used, the loading status of the data will be displayed in an alert element and
-   * the `formData` attribute/property will be updated using the result.
+   * If used, the `formData` attribute/property will be updated using the result.
    *
    * @attribute
    */
@@ -217,8 +216,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   // a controller that allows in-flight form data requests to be cancelled
   protected formDataCancelPromiseController = new LisCancelPromiseController(this);
 
-  // bind to the alert element in the template
-  private _formAlertRef: Ref<LisAlertElement> = createRef();
+  // bind to the loading element in the template
+  private _formLoadingRef: Ref<LisLoadingElement> = createRef();
 
   constructor() {
     super();
@@ -268,8 +267,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // gets the data for the search form
   private _getFormData() {
-    // update the alert element
-    this._alertFormDataLoading();
+    // update the loading element
+    this._formLoadingRef.value?.loading();
     // make the form data function cancellable
     this.formDataCancelPromiseController.cancel();
     const options = {abortSignal: this.formDataCancelPromiseController.abortSignal};
@@ -278,13 +277,14 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     this.formDataCancelPromiseController.wrapPromise(formDataPromise)
       .then(
         (formData) => {
-          this._alertFormDataSuccess();
+          this._formLoadingRef.value?.success();
           this.formData = formData;
         },
         (error: Error) => {
           // do nothing if the request was aborted
           if ((error as any).type !== 'abort') {
-            this._alertFormDataFailure
+            this._formLoadingRef.value?.failure();
+            throw error;
           }
         },
       );
@@ -325,25 +325,6 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     } else {
       this.selectedStrain = 0;
     }
-  }
-
-  // sets the form alert element to a loading state
-  private _alertFormDataLoading() {
-    const message = `<span uk-spinner></span> Loading form data`;
-    this._formAlertRef.value?.primary(message);
-  }
-
-  // sets the form alert element to a load success state
-  private _alertFormDataSuccess() {
-    const message = `Form data loaded`;
-    this._formAlertRef.value?.success(message);
-  }
-
-  // sets the form alert element to a load error state
-  private _alertFormDataFailure(error: Error) {
-    const message = `Failed to load form data`;
-    this._formAlertRef.value?.danger(message);
-    throw error;
   }
 
   // called when a genus is selected
@@ -435,10 +416,10 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
     // render the form
     return html`
-      <form class="uk-form-stacked">
+      <form class="uk-form-stacked uk-inline">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Gene Search</legend>
-          <lis-alert-element closeable="true" ${ref(this._formAlertRef)} ?hidden=${!this._formAlertRef.value?.content}></lis-alert-element>
+          <lis-loading-element ${ref(this._formLoadingRef)}></lis-loading-element>
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
