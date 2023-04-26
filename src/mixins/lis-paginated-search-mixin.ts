@@ -8,8 +8,8 @@ import {
   LisQueryStringParametersController,
 } from '../controllers';
 import {
-  LisAlertElement,
   LisFormWrapperElement,
+  LisLoadingElement,
   LisPaginationElement,
 } from '../core';
 
@@ -424,8 +424,8 @@ class LisPaginatedSearchElement extends superClass {
   // bind to the form (wrapper) element in the template
   private _formRef: Ref<LisFormWrapperElement> = createRef();
 
-  // bind to the alert element in the template
-  private _alertRef: Ref<LisAlertElement> = createRef();
+  // bind to the loading element in the template
+  private _loadingRef: Ref<LisLoadingElement> = createRef();
 
   // bind to the pagination element in the template
   @query('lis-pagination-element')
@@ -477,8 +477,7 @@ class LisPaginatedSearchElement extends superClass {
   private _search(): void {
     if (this._searchData !== undefined) {
       const page = this._paginator.page;
-      const message = `<span uk-spinner></span> Loading page ${page}`;
-      this._alertRef.value?.primary(message);
+      this._loadingRef.value?.loading();
       this.queryStringController.setParameters({page, ...this._searchData});
       this.cancelPromiseController.cancel();
       const options = {abortSignal: this.cancelPromiseController.abortSignal};
@@ -489,14 +488,15 @@ class LisPaginatedSearchElement extends superClass {
           (error: Error) => {
             // do nothing if the request was aborted
             if ((error as any).type !== 'abort') {
-              this._searchFailure(error);
+              this._loadingRef.value?.failure();
+              throw error;
             }
           },
         );
     }
   }
 
-  // updates the table and alert with the search result data
+  // updates the table and loading element with the search result data
   private _searchSuccess(paginatedResults: PaginatedSearchResults<SearchResult>): void {
     // reset the initial page
     this._searchPage = 1;
@@ -506,23 +506,16 @@ class LisPaginatedSearchElement extends superClass {
         hasNext: Boolean(paginatedResults.results.length),
         ...paginatedResults,
       };
-    // report the success in the alert
-    const plural = results.length == 1 ? '' : 's';
-    const message = `${results.length} result${plural} found`;
-    const modifier = results.length ? 'success' : 'warning';
-    this._alertRef.value?.updateAlert(message, modifier);
+    // update the loading element accordingly
+    if (results.length) {
+      this._loadingRef.value?.success();
+    } else {
+      this._loadingRef.value?.noResults();
+    }
     // display the results in the table
     this.searchResults = results;
     // update the pagination element
     this._paginator.hasNext = hasNext;
-  }
-
-  // updates the alert with an error message and throws the actual error so it
-  // will appear in the console/debugger
-  private _searchFailure(error: Error): void {
-    const message = 'Search failed';
-    this._alertRef.value?.danger(message);
-    throw error;
   }
 
   //////////////////////////
@@ -541,8 +534,8 @@ class LisPaginatedSearchElement extends superClass {
   private _resetComponent(): void {
     // update the search data
     this._searchData = undefined;
-    // update the alert element
-    this._alertRef.value?.basic('');
+    // update the loading element
+    this._loadingRef.value?.success();
     // update the table element
     this.searchResults = [];
     // update the pagination element
@@ -594,9 +587,10 @@ class LisPaginatedSearchElement extends superClass {
         ${form}
       </lis-form-wrapper-element>
 
-      <lis-alert-element ${ref(this._alertRef)} ?hidden=${!this._alertRef.value?.content}></lis-alert-element>
-
-      ${results}
+      <div class="uk-inline uk-width-1-1">
+        <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>
+        ${results}
+      </div>
 
       <lis-pagination-element
         .scrollTarget=${this._formRef.value}
