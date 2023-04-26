@@ -1,10 +1,9 @@
 import {LitElement, html, css} from 'lit';
-import {customElement, property, query, state} from 'lit/decorators.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import {customElement, property, query} from 'lit/decorators.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisCancelPromiseController} from './controllers';
-import {LisSimpleTableElement} from './core';
-import {AlertModifierModel} from './models';
+import {LisLoadingElement, LisSimpleTableElement} from './core';
 
 
 /**
@@ -127,17 +126,12 @@ export class LisLinkoutElement extends LitElement {
   linkoutFunction: LinkoutFunction<unknown> =
     () => Promise.reject(new Error('No linkout function provided'));
 
-  // messages sent to the user about search status
-  @state()
-  private _alertMessage: string = '';
-
-  // the style of the alert element
-  @state()
-  private _alertModifier: AlertModifierModel = 'primary';
-
   // bind to the table element in the template
   @query('lis-simple-table-element')
   private _table!: LisSimpleTableElement;
+
+  // bind to the loading element in the template
+  private _loadingRef: Ref<LisLoadingElement> = createRef();
 
   /**
    * Gets linkouts for the given data.
@@ -149,8 +143,7 @@ export class LisLinkoutElement extends LitElement {
    */
   public getLinkouts<LinkoutData>(data: LinkoutData): void {
     this._table.data = [];
-    const message = `<span uk-spinner></span> Loading linkouts`;
-    this._setAlert(message, 'primary');
+    this._loadingRef.value?.loading();
     this.cancelPromiseController.cancel();
     const options = {abortSignal: this.cancelPromiseController.abortSignal};
     const linkoutPromise = this.linkoutFunction(data, options);
@@ -160,43 +153,29 @@ export class LisLinkoutElement extends LitElement {
         (error: Error) => {
           // do nothing if the request was aborted
           if ((error as any).type !== 'abort') {
-            this._linkoutFailure(error);
+            this._loadingRef.value?.failure();
+            throw error;
           }
         },
       );
   }
 
   /** @ignore */
-  // updates the table and alert with the search result data
+  // updates the table and loading element with the search result data
   private _linkoutSuccess(linkoutResults: LinkoutResults): void {
     // destruct the linkout result
     const {results} = linkoutResults;
-    // report the success in the alert
-    const plural = results.length == 1 ? '' : 's';
-    const message = `${results.length} link${plural} loaded`;
-    const modifier = results.length ? 'success' : 'warning';
-    this._setAlert(message, modifier);
+    // update the loading element accordingly
+    if (results.length) {
+      this._loadingRef.value?.success();
+    } else {
+      this._loadingRef.value?.noResults();
+    }
     // display the results in the table
     const data = results.map((result: LinkoutResult) => {
       return {linkout: `<a href="${result.href}">${result.text}.</a>`};
     });
     this._table.data = data;
-  }
-
-  /** @ignore */
-  // updates the alert with an error message and throws the actual error so it will
-  // appear in the console/debugger
-  private _linkoutFailure(error: Error): void {
-    const message = 'Linkout failed';
-    this._setAlert(message, 'danger');
-    throw error;
-  }
-
-  /** @ignore */
-  // sets the alert element style and content
-  private _setAlert(message: string, modifier: AlertModifierModel): void {
-    this._alertMessage = message;
-    this._alertModifier = modifier;
   }
 
   /** @ignore */
@@ -209,14 +188,14 @@ export class LisLinkoutElement extends LitElement {
 
     // draw the table
     return html`
-      <div class="uk-alert uk-alert-${this._alertModifier}">
-        <p>${unsafeHTML(this._alertMessage)}</p>
+      <div class="uk-inline uk-width-1-1">
+        <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>
+        <lis-simple-table-element
+          caption=""
+          .dataAttributes=${dataAttributes}
+          .header=${header}>
+        </lis-simple-table-element>
       </div>
-      <lis-simple-table-element
-        caption=""
-        .dataAttributes=${dataAttributes}
-        .header=${header}>
-      </lis-simple-table-element>
     `;
   }
 }
