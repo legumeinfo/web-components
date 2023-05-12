@@ -69,13 +69,7 @@ export type GeneSearchResult = {
   species: string;
   strain: string;
   geneFamilyAssignments: string[],
-  locations: {
-    chromosome?: string,
-    supercontig?: string,
-    start: number,
-    end: number,
-    strand: string,
-  },
+  locations: string[],
 };
 
 
@@ -464,34 +458,28 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // renders the location part or a result
   private _renderLocation(gene: any) {
+    const label = html`<b>location:</b>`;
     if (!gene.locations?.length) {
-      return html``;
+      return html`${label} None`;
     }
     const [first, ..._] = gene.locations;
-    let location = html``;
-    if (first.chromosome !== undefined) {
-      location = html`<b>chromosome location:</b> ${unsafeHTML(first.chromosome)}`;
-    } else if (first.supercontig !== undefined) {
-      location = html`<b>supercontig location:</b> ${unsafeHTML(first.supercontig)}`;
-    } else {
-      return html``;
-    }
     return html`
       <div>
-        ${location}:${ first.start }-${ first.end } (${ first.strand })
+        ${label} ${unsafeHTML(first)}
       </div>
     `;
   }
 
   // renders the gene family part of a result
   private _renderGeneFamily(gene: any) {
+    const label = html`<b>gene family:</b>`;
     if (!gene.geneFamilyAssignments?.length) {
-      return html``;
+      return html`${label} None`;
     }
     const [first, ..._] = gene.geneFamilyAssignments;
     return html`
       <div>
-        <b>gene family:</b> ${unsafeHTML(first)}
+        ${label} ${unsafeHTML(first)}
       </div>
     `;
   }

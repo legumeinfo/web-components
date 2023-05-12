@@ -136,12 +136,14 @@
                   gene.geneFamilyAssignments
                     .map(({geneFamily: {identifier}}) => identifier);
                 const locations =
-                  gene.locations.map(({chromosome, supercontig, ...location}) => {
-                    return {
-                      chromosome: chromosome?.identifier,
-                      supercontig: supercontig?.identifier,
-                      ...location,
-                    };
+                  gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
+                    const interval = `${start}-${end} (${strand})`;
+                    if (chromosome?.identifier) {
+                      return `${chromosome?.identifier} (chromosome):${interval}`;
+                    } else if (supercontig?.identifier) {
+                      return `${supercontig?.identifier} (supercontig):${interval}`;
+                    }
+                    return `unknown:${interval}`;
                   });
                 return {
                   genus,
