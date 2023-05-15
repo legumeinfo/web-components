@@ -13,7 +13,6 @@
     <script src="../../node_modules/lit/polyfill-support.js"></script>
     <!-- GraphQL -->
     <script type="text/javascript" src="../graphql.js"></script>
-    <script type="text/javascript" src="../linkout.js"></script>
     <!-- web components-->
     <script type="module" src="../../dist/index.js"></script>
   </head>
@@ -142,13 +141,21 @@
                     .map(({geneFamily: {identifier}}) => identifier);
                 const locations =
                   gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
-                    const interval = `${start}-${end} (${strand})`;
+                    let location = `unknown`;
+                    let type = '';
                     if (chromosome?.identifier) {
-                      return `${chromosome?.identifier} (chromosome):${interval}`;
+                      location = chromosome?.identifier;
+                      type = ' (chromosome)';
                     } else if (supercontig?.identifier) {
-                      return `${supercontig?.identifier} (supercontig):${interval}`;
+                      location = supercontig?.identifier;
+                      type = ' (supercontig)';
                     }
-                    return `unknown:${interval}`;
+                    const text = `${location}${type}:${start}-${end} (${strand})`;
+                    return `<a href="#modal"
+                              data-location="${location}"
+                              data-start="${start}"
+                              data-end="${end}"
+                              uk-toggle>${text}</a>`;
                   });
                 return {
                   genus,
@@ -166,10 +173,40 @@
           });
       }
 
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          href
+          text
+        }
+      }
+      `;
+
+      // location linkout query for the LIS GraphQL API
+      const locationLinkoutsQuery = `
+      query LocationLinkoutsQuery($identifier: ID!, $start: Int!, $end: Int!) {
+        locationLinkouts(identifier: $identifier, start: $start, end: $end) {
+          href
+          text
+        }
+      }
+      `;
+
       // the linkout function to give to the linkout component
-      function linkoutFunction(genes, {abortSignal}){
-        return geneLinkouts(linkoutUri, genes, abortSignal)
-          .then((results) => ({results}));
+      function linkoutFunction({type, variables}, {abortSignal}) {
+        if (type == 'gene') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts}));
+        } else if (type == 'location') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, locationLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.locationLinkouts}));
+        }
+        return Promise.reject();
       }
 
       // get the web components elements and set their function properties
@@ -184,8 +221,17 @@
         const modal = document.getElementById('modal');
         modal.addEventListener('toggle', (event) => {
           const [{$el: link}, ...uikitComponents] = event.detail;
-          const identifier = link.dataset.gene;
-          linkoutElement.getLinkouts([identifier]);
+          const {gene, location, start, end} = link.dataset;
+          let type = '';
+          let variables = {};
+          if (gene !== undefined) {
+            type = 'gene';
+            variables = {identifier: gene};
+          } else if (location !== undefined && start !== undefined && end !== undefined) {
+            type = 'location';
+            variables = {identifier: location, start: parseInt(start), end: parseInt(end)};
+          }
+          linkoutElement.getLinkouts({type, variables});
         });
       };
 
