@@ -12,7 +12,7 @@
     <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script src="../node_modules/lit/polyfill-support.js"></script>
     <!-- GraphQL -->
-    <script type="text/javascript" src="./linkout.js"></script>
+    <script type="text/javascript" src="./graphql.js"></script>
     <!-- web components -->
     <script type="module" src="../dist/index.js"></script>
   </head>
@@ -36,17 +36,30 @@
 
     <!-- set the linkout function by property because functions can't be set as attributes -->
     <script type="text/javascript">
-      
-      function linkoutFunction(genes, {abortSignal}){
-        return geneLinkouts(linkoutUri, genes, abortSignal)
-          .then((results) => ({results}));
+
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          href
+          text
+        }
+      }
+      `;
+
+      // the linkout function to give to the linkout component
+      function linkoutFunction(identifier, {abortSignal}) {
+        // returns a Promise that resolves to an array of linkout objects that the
+        // linkout Web Component knows how to parse: {text: string, href: string}[]
+        return graphqlQuery(uri, geneLinkoutsQuery, {identifier}, abortSignal)
+          .then(({data}) => ({results: data.geneLinkouts}));
       }
 
       const linkoutElement = document.getElementById('linkouts');
       linkoutElement.linkoutFunction = linkoutFunction;
 
       window.onload = (event) => {
-        linkoutElement.getLinkouts(['cicar.CDCFrontier.gnm3.ann1.Ca1g000600']);
+        linkoutElement.getLinkouts('cicar.CDCFrontier.gnm3.ann1.Ca1g000600');
       }
 
     </script>
