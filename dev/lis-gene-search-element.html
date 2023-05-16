@@ -139,9 +139,9 @@
                   gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
                     const interval = `${start}-${end} (${strand})`;
                     if (chromosome?.identifier) {
-                      return `${chromosome?.identifier} (chromosome):${interval}`;
+                      return `${chromosome?.identifier}:${interval} (chromosome)`;
                     } else if (supercontig?.identifier) {
-                      return `${supercontig?.identifier} (supercontig):${interval}`;
+                      return `${supercontig?.identifier}:${interval} (supercontig)`;
                     }
                     return `unknown:${interval}`;
                   });

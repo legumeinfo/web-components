@@ -145,12 +145,12 @@
                     let type = '';
                     if (chromosome?.identifier) {
                       location = chromosome?.identifier;
-                      type = ' (chromosome)';
+                      type = 'chromosome';
                     } else if (supercontig?.identifier) {
                       location = supercontig?.identifier;
-                      type = ' (supercontig)';
+                      type = 'supercontig';
                     }
-                    const text = `${location}${type}:${start}-${end} (${strand})`;
+                    const text = `${location}:${start}-${end} (${strand}) (${type})`;
                     return `<a href="#modal"
                               data-location="${location}"
                               data-start="${start}"
