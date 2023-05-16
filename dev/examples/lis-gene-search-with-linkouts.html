@@ -135,7 +135,7 @@
             // flatten results
             const results =
               data.genes.map(({organism: {genus, species}, strain, ...gene}) => {
-                const name = `<a href="#modal" data-gene="${gene.identifier}" uk-toggle>${gene.name}</a>`;
+                const identifier = `<a href="#modal" data-gene="${gene.identifier}" uk-toggle>${gene.identifier}</a>`;
                 const geneFamilyAssignments =
                   gene.geneFamilyAssignments
                     .map(({geneFamily: {identifier}}) => identifier);
@@ -162,7 +162,7 @@
                   species,
                   strain: strain.identifier,
                   ...gene,
-                  name,
+                  identifier,
                   geneFamilyAssignments,
                   locations,
                 };
