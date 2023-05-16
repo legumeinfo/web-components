@@ -489,11 +489,12 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
     const location = this._renderLocation(gene);
     const geneFamily = this._renderGeneFamily(gene);
+    const name = (gene?.name != null ? html`${unsafeHTML(gene.name)}` : html`no name`);
 
     return html`
       <div>
         <div>
-          <b>${unsafeHTML(gene.identifier)}</b> (${unsafeHTML(gene.name)}) <span class="uk-text-italic">${unsafeHTML(gene.genus)} ${unsafeHTML(gene.species)}</span> ${unsafeHTML(gene.strain)}
+          <b>${unsafeHTML(gene.identifier)}</b> (${name}) <span class="uk-text-italic">${unsafeHTML(gene.genus)} ${unsafeHTML(gene.species)}</span> ${unsafeHTML(gene.strain)}
         </div>
         <div class="uk-text-italic">
           ${ gene.description }
