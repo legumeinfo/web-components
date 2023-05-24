@@ -497,7 +497,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
           <b>${unsafeHTML(gene.identifier)}</b> (${name}) <span class="uk-text-italic">${unsafeHTML(gene.genus)} ${unsafeHTML(gene.species)}</span> ${unsafeHTML(gene.strain)}
         </div>
         <div class="uk-text-italic">
-          ${ gene.description }
+          ${ unsafeHTML(gene.description) }
         </div>
         ${location}
         ${geneFamily}
