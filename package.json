@@ -63,6 +63,6 @@
     "rollup-plugin-terser": "^7.0.2",
     "typedoc": "^0.23.21",
     "typescript": "~4.7.4",
-    "uikit": "^3.14.3"
+    "uikit": "^3.16.19"
   }
 }
