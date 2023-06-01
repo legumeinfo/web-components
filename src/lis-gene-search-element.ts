@@ -96,7 +96,7 @@ export type GeneSearchFunction =
       strain: string,
       identifier: string,
       description: string,
-      geneFamilyIdentifier: string,
+      family: string,
     },
     page: number,
     options: PaginatedSearchOptions
@@ -442,8 +442,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
               <span class="uk-text-small">e.g. protein disulfide isomerase-like protein</span>
             </div>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="geneFamilyIdentifier">Gene Family ID</label>
-              <input class="uk-input" type="text" name="geneFamilyIdentifier"
+              <label class="uk-form-label" for="family">Gene Family ID</label>
+              <input class="uk-input" type="text" name="family"
                 .value=${this.queryStringController.getParameter('family')}/>
               <span class="uk-text-small">e.g. L_HZ6G4Z</span>
             </div>
