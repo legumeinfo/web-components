@@ -87,8 +87,8 @@
 
       // gene description search query for the LIS GraphQL API
       const geneQuery = `
-      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $geneFamilyIdentifier: String, $start: Int, $size: Int) {
-        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, geneFamilyIdentifier: $geneFamilyIdentifier, start: $start, size: $size) {
+      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $family: String, $start: Int, $size: Int) {
+        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, family: $family, start: $start, size: $size) {
           name
           identifier
           description
@@ -107,7 +107,7 @@
         const strain = searchData['strain'];
         const identifier = searchData['identifier'];
         const description = searchData['description'];
-        const geneFamilyIdentifier = searchData['geneFamilyIdentifier'];
+        const family = searchData['family'];
         const pageSize = 10;
         const start = (page-1)*pageSize;
         // pageSize+1 because we want to see if there's a "next" page
@@ -117,7 +117,7 @@
           strain,
           identifier,
           description,
-          geneFamilyIdentifier,
+          family,
           start,
           size: pageSize+1
         };
