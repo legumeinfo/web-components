@@ -245,6 +245,10 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       }
     }
     this.formData = formData;
+    // set the selector values before the DOM is updated when the querystring parameters change
+    this.queryStringController.addPreUpdateListener((_) => {
+      this._initializeSelections();
+    });
   }
 
   // called after every component update, e.g. when a property changes
@@ -253,7 +257,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     if (changedProperties.has('formDataFunction')) {
       this._getFormData();
     }
-    // attempt to change the selected index based on querystring parameters
+    // use querystring parameters to update the selectors when the form data changes
     if (changedProperties.has('formData')) {
       this._initializeSelections();
     }
