@@ -12,6 +12,9 @@ export class LisQueryStringParametersController implements ReactiveController {
   host: ReactiveControllerHost;
 
   /** @ignore */
+  private _preUpdateListeners: EventListener[] = [];
+
+  /** @ignore */
   private _listeners: EventListener[] = [];
 
   /**
@@ -70,7 +73,19 @@ export class LisQueryStringParametersController implements ReactiveController {
   }
 
   /**
-   * Adds a listener to the {@link !popstate | `'popstate'`} event.
+   * Adds a listener to the {@link !popstate | `'popstate'`} event that will be executed
+   * before the host's DOM is updated.
+   *
+   * @param listener - The listener to subscribe to the event.
+   */
+  addPreUpdateListener(listener: EventListener): void {
+    // each listener is called in the scope of the host
+    this._preUpdateListeners.push(listener.bind(this.host));
+  }
+
+  /**
+   * Adds a listener to the {@link !popstate | `'popstate'`} event that will be executed
+   * after the host's DOM is updated.
    *
    * @param listener - The listener to subscribe to the event.
    */
@@ -90,6 +105,10 @@ export class LisQueryStringParametersController implements ReactiveController {
   /** @ignore */
   // calls all listeners of the popstate event
   private _popState(event: PopStateEvent): void {
+    // call each pre update listener
+    this._preUpdateListeners.forEach((listener) => {
+      listener(event);
+    });
     // redraw the host
     this.host.requestUpdate();
     // wait for the redraw to complete in case any listeners rely on state from the template
