@@ -7,7 +7,7 @@ This is the requirements doc for the LIS gene search to be implemented on the LI
 - genus (selector with "any" on top)
 - species (selector populated if genus specified, otherwise only "any")
 - strain (selector populated if species specified, otherwise only "any")
-- gene identifier (text input)
+- gene identifier/name (text input)
 - gene description (text input)
 - gene family identifier (text input)
 - search button
@@ -36,4 +36,5 @@ The output will be a paginated list of search results in *vertical display* form
 ## Implementation notes
 
 - the query will be a GraphQL query run by a web component, which in turn runs an InterMine path query against LegumeMine.
-- the linkouts are not specified here -- those are the purview of the Linkout Service specification, which also specifies how they are implemented on web components like this.
+- linkouts are provided by another GraphQL query.
+- the linkouts UI is not specified here -- those are the purview of the linkout element and the linkout service. 
