@@ -167,6 +167,15 @@ export type GeneSearchFunction =
  *   geneSearchElement.formDataFunction = getGeneFormData;
  * </script>
  * ```
+ *
+ * @example
+ * The {@link only | `only`} property can be used to only show a single genus in the search form.
+ * This is useful for sites that only have a single genus like SoyBase. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-gene-search-element id="gene-search" only="Glycine"></lis-gene-search-element>
+ * ```
+ *
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends
@@ -175,7 +184,6 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   /**
    * Property to only show a single genus in the search form.
    * Useful for sites that only have a single genus like SoyBase.
-   * Example: <lis-gene-search-element only="Glycine"></lis-gene-search-element>
    */
   @property({type: String})
   only: string = '';
