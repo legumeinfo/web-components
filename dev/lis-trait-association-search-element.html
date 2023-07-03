@@ -1,10 +1,214 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-association-search-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../dist/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-association-search-element&gt;</h1>
+      <p>
+
+      </p>
+      <hr>
+
+      <!-- the custom trait search element -->
+      <lis-association-search-element id="association-search"></lis-association-search-element>
+
+    </div>
+
+  <!-- set the search function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // uses the LIS GraphQL API to get data used to construct the search form
+      const FormDataQuery = `
+          query FormDataQuery {
+            organisms {
+              genus
+              species
+            }
+          }
+          `;
+
+      function getFormData({abortSignal}) {
+        return graphqlQuery(uri, FormDataQuery, {}, abortSignal)
+                .then(({data}) => {
+                  // bin the strains by genus then species
+                  const binnedFormData = {};
+                  data.organisms.forEach(({genus, species}) => {
+                    if (!(genus in binnedFormData)) {
+                      binnedFormData[genus] = {}
+                    }
+                    if (!(species in binnedFormData[genus])) {
+                      binnedFormData[genus][species] = [];
+                    }
+                  });
+                  // collapse the bins into arrays of objects
+                  const genuses =
+                          Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+                            const species =
+                                    Object.entries(binnedSpecies).map(([species, strainObjects]) => {
+                                      return {species};
+                                    });
+                            return {genus, species};
+                          });
+                  // return the expected form data object
+                  return {genuses};
+                });
+      }
+
+      const associationQuery = `
+        query Traits($name: String, $start: Int, $size: Int) {
+          traits(name: $name, start: $start, size: $size) {
+            name
+            qtlStudy {
+              identifier
+              synopsis
+              description
+              genotypes
+              organism {
+                genus
+                species
+              }
+              dataSet {
+                publication {
+                  firstAuthor
+                  pubMedId
+                  doi
+                }
+              }
+            }
+            gwas {
+              identifier
+              synopsis
+              description
+              genotypes
+              organism {
+                genus
+                species
+              }
+              dataSet {
+                publication {
+                  firstAuthor
+                  pubMedId
+                  doi
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      // search function
+      function getTraits(searchData, page,{abortSignal}) {
+        const genus = searchData['genus'];
+        const species = searchData['species'];
+        const name = searchData['traits'];
+        const type = searchData['type'];
+        const pubId = searchData['pubId'];
+        const author = searchData['author'];
+        const pageSize = 10;
+        const start = (page-1)*pageSize;
+        // pageSize+1 because we want to see if there's a "next" page
+        const variables = {
+          name,
+          start,
+          size: pageSize+1
+        };
+        const fetchResults = (page) => {
+          variables.start = (page-1)*pageSize;
+          return graphqlQuery(uri, associationQuery, variables, abortSignal)
+                  .then(({data}) => {
+                    // compute if there's a next page
+                    let hasNext = pageSize+1 === data.traits.length;
+                    // remove the lookahead result
+                    if (hasNext) data.traits.pop();
+
+                    // Filter by pubId
+                    if (pubId !== '') {
+                      data.traits = data.traits.filter(trait => {
+                        if (trait.qtlStudy) {
+                          return (trait.qtlStudy.dataSet.publication.pubMedId === pubId || trait.qtlStudy.dataSet.publication.doi === pubId);
+                        } else if (trait.gwas) {
+                          return (trait.gwas.dataSet.publication.pubMedId === pubId || trait.gwas.dataSet.publication.doi === pubId);
+                        }
+                      });
+                      // Since publication ID is unique, we can stop here
+                      if(data.traits.length > 0) {
+                        hasNext = false;
+                      }
+                    }
+                    // Filter by genus
+                    if (genus !== '') {
+                      data.traits = data.traits.filter(trait => (trait.gwas && trait.gwas.organism.genus === genus) || (trait.qtlStudy && trait.qtlStudy.organism.genus === genus));
+                    }
+                    // Filter by species
+                    if (species !== '') {
+                      data.traits = data.traits.filter(trait => (trait.gwas && trait.gwas.organism.species === species) || (trait.qtlStudy && trait.qtlStudy.organism.species === species));
+                    }
+                    // Filter by type
+                    if (type === 'QTL') {
+                      data.traits = data.traits.filter(trait => trait.qtlStudy !== null);
+                    } else if (type === 'GWAS') {
+                      data.traits = data.traits.filter(trait => trait.gwas !== null);
+                    }
+                    // Filter by author
+                    if (author !== '') {
+                      // Create a regex to match the author so we can ignore case and match partial names
+                      const regex = new RegExp(author, 'i');
+                      data.traits = data.traits.filter(trait => {
+                        if (trait.qtlStudy) {
+                          return regex.test(trait.qtlStudy.dataSet.publication.firstAuthor);
+                        } else if (trait.gwas) {
+                          return regex.test(trait.gwas.dataSet.publication.firstAuthor);
+                        }
+                      });
+                    }
+
+
+
+
+                    // If there are results, append them to finalResults
+                    if(data.traits.length > 0) {
+                      finalResults.push(...data.traits.slice(0, 10));
+                    }
+                    if (finalResults.length < 10 && hasNext) {
+                      // If there are less than 10 results and there's a next page, fetch the next page
+                      return fetchResults(page + 1);
+                    } else if (finalResults.length === 10 || !hasNext) {
+                      // If the final results have 10 entries or there's no next page, return the paginated results
+                      return { hasNext: finalResults.length === 10, results: finalResults };
+                    }
+                  });
+        };
+        const finalResults = [];
+        return fetchResults(page)
+                .then(paginatedResults => {
+                  return { hasNext: finalResults.length === 10, results: finalResults };
+                });
+      }
+
+      // wait for the page to load before binding component properties
+      const AssociationSearchElement = document.getElementById('association-search');
+      AssociationSearchElement.formDataFunction = getFormData;
+      AssociationSearchElement.searchFunction = getTraits;
+
+    </script>
+
+  </body>
+
 </html>
