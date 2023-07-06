@@ -1,12 +1,12 @@
 import {LitElement, css, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './src/mixins'
+import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins'
 import {property, state} from 'lit/decorators.js';
-import {LisCancelPromiseController} from "./src/controllers";
-import {LisLoadingElement} from "./src/core";
+import {LisCancelPromiseController} from "./controllers";
+import {LisLoadingElement} from "./core";
 import {createRef, ref, Ref} from "lit/directives/ref.js";
 import {live} from 'lit/directives/live.js';
-
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 /**
  * The data used to construct the search form in the
@@ -48,16 +48,13 @@ export type AssociationSearchData = {
 /**
  * A single result of an association search performed by the
  * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class.
- * Both GWAS and QTL results are returned in this format.
- *
+ * Contains the name of the trait and either a GWAS or QTL study object.
  *
  */
 export type TraitAssociationResult = {
-    identifier: string;
-    synopsis: string;
-    description: string;
-    trait_name: string;
-    genotypes: string;
+    name: string;
+    qtlStudy: Object;
+    gwas: Object;
 };
 
 
@@ -65,9 +62,9 @@ export type TraitAssociationResult = {
  * Search function for the {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class.
  * Shared by both GWAS and QTL searches.
  *
- * @param query The search term in the input element when the search form was submitted.
+ * @param searchData The data to use to perform the search.
  * @param page What page of results the search is for. Will always be 1 when a new search is performed.
- * @param options Optional parameters that aren't required to perform a GWAS search but may be useful.
+ * @param options Optional parameters.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
  * {@link !Array | `Array`} of {@link TraitAssociationResult | `TraitAssociationResult`}
@@ -78,8 +75,10 @@ export type AssociationSearchFunction =
         searchData: {
             genus: string,
             species: string,
-            terms: string,
-            type: string
+            traits: string,
+            type: string,
+            pubId: string,
+            author: string
         },
         page: number,
         options: PaginatedSearchOptions
@@ -94,11 +93,46 @@ export type AssociationSearchFunction =
  * the mixin docs for further details.
  *
  * @queryStringParameters
- * - **query:** The gwas id in the query field of the search form.
  * - **page:** What page of results is loaded. Starts at 1.
+ * - **genus:** The genus to search for.
+ * - **species:** The species to search for.
+ * - **type:** The type of study to search for. Either 'GWAS' or 'QTL'. If not provided, both types will be searched.
+ * - **traits:** The traits to search for. URL encoded. Can be a full trait name or a partial trait name. Case insensitive.
+ * - **pubId** The publication ID to search for. Either a PubMed ID or a DOI.
+ * - **author** The author to search for. Can be a full name or a partial name. Case insensitive.
+ *
+ * @example
+ * {@link !HTMLElement | `HTMLElement`} properties can only be set via
+ * JavaScript. This means the {@link searchFunction | `searchFunction`} property
+ * must be set on a `<lis-trait-association-search-element>` tag's instance of the
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-association-search-element id="association-search"></lis-association-search-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // a site-specific function that sends a request to a gene search API
+ *   function getTraits(searchData, page, {abortSignal}) {
+ *     // returns a Promise that resolves to a search result object
+ *   }
+ *   // get the association search element
+ *   const searchElement = document.getElementById('association-search');
+ *   // set the element's searchFunction property
+ *   searchElement.searchFunction = getTraits;
+ * </script>
+ * ```
+ *
+ * @example
+ * The {@link only | `only`} property can be used to only show a single genus in the search form.
+ * For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-association-search-element id="association-search" only="Glycine"></lis-association-search-element>
+ * ```
  */
 
-@customElement('lis-trait-association-search')
+@customElement('lis-association-search-element')
 export class LisTraitAssociationSearchElement extends
     LisPaginatedSearchMixin(LitElement)<AssociationSearchData, TraitAssociationResult>() {
 
@@ -113,7 +147,7 @@ export class LisTraitAssociationSearchElement extends
 
     /**
      * Property to only show a single genus in the search form.
-     * Useful for sites that only have a single genus like SoyBase.
+     * Useful for sites that only have a single genus.
      */
     @property({type: String})
     only: string = '';
@@ -157,8 +191,10 @@ export class LisTraitAssociationSearchElement extends
         this.requiredQueryStringParams = [
             ['genus'],
             ['genus', 'species'],
-            ['terms'],
+            ['traits'],
             ['type'],
+            ['pubID'],
+            ['author']
         ];
         // initialize the form data with querystring parameters so a search can be performed
         // before the actual form data is loaded
@@ -217,6 +253,7 @@ export class LisTraitAssociationSearchElement extends
             );
     }
 
+    // called when the form is submitted
     private _initializeSelections() {
         const genus = this.queryStringController.getParameter('genus');
         if (genus) {
@@ -247,7 +284,11 @@ export class LisTraitAssociationSearchElement extends
         this.selectedSpecies = 0;
     }
 
-    // renders the genus selector
+    /**
+     * Renders the genus selector.
+     * @param onlyGenus - If set, only render a single genus.
+     * @private
+     */
     private _renderGenusSelector(onlyGenus: string) {
         // if onlyGenus is set, render a disabled select element with the onlyGenus value as the selected and only option.
         if (onlyGenus.length > 0) {
@@ -255,10 +296,10 @@ export class LisTraitAssociationSearchElement extends
             if (genus) {
                 this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
                 return html`
-          <select class="uk-select uk-form-small" name="genus" disabled>
-            <option value="${genus.genus}" selected>${genus.genus}</option>
-          </select>
-        `;
+                  <select class="uk-select uk-form-small" name="genus">
+                    <option value="${genus.genus}" selected>${genus.genus}</option>
+                  </select>
+                `;
             }
         }
         // otherwise, render a normal select element
@@ -335,49 +376,158 @@ export class LisTraitAssociationSearchElement extends
         const speciesSelector = this._renderSpeciesSelector();
         const typeSelector = this._renderTypeSelector();
 
-        /**
-         * Genus [dropdown: Aeschynomene Apios Arachis Bauhinia Cajanus Cercis Chamaecrista Cicer Faidherbia Glycine Lablab Lens Lotus Lupinus]
-         *
-         * Species [dropdown, depending on Genus, e.g. acutifolius, lunatus, vulgaris]
-         *
-         * Trait terms [free-text entry, e.g. flower, maturity, height]
-         *
-         * Study type  [dropdown: GWAS, QTL]
-         */
-
 
         return html`
-                  <form class="uk-form-stacked uk-inline">
-        <fieldset class="uk-fieldset">
-          <legend class="uk-legend">Gene Search</legend>
-          <lis-loading-element ${ref(this._formLoadingRef)}></lis-loading-element>
-          <div class="uk-margin uk-grid-small" uk-grid>
-            <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="genus">Genus</label>
-              ${genusSelector}
-            </div>
-            <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="species">Species</label>
-              ${speciesSelector}
-            </div>
-          </div>
-          <div class="uk-margin uk-grid-small" uk-grid>
-            <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="identifier">Terms</label>
-              <input class="uk-input" type="text" name="terms"
-                .value=${this.queryStringController.getParameter('terms')}/>
-              <span class="uk-text-small">e.g. R8 full maturity</span>
-            </div>
-            <div class="uk-width-1-3@s">
-                <label class="uk-form-label" for="type">Type</label>
-                ${typeSelector}
-            </div>
-          </div>
-          <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary">Search</button>
-          </div>
-        </fieldset>
-      </form>
+          <form class="uk-form-stacked uk-inline">
+            <fieldset class="uk-fieldset">
+              <legend class="uk-legend">Gene Search</legend>
+              <lis-loading-element ${ref(this._formLoadingRef)}></lis-loading-element>
+              <div class="uk-margin uk-grid-medium" uk-grid>
+                  <div class="uk-width-1-5@s">
+                    <label class="uk-form-label" for="genus">Genus</label>
+                    ${genusSelector}
+                  </div>
+                  <div class="uk-width-1-5@s">
+                    <label class="uk-form-label" for="species">Species</label>
+                    ${speciesSelector}
+                  </div>
+                  <div class="uk-width-1-5@s">
+                      <label class="uk-form-label" for="type">Study Type</label>
+                      ${typeSelector}
+                  </div>
+              </div>
+              <div class="uk-margin uk-grid-medium" uk-grid>
+                  <div class="uk-width-1-5@s">
+                      <label class="uk-form-label" for="traits">Traits</label>
+                      <input class="uk-input" type="text" name="traits"
+                             .value=${this.queryStringController.getParameter('traits')}/>
+                      <span class="uk-text-small">e.g. R8 full maturity</span>
+                  </div>
+                  <div class="uk-width-1-4@s">
+                      <label class="uk-form-label" for="pubId">Publication ID (DOI or PMID)</label>
+                      <input class="uk-input" type="text" name="pubId"
+                             .value=${this.queryStringController.getParameter('pubId')}/>
+                      <span class="uk-text-small">e.g. 10.2135/cropsci2005.05-0168</span>
+                  </div>
+                  <div class="uk-width-1-5@s">
+                      <label class="uk-form-label" for="author">Author</label>
+                      <input class="uk-input" type="text" name="author"
+                             .value=${this.queryStringController.getParameter('author')}/>
+                      <span class="uk-text-small">e.g. Nichols, D. M.</span>
+                  </div>
+
+              </div>
+              <div class="uk-margin">
+                <button type="submit" class="uk-button uk-button-primary">Search</button>
+              </div>
+            </fieldset>
+          </form>
         `;
+    }
+
+    /**
+     * Renders the GWAS results of the search
+     * @param result
+     * @private
+     */
+    private _renderGwasResult(result: any) {
+        return html`
+            <div>   
+                <div>
+                    <b>Study name: </b>
+                    <span>${unsafeHTML(result.gwas.identifier)}</span>
+                </div>
+                <div>
+                    <b>Study Type: </b>
+                    <span>GWAS</span>
+                </div>
+                <div>
+                    <b>Synopsis: </b>
+                    <span>${unsafeHTML(result.gwas.synopsis)}</span>
+                </div>
+                <div>
+                    <b>Description: </b> 
+                    <span>${unsafeHTML(result.gwas.description)}</span>
+                </div>
+                <div>
+                    <b>Trait name: </b>
+                    <span>${unsafeHTML(result.name)}</span>
+                </div>
+                <div>
+                    <b>Genotypes: </b>
+                    <span>${unsafeHTML(result.gwas.genotypes)}</span>
+                </div>
+            </div>
+            <hr>
+        `;
+    }
+
+    /**
+     * Renders the QTL results of the search
+     * @param result
+     * @private
+     */
+    private _renderQtlResult(result: any) {
+        return html`
+            <div>   
+                <div>
+                    <b>Study name: </b>
+                    <span>${unsafeHTML(result.qtlStudy.identifier)}</span>
+                </div>
+                <div>
+                    <b>Study Type: </b>
+                    <span>QTL</span>
+                </div>
+                <div>
+                    <b>Synopsis: </b>
+                    <span>${unsafeHTML(result.qtlStudy.synopsis)}</span>
+                </div>
+                <div>
+                    <b>Description: </b> 
+                    <span>${unsafeHTML(result.qtlStudy.description)}</span>
+                </div>
+                <div>
+                    <b>Trait name: </b>
+                    <span>${unsafeHTML(result.name)}</span>
+                </div>
+                <div>
+                    <b>Genotypes: </b>
+                    <span>${unsafeHTML(result.qtlStudy.genotypes)}</span>
+                </div>
+            </div>
+            <hr>
+        `;
+    }
+
+
+    /**
+     * Used by LisPaginatedSearchMixin to draw the results part of template
+     * @param result
+     * @private
+     */
+    private _renderResult(result: any) {
+        if (result.gwas) {
+            return this._renderGwasResult(result);
+        } else if (result.qtlStudy) {
+            return this._renderQtlResult(result);
+        }
+        return;
+
+
+
+    }
+
+    /** @ignore */
+    // used by LisPaginatedSearchMixin to draw the results part of template
+    override renderResults() {
+        return this.searchResults.map((result) => this._renderResult(result));
+    }
+
+
+
+}
+declare global {
+    interface HTMLElementTagNameMap {
+        'lis-association-search-element': LisTraitAssociationSearchElement;
     }
 }
