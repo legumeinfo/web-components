@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-phylotree&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../dist/index.js"></script>
+
+    <!-- D3 -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+    <!-- TnT -->
+    <link rel="stylesheet" href="http://tntvis.github.io/tnt/build/tnt.css" type="text/css" />
+    <script src="http://tntvis.github.io/tnt/build/tnt.min.js" charset="utf-8"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-phylotree&gt;</h1>
+      <p>
+        This is a test
+      </p>
+      <hr>
+
+      <!-- the custom gene search element -->
+      <lis-phylotree id="gene-phylotree"></lis-phylotree>
+
+    </div>
+
+    <!-- set the search function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // uses the LIS GraphQL API to get data used to construct the gene search form
+      const geneFormDataQuery = `
+      query FormDataQuery {
+        organisms {
+          genus
+          species
+          strains {
+            identifier
+          }
+        }
+      }
+      `;
+
+      function getGeneFormData({abortSignal}) {
+        return graphqlQuery(uri, geneFormDataQuery, {}, abortSignal)
+          .then(({data}) => {
+            // bin the strains by genus then species
+            const binnedFormData = {};
+            data.organisms.forEach(({genus, species, strains}) => {
+              if (!(genus in binnedFormData)) {
+                binnedFormData[genus] = {}
+              }
+              if (!(species in binnedFormData[genus])) {
+                binnedFormData[genus][species] = [];
+              }
+              binnedFormData[genus][species].push(...strains);
+            });
+            // collapse the bins into arrays of objects
+            const genuses =
+              Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+                const species =
+                  Object.entries(binnedSpecies).map(([species, strainObjects]) => {
+                    const strains = strainObjects.map(({identifier}) => {
+                      return {strain: identifier};
+                    });
+                    return {species, strains};
+                  });
+                return {genus, species};
+              });
+            // return the expected form data object
+            return {genuses};
+          });
+      }
+
+      // gene description search query for the LIS GraphQL API
+      const geneQuery = `
+      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $family: String, $start: Int, $size: Int) {
+        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, geneFamilyIdentifier: $family, start: $start, size: $size) {
+          name
+          identifier
+          description
+          organism { genus species }
+          strain { identifier }
+          geneFamilyAssignments { geneFamily { identifier } }
+          locations { chromosome { identifier } supercontig { identifier } start end strand }
+        }
+      }
+      `;
+      
+      // the search function given to the LIS gene search Web Component
+      function getGenes(searchData, page, {abortSignal}) {
+        const genus = searchData['genus'];
+        const species = searchData['species'];
+        const strain = searchData['strain'];
+        const identifier = searchData['identifier'];
+        const description = searchData['description'];
+        const family = searchData['family'];
+        const pageSize = 10;
+        const start = (page-1)*pageSize;
+        // pageSize+1 because we want to see if there's a "next" page
+        const variables = {
+          genus,
+          species,
+          strain,
+          identifier,
+          description,
+          family,
+          start,
+          size: pageSize+1
+        };
+        // returns a Promise that resolves to an array of Gene objects the gene search
+        // Web Component knows how to parse: {name: string, description: string}[]
+        return graphqlQuery(uri, geneQuery, variables, abortSignal)
+          .then(({data}) => {
+            // compute if there's a next page
+            const hasNext = pageSize+1 === data.genes.length;
+            // remove the lookahead result
+            if (hasNext) data.genes.pop();
+            // flatten results
+            const results =
+              data.genes.map(({organism: {genus, species}, strain, ...gene}) => {
+                const geneFamilyAssignments =
+                  gene.geneFamilyAssignments
+                    .map(({geneFamily: {identifier}}) => identifier);
+                const locations =
+                  gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
+                    const interval = `${start}-${end} (${strand})`;
+                    if (chromosome?.identifier) {
+                      return `${chromosome?.identifier}:${interval} (chromosome)`;
+                    } else if (supercontig?.identifier) {
+                      return `${supercontig?.identifier}:${interval} (supercontig)`;
+                    }
+                    return `unknown:${interval}`;
+                  });
+                return {
+                  genus,
+                  species,
+                  strain: strain.identifier,
+                  ...gene,
+                  geneFamilyAssignments,
+                  locations,
+                };
+              });
+            // construct the expected paginated results object
+            const paginatedResults = {hasNext, results};
+            return paginatedResults;
+          });
+      }
+
+      // wait for the page to load before binding component properties
+      const geneSearchElement = document.getElementById('gene-search');
+      geneSearchElement.formDataFunction = getGeneFormData;
+      geneSearchElement.searchFunction = getGenes;
+
+    </script>
+
+  </body>
+
+</html>

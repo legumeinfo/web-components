@@ -1,4 +1,4 @@
-import {html, css, LitElement} from 'lit';
+import {html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 @customElement('lis-phylotree')
@@ -9,15 +9,15 @@ export class LisPhylotree extends LitElement {
 
     
     override render() {
-        this.makeTree()
+        this.makeTree(this.input)
         return html``
                 
     ;
     }
-    makeTree()
+    makeTree(theInput: string)
     {
         var tree = tnt.tree()
-            .data(tnt.tree.parse_newick("((human, chimp),mouse)"))
+            .data(tnt.tree.parse_newick(theInput))
             .width(500)
 
         // The board
@@ -56,4 +56,6 @@ export class LisPhylotree extends LitElement {
             .track(track);
             vis(this);
     }
+
+
 }

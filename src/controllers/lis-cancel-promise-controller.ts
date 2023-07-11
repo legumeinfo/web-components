@@ -121,7 +121,7 @@ export class LisCancelPromiseController implements ReactiveController {
       // the default error handler
       .catch((error: Error) => {
         // only throw an error if a Promise downstream can catch it
-        if (cancelState.wrapCount > 0) {
+        if (Number(cancelState.wrapCount) > 0) {
           throw error;
         }
       });
