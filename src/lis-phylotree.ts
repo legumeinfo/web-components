@@ -1,10 +1,12 @@
 import {html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
+declare var tnt: any;
+
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
     @property()
-    input: string = "";
+    input: string = "(:0.1,:0.2,(:0.3,:0.4):0.5)";
 
 
     
@@ -28,21 +30,20 @@ export class LisPhylotree extends LitElement {
             .max(1000);
 
         // The function to create tracks for each tree leaf
-        var track = function (leaf) {
-            var data = leaf.data();
+        var track = function (_leaf: { data: () => any; }) {
 
             return tnt.board.track()
                 .color("white")
                 .data(tnt.board.track.data.sync()
                     .retriever (function () {
-                        var elems = [];
+                        var elems: never[] = [];
                         // populate elems and then return them
                         return elems;
                     })
                 )
                 .display(tnt.board.track.feature.block()
                     .color("steelblue")
-                    .index(function (d) {
+                    .index(function (d: { start: any; }) {
                         return d.start;
                     })
                 );
