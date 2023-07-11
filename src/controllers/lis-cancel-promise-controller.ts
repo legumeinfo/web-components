@@ -2,7 +2,7 @@ import {ReactiveController, ReactiveControllerHost} from 'lit';
 
 
 // defines internal state as an object to avoid race conditions
-type CancelState = {abortSignal: AbortSignal; wrapCount: Number; promise?: Promise<void>};
+type CancelState = {abortSignal: AbortSignal; wrapCount: number; promise?: Promise<void>};
 
 
 /**
@@ -121,7 +121,7 @@ export class LisCancelPromiseController implements ReactiveController {
       // the default error handler
       .catch((error: Error) => {
         // only throw an error if a Promise downstream can catch it
-        if (<number>cancelState.wrapCount > 0) {
+        if (cancelState.wrapCount > 0) {
           throw error;
         }
       });
