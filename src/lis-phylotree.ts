@@ -2,13 +2,9 @@ import {html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 declare var tnt: any;
-var height = 30;
 
-// Create tree and board
-var tree = tnt.tree();
-var board = tnt.board();
 
-var data = {
+var data: any = {
     'homo_sapiens' : [
 	{
 	    type  : 'high',
@@ -79,8 +75,15 @@ export class LisPhylotree extends LitElement {
                 
     ;
     }
+    
     makeTree(newick: string)
     {
+        var height = 30;
+
+        // Create tree and board
+        var tree = tnt.tree();
+        var board = tnt.board();
+
     tree
                 .data (tnt.tree.parse_newick (newick))
                 .layout (tnt.tree.layout.vertical()
