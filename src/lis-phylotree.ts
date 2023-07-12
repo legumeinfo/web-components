@@ -7,7 +7,6 @@ var height = 30;
 // Create tree and board
 var tree = tnt.tree();
 var board = tnt.board();
-declare var node: any;
 
 var data = {
     'homo_sapiens' : [
