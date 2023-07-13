@@ -75,6 +75,9 @@ export class LisPhylotree extends LitElement {
                 
     ;
     }
+    override createRenderRoot() {
+        return this;
+      }
     
     makeTree(newick: string)
     {
@@ -92,6 +95,7 @@ export class LisPhylotree extends LitElement {
                 .label (tnt.tree.label.text()
                     .height(height)
                 );
+    
 
 
     var track = function (leaf_node: { data: () => any; }) {
@@ -134,6 +138,10 @@ export class LisPhylotree extends LitElement {
         .board(board)
         .track(track);
 
+
+    
     vis(this);
+    // vis.update();
+    
     }
 }
