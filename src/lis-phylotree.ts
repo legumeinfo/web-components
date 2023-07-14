@@ -3,6 +3,14 @@ import {customElement, property} from 'lit/decorators.js';
 
 declare var tnt: any;
 
+/* type Phylotree = {
+    name: string,
+    length: number,
+    children: [
+        {child: Phylotree}
+    ]
+} */
+
 
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
@@ -11,7 +19,7 @@ export class LisPhylotree extends LitElement {
 
 
     
-    override render() {
+    override render() { 
         this.makeTree(this.input)
         return html``
                 
