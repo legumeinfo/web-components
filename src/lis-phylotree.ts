@@ -1,5 +1,5 @@
 import {html, LitElement} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 
 declare var tnt: any;
 
@@ -10,8 +10,12 @@ export type Phylotree = {
 }
 
 
+
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
+    @state()
+    private _data = {};
+    
     @property()
     input: any = prompt("Enter nweick tree: (ie: (B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A; )");
 
