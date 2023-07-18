@@ -17,12 +17,19 @@ export class LisPhylotree extends LitElement {
     private _data = {};
     
     @property()
-    input: any = prompt("Enter nweick tree: (ie: (B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A; )");
+    tree: string|Phylotree;
 
 
-    
+    set data(tree: string|Phylotree){
+        if(typeof tree == "string")
+        {
+            this._data = tnt.tree.parse_newick(tree)
+        }
+
+    }
+
     override render() { 
-        this.makeTree(this.input)
+        this.makeTree(this.tree)
         return html``
                 
     ;
