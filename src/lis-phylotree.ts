@@ -23,7 +23,10 @@ export class LisPhylotree extends LitElement {
     set data(tree: string|Phylotree){
         if(typeof tree == "string")
         {
-            this._data = tnt.tree.parse_newick(tree)
+            this._data = tnt.tree.parse_newick(tree); 
+        }
+        else{
+            this._data = tree;
         }
 
     }
