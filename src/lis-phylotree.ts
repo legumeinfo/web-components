@@ -32,16 +32,16 @@ export class LisPhylotree extends LitElement {
     }
 
     override render() { 
-        this.makeTree(this.tree)
+        this.makeTree(this._data)
         return html``
-                
+
     ;
     }
     override createRenderRoot() {
         return this;
       }
     
-    makeTree(newick: string)
+    makeTree(theData: string|Phylotree)
     {
         var height = 30;
 
@@ -49,7 +49,7 @@ export class LisPhylotree extends LitElement {
         var tree = tnt.tree();
 
     tree
-                .data (tnt.tree.parse_newick (newick))
+                .data (theData)
                 .layout (tnt.tree.layout.vertical()
                     .width(430)
                     .scale(false))
