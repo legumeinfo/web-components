@@ -13,14 +13,13 @@ export type Phylotree = {
 
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
+
     @state()
-    private _data = {};
+    private _data: string|Phylotree = "";
     
+
     @property()
-    tree: string|Phylotree;
-
-
-    set data(tree: string|Phylotree){
+    set tree(tree: string|Phylotree){
         if(typeof tree == "string")
         {
             this._data = tnt.tree.parse_newick(tree); 
@@ -28,7 +27,6 @@ export class LisPhylotree extends LitElement {
         else{
             this._data = tree;
         }
-
     }
 
     override render() { 
@@ -47,7 +45,7 @@ export class LisPhylotree extends LitElement {
 
         // Create tree
         var tree = tnt.tree();
-
+ 
     tree
                 .data (theData)
                 .layout (tnt.tree.layout.vertical()
