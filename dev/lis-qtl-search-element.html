@@ -40,21 +40,26 @@
 
       // QTL trait search query for the LIS GraphQL API
       const qtlQuery = `
-      query Query($traitName: String!, $start: Int, $size: Int) {
-        qtls(traitName: $traitName, start: $start, size: $size) {
-          trait {
-             name
+      query Query($traitName: String!, $page: Int, $pageSize: Int) {
+        qtls(traitName: $traitName, page: $page, pageSize: $pageSize) {
+          results {
+            trait {
+               name
+            }
+            identifier
+            linkageGroup {
+               geneticMap {
+                  identifier
+               }
+               identifier
+            }
+            start
+            end
+            markerNames
           }
-          identifier
-          linkageGroup {
-             geneticMap {
-                identifier
-             }
-             identifier
+          pageInfo {
+            hasNextPage
           }
-          start
-          end
-          markerNames
         }
       }
      `;
@@ -62,20 +67,15 @@
       // the search function given to the LIS qtl search Web Component
       function getQTLs(searchData, page, {abortSignal}) {
           const traitName = searchData['query'];
-          const pageSize = 10;
-          const start = (page-1)*pageSize;
-          // pageSize+1 because we want to see if there's a "next" page
-          const variables = {traitName, start, size: pageSize+1};
+          const variables = {traitName, page, pageSize: 10};
           // returns a Promise that resolves to an array of QTL objects the qtl search
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, qtlQuery, variables, abortSignal)
               .then(({data}) => {
                   // compute if there's a next page
-                  const hasNext = pageSize+1 === data.qtls.length;
-                  // remove the lookahead result
-                  if (hasNext) data.qtls.pop();
+                  const hasNext = data.qtls.pageInfo.hasNextPage;
                   // flatten results that contain objects
-                  const results = data.qtls.map(qtl => flatten(qtl));
+                  const results = data.qtls.results.map(qtl => flatten(qtl));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
