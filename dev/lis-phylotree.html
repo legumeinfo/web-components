@@ -33,12 +33,49 @@
       </p>
       <hr></hr>
       <!-- the custom gene phylotree element -->
-      <lis-phylotree id="test-element" tree="((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;"> </lis-phylotree>
-      <lis-phylotree id="another-element" tree="(B:6.0,(A:5.0,C:3.0,E:4.0):5.0,D:11.0);"> </lis-phylotree>
-      <lis-phylotree id="another-element" tree="((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;"> </lis-phylotree>
-      
-
+      <lis-phylotree id="test-element" tree="(B:6.0,(A:5.0,C:3.0,E:4.0)Ancestor1:5.0,D:11.0);"> </lis-phylotree>
+      <lis-phylotree id="another-element"> </lis-phylotree>      
+      <!-- create a script that will populate another-element with a newick tree using the Phylotree type-->
+      <script>
+        var anotherElement = document.getElementById("another-element");
+        var tree_obj = {
+          "name": "A",
+          "length": 0.1,
+          "color": "blue",
+          "children": [
+            {
+              "name": "F",
+              "length": 0.1,
+              "color": "red",
+              "children": [
+                {
+                  "name": "B",
+                  "length": 0.2,
+                  "color": "green"
+                },
+                {
+                  "name": "E",
+                  "length": 0.5,
+                  "color": "yellow",
+                  "children": [
+                    {
+                      "name": "C",
+                      "length": 0.3,
+                      "color": "purple"
+                    },
+                    {
+                      "name": "D",
+                      "length": 0.4,
+                      "color": "orange"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        anotherElement.tree = tree_obj;
+        </script>
     </div>
   </body>
-
 </html>

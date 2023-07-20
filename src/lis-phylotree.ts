@@ -6,6 +6,7 @@ declare var tnt: any;
 export type Phylotree = {
     name: string,
     length?: number,
+    color?: string,
     children?: Phylotree[]
 }
 
@@ -33,7 +34,7 @@ export class LisPhylotree extends LitElement {
         this.makeTree(this._data)
         return html``
 
-    ;
+    ;   
     }
     override createRenderRoot() {
         return this;
