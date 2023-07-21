@@ -49,14 +49,14 @@ export class LisPhylotree extends LitElement {
         tree
                     .data (theData)
                     .layout (tnt.tree.layout.vertical()
-                        .width(430)
+                        .width(screen.availWidth)
                         .scale(false))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
                         .fill(function (node: { data: any; }) {
                             if(node.data().color == null || node.data().color == "")
                             {
-                                return "white"
+                                return "white";
                             }
                             return node.data().color;
                         })
@@ -70,8 +70,6 @@ export class LisPhylotree extends LitElement {
     var vis = tnt()
         .tree(tree)
 
-    vis(this);
-    // vis.update();
-    
+    vis(this);    
     }
 }
