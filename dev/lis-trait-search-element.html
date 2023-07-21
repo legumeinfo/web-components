@@ -51,6 +51,8 @@
           }
           pageInfo {
             hasNextPage
+            numResults
+            pageCount
           }
         }
       }
@@ -64,11 +66,13 @@
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, traitQuery, variables, abortSignal)
               .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = data.traits.pageInfo.hasNextPage;
+                  // extract the page info
+                  const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.traits.pageInfo;
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
+                      numResults,
+                      numPages,
                       results: data.traits.results,
                   };
                   return paginatedResults;
