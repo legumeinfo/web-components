@@ -56,7 +56,7 @@ export class LisPhylotree extends LitElement {
                         .fill(function (node: { data: any; }) {
                             if(node.data().color == null || node.data().color == "")
                             {
-                                return "gray"
+                                return "white"
                             }
                             return node.data().color;
                         })
