@@ -46,12 +46,18 @@ export class LisPhylotree extends LitElement {
 
         // Create tree
         var tree = tnt.tree();
- 
-    tree
-                .data (theData)
-                .layout (tnt.tree.layout.vertical()
-                    .width(430)
-                    .scale(false))
+        tree
+                    .data (theData)
+                    .layout (tnt.tree.layout.vertical()
+                        .width(430)
+                        .scale(false))
+                    .node_display (tnt.tree.node_display.circle()
+                        .size(5)
+                        .fill(function (node: { data: any; }) {
+                            return node.data().color;
+                        })
+                    )
+                        
                 .label (tnt.tree.label.text()
                     .height(height)
                 );
