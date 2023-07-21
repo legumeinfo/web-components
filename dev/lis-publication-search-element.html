@@ -52,6 +52,8 @@ query Query($title: String!, $page: Int, $pageSize: Int) {
     }
     pageInfo {
       hasNextPage
+      numResults
+      pageCount
     }
   }
 }
@@ -65,13 +67,15 @@ query Query($title: String!, $page: Int, $pageSize: Int) {
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, publicationQuery, variables, abortSignal)
               .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = data.publications.pageInfo.hasNextPage;
+                  // extract the page info
+                  const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.publications.pageInfo;
                   // flatten results if they contain objects
                   const results = data.publications.results.map(publication => flatten(publication));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
+                      numResults,
+                      numPages,
                       results,
                   };
                   return paginatedResults;

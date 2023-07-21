@@ -102,6 +102,8 @@
           }
           pageInfo {
             hasNextPage
+            numResults
+            pageCount
           }
         }
       }
@@ -129,8 +131,8 @@
         // Web Component knows how to parse: {name: string, description: string}[]
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
-            // compute if there's a next page
-            const hasNext = data.genes.pageInfo.hasNextPage;
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.genes.pageInfo;
             // flatten results
             const results =
               data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
@@ -157,7 +159,7 @@
                 };
               });
             // construct the expected paginated results object
-            const paginatedResults = {hasNext, results};
+            const paginatedResults = {hasNext, numResults, numPages, results};
             return paginatedResults;
           });
       }

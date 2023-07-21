@@ -59,6 +59,8 @@
           }
           pageInfo {
             hasNextPage
+            numResults
+            pageCount
           }
         }
       }
@@ -72,13 +74,15 @@
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, qtlQuery, variables, abortSignal)
               .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = data.qtls.pageInfo.hasNextPage;
+                  // extract the page info
+                  const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.qtls.pageInfo;
                   // flatten results that contain objects
                   const results = data.qtls.results.map(qtl => flatten(qtl));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
+                      numResults,
+                      numPages,
                       results,
                   };
                   return paginatedResults;
