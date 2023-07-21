@@ -21,7 +21,9 @@ function graphqlQuery(uri, query, variables={}, abortSignal=undefined) {
     })
     .then(r => r.json())
     .then((response) => {
-      if (response.errors) throw response.errors;
+      if (response.errors) {
+        response.errors.forEach(console.error);
+      }
       return response;
     });
 }
