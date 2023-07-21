@@ -226,9 +226,9 @@ export class LisPaginationElement extends LitElement {
 
   private _pageInfo() {
     if (!this.numPages) {
-      return html`Page ${this.page}`;
+      return html`Page ${this.page.toLocaleString()}`;
     }
-    return html`Page ${this.page} of ${this.numPages}`;
+    return html`Page ${this.page.toLocaleString()} of ${this.numPages.toLocaleString()}`;
   }
 
   /** @ignore */
