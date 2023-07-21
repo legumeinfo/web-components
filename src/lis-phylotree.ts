@@ -54,6 +54,10 @@ export class LisPhylotree extends LitElement {
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
                         .fill(function (node: { data: any; }) {
+                            if(node.data().color == null || node.data().color == "")
+                            {
+                                return "gray"
+                            }
                             return node.data().color;
                         })
                     )
