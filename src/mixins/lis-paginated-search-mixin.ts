@@ -38,6 +38,8 @@ export type Constructor<T = {}, Params extends any[] = any[]> =
  */
 export type PaginatedSearchResults<SearchResult> = {
   hasNext?: boolean;
+  numResults?: number;
+  numPages?: number;
   results: SearchResult[];
 };
 
@@ -195,7 +197,7 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
   // "abstract" method, i.e. must be implemented in concrete class
 
   /**
-   * Component that use the
+   * Components that use the
    * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin need to
    * provide the search form that the mixin will process. This is done by
    * overriding the `renderForm` method.
@@ -207,6 +209,16 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * @returns The form portion of the template.
    */
   protected renderForm(): unknown;
+
+  /**
+   * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} can override the
+   * `renderResultCount` method, which displays the total number of search results when
+   * the `numResults` attribute of the `PaginatedSearchResults`.
+   *
+   * @returns The result count portion of the template.
+   */
+  protected renderResultCount(): unknown;
 
   /**
    * By default, the {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`}
@@ -431,6 +443,10 @@ class LisPaginatedSearchElement extends superClass {
   @query('lis-pagination-element')
   private _paginator!: LisPaginationElement;
 
+  // the number of results returned
+  @state()
+  private _numResults?: number;
+
   // what page should be used for the first search
   // TODO: is there a better way to handle the page in the query string search?
   private _searchPage = 1;
@@ -501,7 +517,7 @@ class LisPaginatedSearchElement extends superClass {
     // reset the initial page
     this._searchPage = 1;
     // destruct the paginated search result
-    const {hasNext, results} = {
+    const {hasNext, numResults, numPages, results} = {
         // provide a default value for hasNext based on if there's any results
         hasNext: Boolean(paginatedResults.results.length),
         ...paginatedResults,
@@ -513,9 +529,11 @@ class LisPaginatedSearchElement extends superClass {
       this._loadingRef.value?.noResults();
     }
     // display the results in the table
+    this._numResults = numResults
     this.searchResults = results;
     // update the pagination element
     this._paginator.hasNext = hasNext;
+    this._paginator.numPages = numPages;
   }
 
   //////////////////////////
@@ -536,10 +554,12 @@ class LisPaginatedSearchElement extends superClass {
     this._searchData = undefined;
     // update the loading element
     this._loadingRef.value?.success();
-    // update the table element
+    // update the results
+    this._numResults = undefined;
     this.searchResults = [];
     // update the pagination element
     this._paginator.page = 1;
+    this._paginator.numPages = undefined;
     this._paginator.hasNext = false;
   }
 
@@ -561,12 +581,21 @@ class LisPaginatedSearchElement extends superClass {
     throw new Error('Method not implemented');
   }
 
+  // a method that provides a default template for displaying the total number of
+  // results found by the search
+  protected renderResultCount(): unknown {
+    if (this._numResults !== undefined) {
+      const plural = (this._numResults == 1 ? '' : 's');
+      return html`<p>${this._numResults.toLocaleString()} result${plural}</p>`;
+    }
+    return html``;
+  }
+
   // a method that provides a default template for displaying results that can be
   // overridden by the concrete class
   protected renderResults(): unknown {
     return html`
       <lis-simple-table-element
-        caption="Search Results"
         .dataAttributes=${this.resultAttributes}
         .header=${this.tableHeader}
         .data=${this.searchResults}>
@@ -578,6 +607,7 @@ class LisPaginatedSearchElement extends superClass {
 
     // render the template parts
     const form = this.renderForm();
+    const count = this.renderResultCount();
     const results = this.renderResults();
 
     // the template
@@ -586,6 +616,8 @@ class LisPaginatedSearchElement extends superClass {
       <lis-form-wrapper-element ${ref(this._formRef)} @submit="${this._updateData}">
         ${form}
       </lis-form-wrapper-element>
+
+      ${count}
 
       <div class="uk-inline uk-width-1-1">
         <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>
