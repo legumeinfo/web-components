@@ -60,6 +60,7 @@
           pageInfo {
             hasNextPage
             numResults
+            pageSize
             pageCount
           }
         }
@@ -75,13 +76,15 @@
           return graphqlQuery(uri, qtlQuery, variables, abortSignal)
               .then(({data}) => {
                   // extract the page info
-                  const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.qtls.pageInfo;
+                  const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                      = data.qtls.pageInfo;
                   // flatten results that contain objects
                   const results = data.qtls.results.map(qtl => flatten(qtl));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
                       numResults,
+                      pageSize,
                       numPages,
                       results,
                   };

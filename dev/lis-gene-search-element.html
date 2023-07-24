@@ -103,6 +103,7 @@
           pageInfo {
             hasNextPage
             numResults
+            pageSize
             pageCount
           }
         }
@@ -132,7 +133,8 @@
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
             // extract the page info
-            const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.genes.pageInfo;
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = data.genes.pageInfo;
             // flatten results
             const results =
               data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
@@ -159,7 +161,7 @@
                 };
               });
             // construct the expected paginated results object
-            const paginatedResults = {hasNext, numResults, numPages, results};
+            const paginatedResults = {hasNext, numResults, pageSize, numPages, results};
             return paginatedResults;
           });
       }
