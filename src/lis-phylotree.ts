@@ -20,6 +20,8 @@ export class LisPhylotree extends LitElement {
     @state()
     private _data: string|Phylotree = "";
     
+    @property()
+    layout: "vertical"|"radial" = "vertical";
 
     @property()
     set tree(tree: string|Phylotree){
@@ -50,7 +52,7 @@ export class LisPhylotree extends LitElement {
         var tree = tnt.tree();
         tree
                     .data (theData)
-                    .layout (tnt.tree.layout.vertical()
+                    .layout (tnt.tree.layout[this.layout]()
                         .width(window.innerWidth)
                         .scale(false))
                     .node_display (tnt.tree.node_display.circle()
@@ -75,25 +77,25 @@ export class LisPhylotree extends LitElement {
 
     vis(this);    
 
-    var scaleBar = vis.scale_bar(50, "pixel").toFixed(3);
-    var legend = d3.select(this);
+    // var scaleBar = vis.scale_bar(50, "pixel").toFixed(3);
+    // var legend = d3.select(this);
     
-    legend
-        .append("div")
-        .style({
-            width:"50px",
-            height:"5px",
-            "background-color":"steelblue",
-            margin:"6px 5px 5px 25px",
-            float: "left"
-        });
+    // legend
+    //     .append("div")
+    //     .style({
+    //         width:"50px",
+    //         height:"5px",
+    //         "background-color":"steelblue",
+    //         margin:"6px 5px 5px 25px",
+    //         float: "left"
+    //     });
     
-    legend
-        .append("text")
-        .style({
-            "font-size": "12px"
-        })
-        .text(scaleBar);
+    // legend
+    //     .append("text")
+    //     .style({
+    //         "font-size": "12px"
+    //     })
+    //     .text(scaleBar);
 
     }
 }
