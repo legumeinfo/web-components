@@ -52,6 +52,7 @@
           pageInfo {
             hasNextPage
             numResults
+            pageSize
             pageCount
           }
         }
@@ -67,11 +68,13 @@
           return graphqlQuery(uri, traitQuery, variables, abortSignal)
               .then(({data}) => {
                   // extract the page info
-                  const {hasNextPage: hasNext, numResults, pageCount: numPages} = data.traits.pageInfo;
+                  const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                      = data.traits.pageInfo;
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
                       numResults,
+                      pageSize,
                       numPages,
                       results: data.traits.results,
                   };
