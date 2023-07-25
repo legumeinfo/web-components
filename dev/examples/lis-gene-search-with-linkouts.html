@@ -104,6 +104,7 @@
             locations { chromosome { identifier } supercontig { identifier } start end strand }
           }
           pageInfo {
+            pageSize
             hasNextPage
             numResults
             pageCount
@@ -172,7 +173,7 @@
                 };
               });
             // construct the expected paginated results object
-            const paginatedResults = {hasNext, numResults, numPages, results};
+            const paginatedResults = {hasNext, numResults, pageSize, numPages, results};
             return paginatedResults;
           });
       }
