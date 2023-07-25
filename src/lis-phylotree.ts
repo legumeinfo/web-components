@@ -16,12 +16,16 @@ export type Phylotree = {
 
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
+    
 
     @state()
     private _data: string|Phylotree = "";
     
     @property()
     layout: "vertical"|"radial" = "vertical";
+
+    @property()
+    scale: boolean = false;
 
     @property()
     set tree(tree: string|Phylotree){
@@ -50,11 +54,14 @@ export class LisPhylotree extends LitElement {
 
         // Create tree
         var tree = tnt.tree();
+        // resizeObserver = new ResizeObserver((entries) => {
+        //     const newWidth = entries[0].contentRect.width;
+        // })
         tree
                     .data (theData)
                     .layout (tnt.tree.layout[this.layout]()
-                        .width(window.innerWidth)
-                        .scale(false))
+                        .width(500)
+                        .scale(this.scale))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
                         .fill(function (node: { data: any; }) {
