@@ -219,7 +219,7 @@ export class LisPaginationElement extends LitElement {
   // used by Lit to draw the template
   private _renderPreviousClass(): string {
     if (this.page > 1) {
-      return '';
+      return 'uk-active';
     }
     return 'uk-disabled';
   }
@@ -235,7 +235,7 @@ export class LisPaginationElement extends LitElement {
   // used by Lit to draw the template
   private _renderNextClass(): string {
     if (this._hasNext()) {
-      return '';
+      return 'uk-active';
     }
     return 'uk-disabled';
   }
