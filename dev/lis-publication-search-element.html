@@ -40,14 +40,22 @@
 
       // publication title search query for the LIS GraphQL API
       const publicationQuery = `
-query Query($title: String!, $start: Int, $size: Int) {
-  publications(title: $title, start: $start, size: $size) {
-    year
-    title
-    journal
-    firstAuthor
-    doi
-    pubMedId
+query Query($title: String!, $page: Int, $pageSize: Int) {
+  publications(title: $title, page: $page, pageSize: $pageSize) {
+    results {
+      year
+      title
+      journal
+      firstAuthor
+      doi
+      pubMedId
+    }
+    pageInfo {
+      hasNextPage
+      numResults
+      pageSize
+      pageCount
+    }
   }
 }
 `;
@@ -55,23 +63,22 @@ query Query($title: String!, $start: Int, $size: Int) {
       // the search function given to the LIS publication search Web Component
       function getPublications(searchData, page, {abortSignal}) {
           const title = searchData['query'];
-          const pageSize = 10;
-          const start = (page-1)*pageSize;
-          // pageSize+1 because we want to see if there's a "next" page
-          const variables = {title, start, size: pageSize+1};
+          const variables = {title, page, pageSize: 10};
           // returns a Promise that resolves to an array of Publication objects the publication search
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, publicationQuery, variables, abortSignal)
               .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = pageSize+1 === data.publications.length;
-                  // remove the lookahead result
-                  if (hasNext) data.publications.pop();
+                  // extract the page info
+                  const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                      = data.publications.pageInfo;
                   // flatten results if they contain objects
-                  const results = data.publications.map(publication => flatten(publication));
+                  const results = data.publications.results.map(publication => flatten(publication));
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
+                      numResults,
+                      pageSize,
+                      numPages,
                       results,
                   };
                   return paginatedResults;

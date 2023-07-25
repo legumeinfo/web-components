@@ -125,7 +125,17 @@ export class LisPaginationElement extends LitElement {
   page: number = 1;
 
   /**
-   * Whether or not the next button should be enabled.
+   * The total number of pages.
+   *
+   * @attribute
+   * @reflected
+   */
+  @property()
+  numPages?: number;
+
+  /**
+   * Whether or not the next button should be enabled. Note that this will be overridden
+   * if a value is provided for `numPages`.
    *
    * @attribute
    */
@@ -169,11 +179,20 @@ export class LisPaginationElement extends LitElement {
     if (e !== undefined) {
       e.preventDefault();
     }
-    if (this.hasNext) {
+    if (this._hasNext()) {
       this.page += 1;
       this._dispatchPageChange();
       this._scrollToTarget();
     }
+  }
+
+  /** @ignore */
+  // determines whether or not there's a next page
+  private _hasNext() {
+    if (this.numPages !== undefined) {
+      return this.page < this.numPages;
+    }
+    return this.hasNext;
   }
 
   /** @ignore */
@@ -200,16 +219,23 @@ export class LisPaginationElement extends LitElement {
   // used by Lit to draw the template
   private _renderPreviousClass(): string {
     if (this.page > 1) {
-      return '';
+      return 'uk-active';
     }
     return 'uk-disabled';
+  }
+
+  private _pageInfo() {
+    if (!this.numPages) {
+      return html`Page ${this.page.toLocaleString()}`;
+    }
+    return html`Page ${this.page.toLocaleString()} of ${this.numPages.toLocaleString()}`;
   }
 
   /** @ignore */
   // used by Lit to draw the template
   private _renderNextClass(): string {
-    if (this.hasNext) {
-      return '';
+    if (this._hasNext()) {
+      return 'uk-active';
     }
     return 'uk-disabled';
   }
@@ -219,12 +245,13 @@ export class LisPaginationElement extends LitElement {
   override render() {
 
     const previousClass = this._renderPreviousClass();
+    const pageInfo = this._pageInfo();
     const nextClass = this._renderNextClass();
 
     return html`
       <ul class="uk-pagination">
           <li class="${previousClass}"><a href="" @click=${this.previous}><span class="uk-margin-small-right" uk-pagination-previous></span> Previous</a></li>
-          <li class="uk-active"><span>Page ${this.page}</span></li>
+          <li class="uk-active"><span>${pageInfo}</span></li>
           <li class="uk-margin-auto-left ${nextClass}"><a href="" @click=${this.next}>Next <span class="uk-margin-small-left" uk-pagination-next></span></a></li>
       </ul>
     `;

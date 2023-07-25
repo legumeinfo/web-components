@@ -37,7 +37,10 @@ export type Constructor<T = {}, Params extends any[] = any[]> =
  * paginated search results object.
  */
 export type PaginatedSearchResults<SearchResult> = {
+  pageSize?: number;
   hasNext?: boolean;
+  numResults?: number;
+  numPages?: number;
   results: SearchResult[];
 };
 
@@ -192,10 +195,9 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * instance.
    */
   protected formToObject(formData: FormData): SearchData;
-  // "abstract" method, i.e. must be implemented in concrete class
 
   /**
-   * Component that use the
+   * Components that use the
    * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin need to
    * provide the search form that the mixin will process. This is done by
    * overriding the `renderForm` method.
@@ -207,6 +209,16 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * @returns The form portion of the template.
    */
   protected renderForm(): unknown;
+
+  /**
+   * By default, the {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`}
+   * displays search results info using the in paragraph tags. Components that use the
+   * mixin can override this portion of the template by implementing their own
+   * `renderResultsInfo` method.
+   *
+   * @returns The results info portion of the template.
+   */
+  protected renderResultsInfo(): unknown;
 
   /**
    * By default, the {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`}
@@ -413,6 +425,10 @@ class LisPaginatedSearchElement extends superClass {
   @state()
   protected searchResults: SearchResult[] = [];
 
+  // info about the search results
+  @state()
+  protected resultsInfo: string = '';
+
   // the tables headers to use in the concrete class
   @state()
   protected tableHeader: Object = {};
@@ -501,7 +517,7 @@ class LisPaginatedSearchElement extends superClass {
     // reset the initial page
     this._searchPage = 1;
     // destruct the paginated search result
-    const {hasNext, results} = {
+    const {pageSize, hasNext, numResults, numPages, results} = {
         // provide a default value for hasNext based on if there's any results
         hasNext: Boolean(paginatedResults.results.length),
         ...paginatedResults,
@@ -513,9 +529,16 @@ class LisPaginatedSearchElement extends superClass {
       this._loadingRef.value?.noResults();
     }
     // display the results in the table
+    this.resultsInfo =
+      this._getResultsInfo(
+        results.length,
+        this._paginator.page,
+        {pageSize, totalResults: numResults},
+      );
     this.searchResults = results;
     // update the pagination element
     this._paginator.hasNext = hasNext;
+    this._paginator.numPages = numPages;
   }
 
   //////////////////////////
@@ -536,10 +559,12 @@ class LisPaginatedSearchElement extends superClass {
     this._searchData = undefined;
     // update the loading element
     this._loadingRef.value?.success();
-    // update the table element
+    // update the results
+    this.resultsInfo = '';
     this.searchResults = [];
     // update the pagination element
     this._paginator.page = 1;
+    this._paginator.numPages = undefined;
     this._paginator.hasNext = false;
   }
 
@@ -552,6 +577,30 @@ class LisPaginatedSearchElement extends superClass {
     this._search();
   }
 
+  // returns a string describing the results found by the search
+  private _getResultsInfo(
+    numResults: number,
+    page: number,
+    optional: {pageSize?: number, totalResults?: number},
+  ): string {
+    const counts: string[] = [];
+    if (numResults > 0 && optional.pageSize != undefined) {
+      const start = ((page - 1) * optional.pageSize) + 1;
+      const end = start + numResults - 1;
+      const resultRange = `${start.toLocaleString()}-${end.toLocaleString()}`;
+      counts.push(resultRange);
+    }
+    if (optional.totalResults !== undefined) {
+      if (counts.length > 0) {
+        counts.push('of');
+      }
+      const plural = (optional.totalResults == 1 ? '' : 's');
+      const resultsCount = `${optional.totalResults.toLocaleString()} result${plural}`;
+      counts.push(resultsCount);
+    }
+    return counts.join(' ');
+  }
+
   ////////////////////
   // render methods //
   ////////////////////
@@ -561,12 +610,20 @@ class LisPaginatedSearchElement extends superClass {
     throw new Error('Method not implemented');
   }
 
+  // a method that provides a default template for displaying results info that can be
+  // overridden by the concrete class
+  protected renderResultsInfo(): unknown {
+    if (this.resultsInfo) {
+      return html`<p>${this.resultsInfo}</p>`;
+    }
+    return html``;
+  }
+
   // a method that provides a default template for displaying results that can be
   // overridden by the concrete class
   protected renderResults(): unknown {
     return html`
       <lis-simple-table-element
-        caption="Search Results"
         .dataAttributes=${this.resultAttributes}
         .header=${this.tableHeader}
         .data=${this.searchResults}>
@@ -578,6 +635,7 @@ class LisPaginatedSearchElement extends superClass {
 
     // render the template parts
     const form = this.renderForm();
+    const resultsInfo = this.renderResultsInfo();
     const results = this.renderResults();
 
     // the template
@@ -586,6 +644,8 @@ class LisPaginatedSearchElement extends superClass {
       <lis-form-wrapper-element ${ref(this._formRef)} @submit="${this._updateData}">
         ${form}
       </lis-form-wrapper-element>
+
+      ${resultsInfo}
 
       <div class="uk-inline uk-width-1-1">
         <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>

@@ -48,10 +48,12 @@
       const geneFormDataQuery = `
       query FormDataQuery {
         organisms {
-          genus
-          species
-          strains {
-            identifier
+          results {
+            genus
+            species
+            strains {
+              identifier
+            }
           }
         }
       }
@@ -62,7 +64,7 @@
           .then(({data}) => {
             // bin the strains by genus then species
             const binnedFormData = {};
-            data.organisms.forEach(({genus, species, strains}) => {
+            data.organisms.results.forEach(({genus, species, strains}) => {
               if (!(genus in binnedFormData)) {
                 binnedFormData[genus] = {}
               }
@@ -90,15 +92,23 @@
 
       // gene description search query for the LIS GraphQL API
       const geneQuery = `
-      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $family: String, $start: Int, $size: Int) {
-        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, geneFamilyIdentifier: $family, start: $start, size: $size) {
-          name
-          identifier
-          description
-          organism { genus species }
-          strain { identifier }
-          geneFamilyAssignments { geneFamily { identifier } }
-          locations { chromosome { identifier } supercontig { identifier } start end strand }
+      query GeneQuery($identifier: String, $name: String, $description: String, $genus: String, $species: String, $strain: String, $family: String, $page: Int, $pageSize: Int) {
+        genes(genus: $genus, species: $species, strain: $strain, identifier: $identifier, name: $name, description: $description, geneFamilyIdentifier: $family, page: $page, pageSize: $pageSize) {
+          results {
+            name
+            identifier
+            description
+            organism { genus species }
+            strain { identifier }
+            geneFamilyAssignments { geneFamily { identifier } }
+            locations { chromosome { identifier } supercontig { identifier } start end strand }
+          }
+          pageInfo {
+            pageSize
+            hasNextPage
+            numResults
+            pageCount
+          }
         }
       }
       `;
@@ -111,9 +121,6 @@
         const identifier = searchData['identifier'];
         const description = searchData['description'];
         const family = searchData['family'];
-        const pageSize = 10;
-        const start = (page-1)*pageSize;
-        // pageSize+1 because we want to see if there's a "next" page
         const variables = {
           genus,
           species,
@@ -121,20 +128,19 @@
           identifier,
           description,
           family,
-          start,
-          size: pageSize+1
+          page,
+          pageSize: 10
         };
         // returns a Promise that resolves to an array of Gene objects the gene search
         // Web Component knows how to parse: {name: string, description: string}[]
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
-            // compute if there's a next page
-            const hasNext = pageSize+1 === data.genes.length;
-            // remove the lookahead result
-            if (hasNext) data.genes.pop();
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                = data.genes.pageInfo;
             // flatten results
             const results =
-              data.genes.map(({organism: {genus, species}, strain, ...gene}) => {
+              data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
                 const identifier = `<a href="#modal" data-gene="${gene.identifier}" uk-toggle>${gene.identifier}</a>`;
                 const geneFamilyAssignments =
                   gene.geneFamilyAssignments
@@ -168,7 +174,7 @@
                 };
               });
             // construct the expected paginated results object
-            const paginatedResults = {hasNext, results};
+            const paginatedResults = {hasNext, numResults, pageSize, numPages, results};
             return paginatedResults;
           });
       }
@@ -177,8 +183,10 @@
       const geneLinkoutsQuery = `
       query GeneLinkoutsQuery($identifier: ID!) {
         geneLinkouts(identifier: $identifier) {
-          href
-          text
+          results {
+            href
+            text
+          }
         }
       }
       `;
@@ -187,8 +195,10 @@
       const locationLinkoutsQuery = `
       query LocationLinkoutsQuery($identifier: ID!, $start: Int!, $end: Int!) {
         locationLinkouts(identifier: $identifier, start: $start, end: $end) {
-          href
-          text
+          results {
+            href
+            text
+          }
         }
       }
       `;
@@ -199,12 +209,12 @@
           // returns a Promise that resolves to an array of linkout objects that the
           // linkout Web Component knows how to parse: {text: string, href: string}[]
           return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
-            .then(({data}) => ({results: data.geneLinkouts}));
+            .then(({data}) => ({results: data.geneLinkouts.results}));
         } else if (type == 'location') {
           // returns a Promise that resolves to an array of linkout objects that the
           // linkout Web Component knows how to parse: {text: string, href: string}[]
           return graphqlQuery(uri, locationLinkoutsQuery, variables, abortSignal)
-            .then(({data}) => ({results: data.locationLinkouts}));
+            .then(({data}) => ({results: data.locationLinkouts.results}));
         }
         return Promise.reject();
       }

@@ -41,8 +41,10 @@
       const geneLinkoutsQuery = `
       query GeneLinkoutsQuery($identifier: ID!) {
         geneLinkouts(identifier: $identifier) {
-          href
-          text
+          results {
+            href
+            text
+          }
         }
       }
       `;
@@ -52,7 +54,7 @@
         // returns a Promise that resolves to an array of linkout objects that the
         // linkout Web Component knows how to parse: {text: string, href: string}[]
         return graphqlQuery(uri, geneLinkoutsQuery, {identifier}, abortSignal)
-          .then(({data}) => ({results: data.geneLinkouts}));
+          .then(({data}) => ({results: data.geneLinkouts.results}));
       }
 
       const linkoutElement = document.getElementById('linkouts');
