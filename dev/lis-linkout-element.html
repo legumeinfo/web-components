@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-linkout-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../dist/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-linkout-element&gt;</h1>
+      <p>
+        The <code>&lt;lis-linkout-element&gt;</code> provides a web component for loading and displaying hyperlinks.
+        In this example, links are loaded for genes using the LIS linkout microservice.
+        A new query can be issued using the <code>linkoutElement.getLinkouts(...)</code> method in the web console.
+      </p>
+      <hr>
+
+      <!-- the custom linkout element -->
+      <lis-linkout-element id="linkouts"></lis-linkout-element>
+
+
+    </div>
+
+    <!-- set the linkout function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // the linkout function to give to the linkout component
+      function linkoutFunction(identifier, {abortSignal}) {
+        // returns a Promise that resolves to an array of linkout objects that the
+        // linkout Web Component knows how to parse: {text: string, href: string}[]
+        return graphqlQuery(uri, geneLinkoutsQuery, {identifier}, abortSignal)
+          .then(({data}) => ({results: data.geneLinkouts.results}));
+      }
+
+      const linkoutElement = document.getElementById('linkouts');
+      linkoutElement.linkoutFunction = linkoutFunction;
+
+      window.onload = (event) => {
+        linkoutElement.getLinkouts('cicar.CDCFrontier.gnm3.ann1.Ca1g000600');
+      }
+
+    </script>
+
+  </body>
+
+</html>

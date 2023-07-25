@@ -4,38 +4,41 @@
 
   <head>
     <meta charset="utf-8" />
-    <title>LIS Web-Components - &lt;lis-gene-search-element&gt;</title>
+    <title>LIS Web-Components - &lt;lis-gene-search-element&gt; &lt;lis-linkout-element&gt; and &lt;lis-modal-element&gt;</title>
     <!-- CSS framework -->
-    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
-    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
     <!-- web components polyfills -->
-    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/lit/polyfill-support.js"></script>
     <!-- GraphQL -->
-    <script type="text/javascript" src="./graphql.js"></script>
-    <!-- web components -->
-    <script type="module" src="../lib/index.js"></script>
+    <script type="text/javascript" src="../graphql.js"></script>
+    <!-- web components-->
+    <script type="module" src="../../dist/index.js"></script>
   </head>
 
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-gene-search-element&gt;</h1>
+      <h1>&lt;lis-gene-search-element&gt; with &lt;lis-linkout-element&gt; and &lt;lis-modal-element&gt;</h1>
       <p>
-        The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated view.
+        The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated table.
         The search is performed using an external function provided to the component when it is added to the page.
-        In this example, the component performs a path query search for legume genes using the LIS GraphQL API query <code>genes</code>.
-        The form's genus, species, and strain selectors are also populated from this API.
-        See the source code for details.
-        Note that the form's input and page values are kept up to date in the URL query string parameters.
-        This allows users to share specific pages from a search via the URL and for the search history to be navigated via the Web browser's forward and back buttons.
-        If the query string parameters are present when the component loads then a search will be automatically performed with the query string parameter values.
+        In this example, the gene search is performed using the LIS GraphQL API.
+      </p>
+      <p>
+        To demonstrate how to interact with multiple components, the name of the genes in the <code>&lt;lis-gene-search-element&gt;</code>'s table are links.
+        Clicking on these links will open an instance of the <code>&lt;lis-modal-element&gt;</code> containing an instance of the <code>&lt;lis-linkout-element&gt;</code>.
+        The <code>&lt;lis-linkout-element&gt;</code> :ses an external function to load links for the gene that was clicked.
+        See the source code for details on how these components interact.
       </p>
       <hr>
 
       <!-- the custom gene search element -->
       <lis-gene-search-element id="gene-search"></lis-gene-search-element>
-
+      <lis-modal-element modalId="modal">
+        <lis-linkout-element id="linkouts"></lis-linkout-element>
+      </lis-modal-element>
     </div>
 
     <!-- set the search function by property because functions can't be set as attributes -->
@@ -101,9 +104,9 @@
             locations { chromosome { identifier } supercontig { identifier } start end strand }
           }
           pageInfo {
+            pageSize
             hasNextPage
             numResults
-            pageSize
             pageCount
           }
         }
@@ -126,7 +129,7 @@
           description,
           family,
           page,
-          pageSize: 10,
+          pageSize: 10
         };
         // returns a Promise that resolves to an array of Gene objects the gene search
         // Web Component knows how to parse: {name: string, description: string}[]
@@ -134,28 +137,38 @@
           .then(({data}) => {
             // extract the page info
             const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
-              = data.genes.pageInfo;
+                = data.genes.pageInfo;
             // flatten results
             const results =
               data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
+                const identifier = `<a href="#modal" data-gene="${gene.identifier}" uk-toggle>${gene.identifier}</a>`;
                 const geneFamilyAssignments =
                   gene.geneFamilyAssignments
                     .map(({geneFamily: {identifier}}) => identifier);
                 const locations =
                   gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
-                    const interval = `${start}-${end} (${strand})`;
+                    let location = `unknown`;
+                    let type = '';
                     if (chromosome?.identifier) {
-                      return `${chromosome?.identifier}:${interval} (chromosome)`;
+                      location = chromosome?.identifier;
+                      type = 'chromosome';
                     } else if (supercontig?.identifier) {
-                      return `${supercontig?.identifier}:${interval} (supercontig)`;
+                      location = supercontig?.identifier;
+                      type = 'supercontig';
                     }
-                    return `unknown:${interval}`;
+                    const text = `${location}:${start}-${end} (${strand}) (${type})`;
+                    return `<a href="#modal"
+                              data-location="${location}"
+                              data-start="${start}"
+                              data-end="${end}"
+                              uk-toggle>${text}</a>`;
                   });
                 return {
                   genus,
                   species,
                   strain: strain.identifier,
                   ...gene,
+                  identifier,
                   geneFamilyAssignments,
                   locations,
                 };
@@ -166,10 +179,71 @@
           });
       }
 
-      // wait for the page to load before binding component properties
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // location linkout query for the LIS GraphQL API
+      const locationLinkoutsQuery = `
+      query LocationLinkoutsQuery($identifier: ID!, $start: Int!, $end: Int!) {
+        locationLinkouts(identifier: $identifier, start: $start, end: $end) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // the linkout function to give to the linkout component
+      function linkoutFunction({type, variables}, {abortSignal}) {
+        if (type == 'gene') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts.results}));
+        } else if (type == 'location') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, locationLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.locationLinkouts.results}));
+        }
+        return Promise.reject();
+      }
+
+      // get the web components elements and set their function properties
       const geneSearchElement = document.getElementById('gene-search');
       geneSearchElement.formDataFunction = getGeneFormData;
       geneSearchElement.searchFunction = getGenes;
+      const linkoutElement = document.getElementById('linkouts');
+      linkoutElement.linkoutFunction = linkoutFunction;
+
+      // wait for the modal slot to load before adding an event listener
+      window.onload = (event) => {
+        const modal = document.getElementById('modal');
+        modal.addEventListener('toggle', (event) => {
+          const [{$el: link}, ...uikitComponents] = event.detail;
+          const {gene, location, start, end} = link.dataset;
+          let type = '';
+          let variables = {};
+          if (gene !== undefined) {
+            type = 'gene';
+            variables = {identifier: gene};
+          } else if (location !== undefined && start !== undefined && end !== undefined) {
+            type = 'location';
+            variables = {identifier: location, start: parseInt(start), end: parseInt(end)};
+          }
+          linkoutElement.getLinkouts({type, variables});
+        });
+      };
 
     </script>
 

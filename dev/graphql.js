@@ -18,7 +18,14 @@ function graphqlQuery(uri, query, variables={}, abortSignal=undefined) {
             variables,
         }),
         signal: abortSignal,
-    }).then(r => r.json());
+    })
+    .then(r => r.json())
+    .then((response) => {
+      if (response.errors) {
+        response.errors.forEach(console.error);
+      }
+      return response;
+    });
 }
 // TODO: implement error handling
 

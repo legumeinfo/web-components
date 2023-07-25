@@ -2,7 +2,7 @@ import {ReactiveController, ReactiveControllerHost} from 'lit';
 
 
 // defines internal state as an object to avoid race conditions
-type CancelState = {abortSignal: AbortSignal; wrapCount: Number; promise?: Promise<void>};
+type CancelState = {abortSignal: AbortSignal; wrapCount: number; promise?: Promise<void>};
 
 
 /**

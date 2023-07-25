@@ -42,11 +42,19 @@
 
       // trait name search query for the LIS GraphQL API
       const traitQuery = `
-      query Query($name: String!, $start: Int, $size: Int) {
-        traits(name: $name, start: $start, size: $size) {
-          identifier
-          name
-          description
+      query Query($name: String!, $page: Int, $pageSize: Int) {
+        traits(name: $name, page: $page, pageSize: $pageSize) {
+          results {
+            identifier
+            name
+            description
+          }
+          pageInfo {
+            hasNextPage
+            numResults
+            pageSize
+            pageCount
+          }
         }
       }
     `;
@@ -54,22 +62,21 @@
       // the search function given to the LIS gene search Web Component
       function getTraits(searchData, page, {abortSignal}) {
           const name = searchData['query'];
-          const pageSize = 10;
-          const start = (page-1)*pageSize;
-          // pageSize+1 because we want to see if there's a "next" page
-          const variables = {name, start, size: pageSize+1};
+          const variables = {name, page, pageSize: 10};
           // returns a Promise that resolves to an array of Trait objects the trait search
           // Web Component knows how to parse: {name: string, name: string}[]
           return graphqlQuery(uri, traitQuery, variables, abortSignal)
               .then(({data}) => {
-                  // compute if there's a next page
-                  const hasNext = pageSize+1 === data.traits.length;
-                  // remove the lookahead result
-                  if (hasNext) data.traits.pop();
+                  // extract the page info
+                  const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                      = data.traits.pageInfo;
                   // construct the expected paginated results object
                   const paginatedResults = {
                       hasNext,
-                      results: data.traits,
+                      numResults,
+                      pageSize,
+                      numPages,
+                      results: data.traits.results,
                   };
                   return paginatedResults;
               });

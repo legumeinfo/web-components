@@ -123,7 +123,7 @@ LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
     constructor() {
         super();
         // configure query string parameters
-        this.requiredQueryStringParams = ['query'];
+        this.requiredQueryStringParams = [['query']];
         // configure results table
         this.resultAttributes = [
             'name',

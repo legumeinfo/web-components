@@ -24,8 +24,10 @@
     <p>
       The <code>&lt;lis-pagination-element&gt;</code> provides a generic pagination element.
       When the page changes the component emits a custom <code>'pageChange'</code> event containing the new page number.
-      The component will automatically disable the previous button when the page is <code>1</code> and the next button is disabled based on the value of the component's <code>hasNext</code> attribute/property (<code>false</code> by default).
+      The component will automatically disable the previous button when the <code>page</code> attribute/property is <code>1</code> and the next button is disabled when the component's <code>hasNext</code> attribute/property is <code>false</code> (<code>false</code> by default) or when the <code>page</code> attribute/property is greater than or equal to the optional <code>numPages</code> attribute/property.
       The component also supports changing the page programmatically via its <code>previous()</code> and <code>next()</code> methods.
+    </p>
+    <p>
       In this example, an event listener is added to the component that prints the page number to the console when the page changes.
       The component is available in the console via the <code>paginationElement</code> variable.
       Use this to try changing the page programmatically.
