@@ -66,7 +66,6 @@ export class LisPhylotree extends LitElement {
         widthObserver.observe(this);
         var height = 30;
 
-        // Create tree with a width thats the same as the element's width
         var tree = tnt.tree();
         tree
                     .data (theData)
