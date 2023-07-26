@@ -50,20 +50,21 @@ export class LisPhylotree extends LitElement {
       }
       
 
-    makeTree(theData: string|Phylotree, width?: number)
-    {     
-          let prevWidth = 0;
+    makeTree(theData: string|Phylotree)
+    {
+        this.innerHTML = "";     
+        //   let prevWidth = 0;
           
-          const widthObserver = new ResizeObserver(entries => {
-            for (const entry of entries) {
-              const width = entry.borderBoxSize?.[0].inlineSize;
-              if (typeof width === 'number' && width !== prevWidth) {
-                prevWidth = width;
-                this.makeTree(theData, width);
-              }
-            }
-          });
-        widthObserver.observe(this);
+        //   const widthObserver = new ResizeObserver(entries => {
+        //     for (const entry of entries) {
+        //       const width = entry.borderBoxSize?.[0].inlineSize;
+        //       if (typeof width === 'number' && width !== prevWidth) {
+        //         prevWidth = width;
+        //         this.makeTree(theData, width);
+        //       }
+        //     }
+        //   });
+        // widthObserver.observe(this);
         var height = 30;
 
         var tree = tnt.tree();
@@ -71,7 +72,7 @@ export class LisPhylotree extends LitElement {
                     .data (theData)
                     .layout (tnt.tree.layout[this.layout]()
                     
-                    .width(width)
+                    .width(500)
                         .scale(this.scale))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
