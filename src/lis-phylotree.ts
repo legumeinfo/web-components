@@ -1,6 +1,7 @@
 import {html, LitElement} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 
+
 declare var tnt: any;
 declare var d3: any;
 
@@ -17,7 +18,6 @@ export type Phylotree = {
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
     
-
     @state()
     private _data: string|Phylotree = "";
     
@@ -31,36 +31,48 @@ export class LisPhylotree extends LitElement {
     set tree(tree: string|Phylotree){
         if(typeof tree == "string")
         {
-            this._data = tnt.tree.parse_newick(tree); 
+            this._data = tnt.tree.parse_newick(tree);
         }
         else{
             this._data = tree;
         }
     }
 
+    
+
     override render() { 
         this.makeTree(this._data)
         return html``
-
     ;   
     }
     override createRenderRoot() {
         return this;
       }
-    
-    makeTree(theData: string|Phylotree)
-    {
+      
+
+    makeTree(theData: string|Phylotree, width?: number)
+    {     
+        let prevWidth = 0;
+          
+          const widthObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+              const width = entry.borderBoxSize?.[0].inlineSize;
+              if (typeof width === 'number' && width !== prevWidth) {
+                prevWidth = width;
+                this.makeTree(theData, width);
+              }
+            }
+          });
+        widthObserver.observe(this);
         var height = 30;
 
-        // Create tree
+        // Create tree with a width thats the same as the element's width
         var tree = tnt.tree();
-        // resizeObserver = new ResizeObserver((entries) => {
-        //     const newWidth = entries[0].contentRect.width;
-        // })
         tree
                     .data (theData)
                     .layout (tnt.tree.layout[this.layout]()
-                        .width(500)
+                    
+                    .width(width)
                         .scale(this.scale))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
@@ -76,8 +88,6 @@ export class LisPhylotree extends LitElement {
                 .label (tnt.tree.label.text()
                     .height(height)
                 );
-    
-
                 
     var vis = tnt()
         .tree(tree)
@@ -89,7 +99,7 @@ export class LisPhylotree extends LitElement {
     
     // legend
     //     .append("div")
-    //     .style({
+    //     .style({ 
     //         width:"50px",
     //         height:"5px",
     //         "background-color":"steelblue",
