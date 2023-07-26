@@ -23,6 +23,7 @@
     "docs:clean": "rimraf docs",
     "docs:gen": "npx typedoc --options typedoc.json",
     "docs:serve": "wds --root-dir=docs --node-resolve --watch",
+    "prepublish": "npm run clean && npm run build && npm run bundle",
     "serve": "wds --watch",
     "serve:prod": "MODE=prod npm run serve",
     "test": "npm run test:dev && npm run test:prod",
