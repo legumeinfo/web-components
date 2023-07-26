@@ -52,7 +52,7 @@ export class LisPhylotree extends LitElement {
 
     makeTree(theData: string|Phylotree, width?: number)
     {     
-        let prevWidth = 0;
+          let prevWidth = 0;
           
           const widthObserver = new ResizeObserver(entries => {
             for (const entry of entries) {
