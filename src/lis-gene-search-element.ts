@@ -167,10 +167,29 @@ export type GeneSearchFunction =
  *   geneSearchElement.formDataFunction = getGeneFormData;
  * </script>
  * ```
+ *
+ * @example
+ * The {@link only | `only`} property can be used to only show a single genus in the search form.
+ * This is useful for sites that only have a single genus like SoyBase. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-gene-search-element id="gene-search" only="Glycine"></lis-gene-search-element>
+ * ```
+ *
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends
 LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
+
+  /**
+   * Property to only show a single genus in the search form.
+   * Useful for sites that only have a single genus like SoyBase.
+   */
+  @property({type: String})
+  only: string = '';
+  
+
+
 
   /** @ignore */
   // used by Lit to style the Shadow DOM
@@ -334,11 +353,25 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   }
 
   // renders the genus selector
-  private _renderGenusSelector() {
+  private _renderGenusSelector(onlyGenus: string) {
+    // if onlyGenus is set, render a disabled select element with the onlyGenus value as the selected and only option.
+    if (onlyGenus.length > 0) {
+      const genus = this.formData.genuses.find(({genus}) => genus === onlyGenus.charAt(0).toUpperCase() + onlyGenus.slice(1));
+      if (genus) {
+        this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
+        return html`
+          <select class="uk-select uk-form-small" name="genus" disabled>
+            <option value="${genus.genus}" selected>${genus.genus}</option>
+          </select>
+        `;
+      }
+    }
+    // otherwise, render a normal select element
     const options =
-      this.formData.genuses.map(({genus}) => {
+        this.formData.genuses.map(({genus}) => {
         return html`<option value="${genus}">${genus}</option>`;
       });
+
     return html`
       <select class="uk-select uk-form-small" name="genus"
         .selectedIndex=${live(this.selectedGenus)}
@@ -408,7 +441,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   override renderForm() {
 
     // render the form's selectors
-    const genusSelector = this._renderGenusSelector();
+    const genusSelector = this._renderGenusSelector(this.only);
     const speciesSelector = this._renderSpeciesSelector();
     const strainSelector = this._renderStrainSelector();
 
