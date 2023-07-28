@@ -1,5 +1,8 @@
 import {html, LitElement} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
+import {Ref, createRef, ref} from 'lit/directives/ref.js';
+
+import {LisResizeObserverController} from './controllers';
 
 
 declare var tnt: any;
@@ -17,6 +20,12 @@ export type Phylotree = {
 
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
+
+    // bind to the tree container div element in the template
+    private _treeContainerRef: Ref<HTMLDivElement> = createRef();
+
+    // a controller that allows element resize events to be observed
+    protected resizeObserverController = new LisResizeObserverController(this, this.resize);
     
     @state()
     private _data: string|Phylotree = "";
@@ -38,11 +47,23 @@ export class LisPhylotree extends LitElement {
         }
     }
 
-    
+    private resize(entries: ResizeObserverEntry[]) {
+      entries.forEach((entry: ResizeObserverEntry) => {
+        if (entry.target == this._treeContainerRef.value && entry.contentBoxSize) {
+          this.requestUpdate();
+        }
+      });
+    }
+
+    private treeContainerReady() {
+      if (this._treeContainerRef.value) {
+        this.resizeObserverController.observe(this._treeContainerRef.value);
+      }
+    }
 
     override render() { 
-        this.makeTree(this._data)
-        return html``
+        this.makeTree(this._data);
+        return html`<div style="overflow: hidden;" ${ref(this._treeContainerRef)} ${ref(this.treeContainerReady)}></div>`
     ;   
     }
     override createRenderRoot() {
@@ -52,19 +73,8 @@ export class LisPhylotree extends LitElement {
 
     makeTree(theData: string|Phylotree)
     {
-        this.innerHTML = "";     
-        //   let prevWidth = 0;
-          
-        //   const widthObserver = new ResizeObserver(entries => {
-        //     for (const entry of entries) {
-        //       const width = entry.borderBoxSize?.[0].inlineSize;
-        //       if (typeof width === 'number' && width !== prevWidth) {
-        //         prevWidth = width;
-        //         this.makeTree(theData, width);
-        //       }
-        //     }
-        //   });
-        // widthObserver.observe(this);
+      if (this._treeContainerRef.value) {
+        this._treeContainerRef.value.innerHTML = "";
         var height = 30;
 
         var tree = tnt.tree();
@@ -72,7 +82,7 @@ export class LisPhylotree extends LitElement {
                     .data (theData)
                     .layout (tnt.tree.layout[this.layout]()
                     
-                    .width(500)
+                    .width(this._treeContainerRef.value.offsetWidth)
                         .scale(this.scale))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
@@ -92,7 +102,8 @@ export class LisPhylotree extends LitElement {
     var vis = tnt()
         .tree(tree)
 
-    vis(this);    
+    vis(this._treeContainerRef.value);
+      }
 
     // var scaleBar = vis.scale_bar(50, "pixel").toFixed(3);
     // var legend = d3.select(this);

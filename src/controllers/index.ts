@@ -10,3 +10,4 @@ export * from './lis-cancel-promise-controller';
 export * from './lis-dom-content-loaded-controller';
 export * from './lis-query-string-parameters-controller';
 export * from './lis-slot-controller';
+export * from './lis-resize-observer-controller'
