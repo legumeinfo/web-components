@@ -1,7 +1,7 @@
 {
   "name": "@legumeinfo/web-components",
   "version": "0.0.1",
-  "description": "Web components for the Legume Information System and other AgBio databases",
+  "description": "Web Components for the Legume Information System and other AgBio databases",
   "main": "lib/index.js",
   "module": "lib/index.js",
   "types": "lib/index.d.ts",
