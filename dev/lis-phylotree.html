@@ -52,11 +52,14 @@
         const variables = {pageSize: 1, page: 1}
         function newickFunction(identifier) {
           return graphqlQuery(uri, geneNewickQuery, {identifier})
-          .then(({data}) => ({results: data.geneFamilies.results}));
+          .then(({data}) => ({results: data.geneFamilies.results.phylotree.newick}));
         }
 
         var anotherElement = document.getElementById("another-element");
-        var tree_obj = newickFunction(variables);
+        var tree_obj;
+        newickFunction(variables).then(theTree => {
+          tree_obj = theTree;
+        });
         console.log(tree_obj);
         anotherElement.tree = tree_obj;
         </script>
