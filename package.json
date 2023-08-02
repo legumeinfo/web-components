@@ -1,15 +1,20 @@
 {
-  "name": "legumeinfo/web-components",
-  "private": true,
+  "name": "@legumeinfo/web-components",
   "version": "0.0.1",
-  "description": "Web components for the Legume Information System and other AgBio databases",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "description": "Web Components for the Legume Information System and other AgBio databases",
+  "main": "lib/index.js",
+  "module": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "/lib",
+    "/dist"
+  ],
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "build:clean": "rimraf lib",
     "build:watch": "tsc --watch",
-    "clean": "rimraf dist/**/*.{d.ts,d.ts.map,js,js.map} test/**/*.{d.ts,d.ts.map,js,js.map} test/**/*.{d.ts,d.ts.map,js,js.map}",
+    "clean": "npm run bundle:clean & npm run build:clean & npm run test:clean",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint 'src/**/*.ts'",
     "lint:lit-analyzer": "lit-analyzer",
@@ -18,16 +23,18 @@
     "docs:clean": "rimraf docs",
     "docs:gen": "npx typedoc --options typedoc.json",
     "docs:serve": "wds --root-dir=docs --node-resolve --watch",
+    "prepublish": "npm run clean && npm run build && npm run bundle",
     "serve": "wds --watch",
     "serve:prod": "MODE=prod npm run serve",
     "test": "npm run test:dev && npm run test:prod",
+    "test:clean": "rimraf test",
     "test:dev": "wtr",
     "test:watch": "wtr --watch",
     "test:prod": "MODE=prod wtr",
     "test:prod:watch": "MODE=prod wtr --watch",
-    "checksize": "rollup -c ; cat web-components.bundled.js | gzip -9 | wc -c ; rm web-components.bundled.js",
-    "package": "rollup -c rollup.config.js",
-    "package:watch": "rollup -c -w"
+    "bundle": "rollup -c rollup.config.js",
+    "bundle:clean": "rimraf dist",
+    "bundle:watch": "rollup -c -w"
   },
   "keywords": [
     "lit",
@@ -37,7 +44,6 @@
   ],
   "author": "Legume Information System",
   "license": "Apache-2.0",
-  "customElements": "custom-elements.json",
   "devDependencies": {
     "@open-wc/testing": "^3.2.0",
     "@rollup/plugin-node-resolve": "^15.1.0",

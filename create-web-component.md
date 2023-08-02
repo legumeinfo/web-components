@@ -27,7 +27,7 @@ page on a separate web site. The key things here are
     <!-- GraphQL -->
     <script type="text/javascript" src="./graphql.js"></script>
     <!-- web components -->
-    <script type="module" src="../dist/index.js"></script>
+    <script type="module" src="../lib/index.js"></script>
   </head>
 
   <body>
@@ -308,9 +308,9 @@ first step here.
 
 `$ npm run serve` to run a local server for testing, which will serve the above `index.html` on port 8000.
 
-## Package your web component ##
+## Bundle your web component ##
 If your web component is working correctly,
 
-`$ npm run package` to bundle it into `dist/web-components.bundled.js`.
+`$ npm run bundle` to bundle it into `dist/web-components.min.js`.
 
-You may now copy `web-components.bundled.js` to a web site where you want to implement your new web component.
+You may now copy `web-components.min.js` to a web site where you want to implement your new web component.

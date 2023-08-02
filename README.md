@@ -28,7 +28,7 @@ To watch files and rebuild when the files are modified, run the following comman
 npm run build:watch
 ```
 
-All built files will be placed in the `dist/` directory.
+All built files will be placed in the `lib/` directory.
 
 ## Testing
 
@@ -117,14 +117,15 @@ The site will usually be served at http://localhost:8000.
 
 ## Bundling and minification
 
-Bundling and minification is performed in a single step using [Rollup](https://rollupjs.org/guide/en/). We call this single step "packaing". The follow commands will bundle and minify whatever code is already in the `dist/` directory.
+Bundling and minification is performed in a single step using [Rollup](https://rollupjs.org/guide/en/).
+The follow commands will bundle and minify whatever code is already in the `lib/` directory and place the bundled code in the file `dist/web-components.min.js`.
 
 To bundle and minify the code, run:
 ```bash
-npm run package
+npm run bundle
 ```
 
-To automatically re-package when the code in the `dist/` directory changes, run:
+To automatically re-bundle when the code in the `lib/` directory changes, run:
 ```bash
-npm run package:watch
+npm run bundle:watch
 ```
