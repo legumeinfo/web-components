@@ -1,6 +1,6 @@
 {
   "name": "@legumeinfo/web-components",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Web Components for the Legume Information System and other AgBio databases",
   "repository": {
     "type": "git",
