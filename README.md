@@ -31,7 +31,7 @@ The library can then be used in your HTML as follows:
     <script type="module" src="@legumeinfo/web-components/dist/web-components.min.js"></script>
 </head>
 <body>
-    <lis-gene-searh-element></lis-gene-searh-element>
+    <lis-gene-search-element></lis-gene-search-element>
 </body>
 ```
 
