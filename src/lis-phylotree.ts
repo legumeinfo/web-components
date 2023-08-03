@@ -17,6 +17,19 @@ export type Phylotree = {
 }
 
 
+/**
+ * The signature of the function of the
+ * {@link LisPhylotreeElement | `LisPhylotreeElement`} class uses to color nodes by name.
+ * Note that if a node already has a color it will be given precedence over the color
+ * provided by this function.
+ *
+ * @param name The name of the being colored.
+ *
+ * @returns A string containing a valid CSS color value.
+ */
+export type ColorFunction = (name: string) => string;
+
+
 
 @customElement('lis-phylotree')
 export class LisPhylotree extends LitElement {
@@ -46,6 +59,9 @@ export class LisPhylotree extends LitElement {
             this._data = tree;
         }
     }
+
+    @property({type: Function, attribute: false})
+    colorFunction?: ColorFunction;
 
     private resize(entries: ResizeObserverEntry[]) {
       entries.forEach((entry: ResizeObserverEntry) => {
@@ -86,9 +102,12 @@ export class LisPhylotree extends LitElement {
                         .scale(this.scale))
                     .node_display (tnt.tree.node_display.circle()
                         .size(5)
-                        .fill(function (node: { data: any; }) {
+                        .fill((node: { data: any; }) => {
                             if(node.data().color == null || node.data().color == "")
                             {
+                                if (this.colorFunction !== undefined && node.data().name) {
+                                  return this.colorFunction(node.data().name);
+                                }
                                 return "white";
                             }
                             return node.data().color;
