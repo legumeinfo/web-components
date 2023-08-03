@@ -1,8 +1,11 @@
-# LIS Web Components
+# `@legumeinfo/web-components`
 
 This repository contains a Web Component library developed for the Legume Information System and other AgBio databases.
 The Web Components are built using [Lit](https://lit.dev/) and the [UIkit](https://getuikit.com/) CSS framework.
 UIkit, however, is only listed as a development dependency and must be installed independently when using this library.
+
+This readme is intended for developers.
+For user documentation, see the [NPM readme](https://github.com/legumeinfo/web-components/blob/main/README.md) and [our documentation site](https://legumeinfo.github.io/web-components/).
 
 ## Setup
 
