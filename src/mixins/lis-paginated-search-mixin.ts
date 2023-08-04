@@ -12,6 +12,7 @@ import {
   LisLoadingElement,
   LisPaginationElement,
 } from '../core';
+import {StringObjectModel} from '../models';
 
 
 /**
@@ -117,11 +118,22 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
    * define what attributes their search results will have so the mixin can
    * correctly parse and display the results in a table. The header of the
    * table is set from an object that has these attributes. The object can
-   * be specified by setting this property in a component's constructor.
-   * Additionally, this property may be used by the end used at run-time to override the
-   * default table headers defined by the component.
+   * be specified by setting this property in a component's constructor.  Additionally,
+   * this property may be used by the end used at run-time to override the default table
+   * headers defined by the component.
    */
-  tableHeader: Object;
+  tableHeader: StringObjectModel;
+
+  /**
+   * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin can optionally
+   * define CSS classes for the columns of the table results are displayed in a table.
+   * The classes are set from an object that has attributes matching the
+   * `resultAttributes`. The object can be specified by setting this property in a
+   * component's constructor. Additionally, this property may be used by the end used at
+   * run-time to override the default table column classes defined by the component.
+   */
+  tableColumnClasses: StringObjectModel;
 
   /**
    * Components that use the
@@ -422,8 +434,12 @@ class LisPaginatedSearchElement extends superClass {
   resultAttributes: string[] = [];
 
   // the table headers to use in the concrete class
-  @state()
-  tableHeader: Object = {};
+  @property()
+  tableHeader: StringObjectModel = {};
+
+  // the table column classes to use in the concrete class
+  @property()
+  tableColumnClasses: StringObjectModel = {};
 
   // what form parts are required to submit a search
   @state()
@@ -630,6 +646,7 @@ class LisPaginatedSearchElement extends superClass {
       <lis-simple-table-element
         .dataAttributes=${this.resultAttributes}
         .header=${this.tableHeader}
+        .columnClasses=${this.tableColumnClasses}
         .data=${this.searchResults}>
       </lis-simple-table-element>
     `;
