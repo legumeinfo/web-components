@@ -651,7 +651,7 @@ class LisPaginatedSearchElement extends superClass {
 
       ${resultsInfo}
 
-      <div class="uk-inline uk-width-1-1 uk-overflow-auto">
+      <div class="uk-inline uk-width-1-1 uk-overflow-auto uk-text-small">
         <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>
         ${results}
       </div>
