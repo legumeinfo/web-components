@@ -226,12 +226,12 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     this.resultAttributes = [
       "name",
       "identifier",
+      "locations",
       "description",
+      "geneFamilyAssignments",
       "genus",
       "species",
       "strain",
-      "geneFamilyAssignments",
-      "locations",
     ];
     this.tableHeader = {
       name: "Name",
