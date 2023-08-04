@@ -75,7 +75,7 @@
     "rollup-plugin-summary": "^2.0.0",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
-    "uikit": "^3.16.22"
+    "uikit": "^3.16.24"
   },
   "dependencies": {
     "lit": "^2.7.6"
