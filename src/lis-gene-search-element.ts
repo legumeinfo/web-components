@@ -243,6 +243,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       geneFamilyAssignments: "Gene Family Assignments",
       locations: "Locations",
     };
+    this.tableColumnClasses = {
+      description: "uk-table-expand",
+    };
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
