@@ -5,3 +5,4 @@
  * @module models
  */
 export * from './lis-alert-modifier-model';
+export * from './lis-string-object-model';
