@@ -1,0 +1,22 @@
+# workflow to enforce style and linting on PR
+name: eslint-prettier
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      # Setup npm environment to run tests
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npx lint-staged
+     #- run: npx eslint-config-prettier ./**/*.ts
+     #- run: npx prettier --write ./**/*.ts
+     #- run: npx prettier --check ./**/*.ts
+     #- run: npx eslint ./**/*.ts

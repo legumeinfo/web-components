@@ -23,10 +23,10 @@
     "build:clean": "rimraf lib",
     "build:watch": "tsc --watch",
     "clean": "npm run bundle:clean & npm run build:clean & npm run test:clean",
-    "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
+    "lint": "npm run lint:eslint",
     "lint:eslint": "eslint 'src/**/*.ts'",
-    "lint:lit-analyzer": "lit-analyzer",
-    "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --ignore-path ./.eslintignore --write",
+    "lint:lit-analyzer": "lit-analyzer 'src/**/*.ts'",
+    "format": "prettier 'src/**/*.ts' --write",
     "docs": "npm run docs:clean && npm run docs:gen",
     "docs:clean": "rimraf docs",
     "docs:gen": "npx typedoc --options typedoc.json",
@@ -42,7 +42,8 @@
     "test:prod:watch": "MODE=prod wtr --watch",
     "bundle": "rollup -c rollup.config.js",
     "bundle:clean": "rimraf dist",
-    "bundle:watch": "rollup -c -w"
+    "bundle:watch": "rollup -c -w",
+    "prepare": "husky install"
   },
   "keywords": [
     "typescript",
@@ -68,6 +69,9 @@
     "@web/test-runner-playwright": "^0.10.1",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.10.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.2.3",
     "lit-analyzer": "^1.2.1",
     "prettier": "^3.0.0",
     "rimraf": "^5.0.1",
