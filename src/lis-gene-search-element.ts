@@ -274,7 +274,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   }
 
   // called after every component update, e.g. when a property changes
-  override updated(changedProperties: Map<string, any>) {
+  override updated(changedProperties: Map<string, unknown>) {
     // call the formDataFunction every time its value changes
     if (changedProperties.has('formDataFunction')) {
       this._getFormData();
@@ -300,9 +300,10 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
           this._formLoadingRef.value?.success();
           this.formData = formData;
         },
-        (error: Error) => {
+        (error: Error|Event) => {
           // do nothing if the request was aborted
-          if ((error as any).type !== 'abort') {
+          //if ((error as unknown).type !== 'abort') {
+          if (!(error instanceof Event && error.type === 'abort')) {
             this._formLoadingRef.value?.failure();
             throw error;
           }
@@ -349,10 +350,11 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when a genus is selected
   private _selectGenus(event: Event) {
-    // @ts-ignore
-    this.selectedGenus = event.target.selectedIndex;
-    this.selectedSpecies = 0;
-    this.selectedStrain = 0;
+    if (event.target != null) {
+      this.selectedGenus = (event.target as HTMLSelectElement).selectedIndex;
+      this.selectedSpecies = 0;
+      this.selectedStrain = 0;
+    }
   }
 
   // renders the genus selector
@@ -373,9 +375,10 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when a species is selected
   private _selectSpecies(event: Event) {
-    // @ts-ignore
-    this.selectedSpecies = event.target.selectedIndex;
-    this.selectedStrain = 0;
+    if (event.target != null) {
+      this.selectedSpecies = (event.target as HTMLSelectElement).selectedIndex;
+      this.selectedStrain = 0;
+    }
   }
 
   // renders the species selector
@@ -399,8 +402,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when an strain is selected
   private _selectStrain(event: Event) {
-    // @ts-ignore
-    this.selectedStrain = event.target.selectedIndex;
+    if (event.target != null) {
+      this.selectedStrain = (event.target as HTMLSelectElement).selectedIndex;
+    }
   }
 
   // renders the strain selector

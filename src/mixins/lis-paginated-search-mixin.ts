@@ -25,6 +25,7 @@ import {StringObjectModel} from '../models';
  * @param args - The arguments that will be passed to the super class
  * constructor.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = {}, Params extends any[] = any[]> =
   new (...args: Params) => T;
 
@@ -402,6 +403,7 @@ class LisPaginatedSearchElement extends superClass {
   // constructor //
   /////////////////
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(...rest: any[]) {
     super(...rest);
     // submit the form after the DOM is finished loading
@@ -521,9 +523,9 @@ class LisPaginatedSearchElement extends superClass {
       this.cancelPromiseController.wrapPromise(searchPromise)
         .then(
           (results: PaginatedSearchResults<SearchResult>) => this._searchSuccess(results),
-          (error: Error) => {
+          (error: Error|Event) => {
             // do nothing if the request was aborted
-            if ((error as any).type !== 'abort') {
+            if (!(error instanceof Event && error.type === 'abort')) {
               this._loadingRef.value?.failure();
               throw error;
             }

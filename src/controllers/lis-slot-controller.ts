@@ -111,7 +111,7 @@ export class LisSlotController implements ReactiveController {
         try {
           //ref.value.assign(...slotChildren);  // renders via Shadow DOM
           ref.value.replaceChildren(...slotChildren);  // fakes Shadow DOM by moving children
-        } catch(error) { }
+        } catch(error) { /* no-op */ }
       }
     });
   }
