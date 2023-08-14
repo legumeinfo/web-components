@@ -4,7 +4,6 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisAlertElement} from './lis-alert-element.js';
 
-
 /**
  * @htmlElement `<lis-loading-element>`
  *
@@ -66,7 +65,6 @@ import {LisAlertElement} from './lis-alert-element.js';
  */
 @customElement('lis-loading-element')
 export class LisLoadingElement extends LitElement {
-
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -88,7 +86,7 @@ export class LisLoadingElement extends LitElement {
 
   // The current state of the element, i.e. what UI elements should be visible.
   @state()
-  state: 'loading'|'loaded'|'message' = 'loaded';
+  state: 'loading' | 'loaded' | 'message' = 'loaded';
 
   // bind to the alert element in the template
   private _alertRef: Ref<LisAlertElement> = createRef();
@@ -117,16 +115,19 @@ export class LisLoadingElement extends LitElement {
   // used by Lit to draw the template
   override render() {
     return html`
-      <div class="uk-overlay-default uk-position-cover uk-flex uk-flex-center uk-flex-middle"
-        ?hidden=${this.state != 'loading'}>
+      <div
+        class="uk-overlay-default uk-position-cover uk-flex uk-flex-center uk-flex-middle"
+        ?hidden=${this.state != 'loading'}
+      >
         <span uk-spinner></span>
       </div>
-      <lis-alert-element ${ref(this._alertRef)} ?hidden=${this.state != 'message'}></lis-alert-element>
+      <lis-alert-element
+        ${ref(this._alertRef)}
+        ?hidden=${this.state != 'message'}
+      ></lis-alert-element>
     `;
   }
-
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {
