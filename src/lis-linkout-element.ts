@@ -144,9 +144,9 @@ export class LisLinkoutElement extends LitElement {
     const linkoutPromise = this.linkoutFunction(data, options);
     this.cancelPromiseController.wrapPromise(linkoutPromise).then(
       (results: LinkoutResults) => this._linkoutSuccess(results),
-      (error: Error) => {
+      (error: Error | Event) => {
         // do nothing if the request was aborted
-        if ((error as any).type !== 'abort') {
+        if (!(error instanceof Event && error.type === 'abort')) {
           this._loadingRef.value?.failure();
           throw error;
         }
