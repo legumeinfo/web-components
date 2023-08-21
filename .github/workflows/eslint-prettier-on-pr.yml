@@ -23,9 +23,9 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npx eslint-config-prettier src/*.ts src/**/*.ts
+      - run: npx eslint src/*.ts src/**/*.ts
       - run: npx prettier --write src/*.ts src/**/*.ts
       - run: npx prettier --check src/*.ts src/**/*.ts
-      - run: npx eslint src/*.ts src/**/*.ts
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply prettier formatting changes and check with eslint
