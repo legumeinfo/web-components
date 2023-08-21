@@ -16,8 +16,8 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npx lint-staged
-     #- run: npx eslint-config-prettier ./**/*.ts
-     #- run: npx prettier --write ./**/*.ts
-     #- run: npx prettier --check ./**/*.ts
-     #- run: npx eslint ./**/*.ts
+     #- run: npx lint-staged
+     - run: npx eslint-config-prettier ./**/*.ts
+     - run: npx prettier --write ./**/*.ts
+     - run: npx prettier --check ./**/*.ts
+     - run: npx eslint ./**/*.ts
