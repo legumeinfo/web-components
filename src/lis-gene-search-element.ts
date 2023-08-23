@@ -2,7 +2,6 @@ import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 
 import {LisCancelPromiseController} from './controllers';
@@ -68,8 +67,8 @@ export type GeneSearchResult = {
   genus: string;
   species: string;
   strain: string;
-  geneFamilyAssignments: string[],
-  locations: string[],
+  geneFamilyAssignments: string[];
+  locations: string[];
 };
 
 
@@ -243,6 +242,29 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
         ['description'],
         ['family'],
       ];
+    this.resultAttributes = [
+      "name",
+      "identifier",
+      "locations",
+      "description",
+      "geneFamilyAssignments",
+      "genus",
+      "species",
+      "strain",
+    ];
+    this.tableHeader = {
+      name: "Name",
+      identifier: "Identifier",
+      description: "Description",
+      genus: "Genus",
+      species: "Species",
+      strain: "Strain",
+      geneFamilyAssignments: "Gene Family Assignments",
+      locations: "Locations",
+    };
+    this.tableColumnClasses = {
+      description: "uk-table-expand",
+    };
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
@@ -491,62 +513,6 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
         </fieldset>
       </form>
     `;
-  }
-
-  // renders the location part or a result
-  private _renderLocation(gene: any) {
-    const label = html`<b>location:</b>`;
-    if (!gene.locations?.length) {
-      return html`${label} None`;
-    }
-    const [first, ..._] = gene.locations;
-    return html`
-      <div>
-        ${label} ${unsafeHTML(first)}
-      </div>
-    `;
-  }
-
-  // renders the gene family part of a result
-  private _renderGeneFamily(gene: any) {
-    const label = html`<b>gene family:</b>`;
-    if (!gene.geneFamilyAssignments?.length) {
-      return html`${label} None`;
-    }
-    const [first, ..._] = gene.geneFamilyAssignments;
-    return html`
-      <div>
-        ${label} ${unsafeHTML(first)}
-      </div>
-    `;
-  }
-
-  // renders a single result as a row
-  private _renderResult(gene: any) {
-
-    const location = this._renderLocation(gene);
-    const geneFamily = this._renderGeneFamily(gene);
-    const name = (gene?.name != null ? html`${unsafeHTML(gene.name)}` : html`no name`);
-
-    return html`
-      <div>
-        <div>
-          <b>${unsafeHTML(gene.identifier)}</b> (${name}) <span class="uk-text-italic">${unsafeHTML(gene.genus)} ${unsafeHTML(gene.species)}</span> ${unsafeHTML(gene.strain)}
-        </div>
-        <div class="uk-text-italic">
-          ${ unsafeHTML(gene.description) }
-        </div>
-        ${location}
-        ${geneFamily}
-        <hr>
-      </div>
-    `;
-  }
-
-  /** @ignore */
-  // used by LisPaginatedSearchMixin to draw the results part of template
-  override renderResults() {
-    return this.searchResults.map((gene) => this._renderResult(gene));
   }
 
 }

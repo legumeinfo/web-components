@@ -10,9 +10,9 @@ import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 
 export default {
-  input: 'dist/index.js',
+  input: 'lib/index.js',
   output: {
-    file: 'dist/web-components.bundled.js',
+    file: 'dist/web-components.min.js',
     format: 'esm',
   },
   onwarn(warning) {

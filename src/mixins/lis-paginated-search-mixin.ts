@@ -12,6 +12,7 @@ import {
   LisLoadingElement,
   LisPaginationElement,
 } from '../core';
+import {StringObjectModel} from '../models';
 
 
 /**
@@ -102,6 +103,40 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
 
   /**
    * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin must
+   * define what attributes their search results will have so the mixin can
+   * correctly parse and display the results in a table. These attributes
+   * can be specified by setting this property in a component's constructor.
+   * Additionally, this property may be used by the end user at run-time to override the
+   * default result attributes defined by the component.
+   */
+  resultAttributes: string[];
+
+  /**
+   * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin must
+   * define what attributes their search results will have so the mixin can
+   * correctly parse and display the results in a table. The header of the
+   * table is set from an object that has these attributes. The object can
+   * be specified by setting this property in a component's constructor.  Additionally,
+   * this property may be used by the end used at run-time to override the default table
+   * headers defined by the component.
+   */
+  tableHeader: StringObjectModel;
+
+  /**
+   * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin can optionally
+   * define CSS classes for the columns of the table results are displayed in a table.
+   * The classes are set from an object that has attributes matching the
+   * `resultAttributes`. The object can be specified by setting this property in a
+   * component's constructor. Additionally, this property may be used by the end used at
+   * run-time to override the default table column classes defined by the component.
+   */
+  tableColumnClasses: StringObjectModel;
+
+  /**
+   * Components that use the
    * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin will
    * inherit this method. It allows the component's search form to be submitted
    * programmatically.
@@ -154,28 +189,9 @@ export declare class LisPaginatedSearchElementInterface<SearchData, SearchResult
   protected requiredQueryStringParams: string[][];
 
   /**
-   * Components that use the
-   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin must
-   * define what attributes their search results will have so the mixin can
-   * correctly parse and display the results in a table. These attributes
-   * can be specified by setting this property in a component's constructor.
-   */
-  public resultAttributes: string[];
-
-  /**
    * The results returned by the `searchFunction`.
    */
   public searchResults: SearchResult[];
-
-  /**
-   * Components that use the
-   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin must
-   * define what attributes their search results will have so the mixin can
-   * correctly parse and display the results in a table. The header of the
-   * table is set from an object that has these attributes. The object can
-   * be specified by setting this property in a component's constructor.
-   */
-  public tableHeader: Object;
 
   /**
    * When the form of a component that use the
@@ -413,13 +429,21 @@ class LisPaginatedSearchElement extends superClass {
   searchFunction: SearchFunction<SearchData, SearchResult> =
     () => Promise.reject(new Error('No search function provided'));
 
+  // attributes of result objects in the concrete class
+  @property()
+  resultAttributes: string[] = [];
+
+  // the table headers to use in the concrete class
+  @property()
+  tableHeader: StringObjectModel = {};
+
+  // the table column classes to use in the concrete class
+  @property()
+  tableColumnClasses: StringObjectModel = {};
+
   // what form parts are required to submit a search
   @state()
   protected requiredQueryStringParams: string[][] = [];
-
-  // attributes of result objects in the concrete class
-  @state()
-  protected resultAttributes: string[] = [];
 
   // keep a copy of the search results for template generalization
   @state()
@@ -428,10 +452,6 @@ class LisPaginatedSearchElement extends superClass {
   // info about the search results
   @state()
   protected resultsInfo: string = '';
-
-  // the tables headers to use in the concrete class
-  @state()
-  protected tableHeader: Object = {};
 
   // keep a copy of the search form data for pagination
   @state()
@@ -626,6 +646,7 @@ class LisPaginatedSearchElement extends superClass {
       <lis-simple-table-element
         .dataAttributes=${this.resultAttributes}
         .header=${this.tableHeader}
+        .columnClasses=${this.tableColumnClasses}
         .data=${this.searchResults}>
       </lis-simple-table-element>
     `;
@@ -647,7 +668,7 @@ class LisPaginatedSearchElement extends superClass {
 
       ${resultsInfo}
 
-      <div class="uk-inline uk-width-1-1">
+      <div class="uk-inline uk-width-1-1 uk-overflow-auto uk-text-small">
         <lis-loading-element ${ref(this._loadingRef)}></lis-loading-element>
         ${results}
       </div>
