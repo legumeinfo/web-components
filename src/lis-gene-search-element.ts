@@ -168,11 +168,11 @@ export type GeneSearchFunction =
  * ```
  *
  * @example
- * The {@link only | `only`} property can be used to only show a single genus in the search form.
+ * The {@link genus | `genus`} property can be used to show just a single genus in the search form dropdown.
  * This is useful for sites that only have a single genus like SoyBase. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
- * <lis-gene-search-element id="gene-search" only="Glycine"></lis-gene-search-element>
+ * <lis-gene-search-element id="gene-search" genus="Glycine"></lis-gene-search-element>
  * ```
  *
  */
@@ -181,13 +181,11 @@ export class LisGeneSearchElement extends
 LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   /**
-   * Property to only show a single genus in the search form.
+   * Property to only show a single genus in the search form dropdown.
    * Useful for sites that only have a single genus like SoyBase.
    */
   @property({type: String})
-  only: string = '';
-  
-
+  genus: string = '';
 
 
   /** @ignore */
@@ -268,9 +266,18 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
-    const genus = this.queryStringController.getParameter('genus');
+    let genus = this.queryStringController.getParameter('genus');
+    // Check if a single genus is specified 
+    let onlyGenus = document.getElementsByTagName('lis-gene-search-element')[0].getAttribute('genus') || '';
     if (genus) {
-      formData.genuses.push({genus, species: []});
+      if(genus.length > 0) { // Check if a genus is specified
+        console.log("this.genus len more than 0")
+        if (genus != genus || (onlyGenus.length > 0 && onlyGenus.toUpperCase() != genus.toUpperCase())) { // Check if the genus specified in the query string matches the genus specified in the genus property
+          throw new Error('The genus specified in the query string does not match the genus specified in the genus property');
+        }
+      } else {
+        formData.genuses.push({genus, species: []});
+      }
       const species = this.queryStringController.getParameter('species');
       if (species) {
         formData
@@ -382,7 +389,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       if (genus) {
         this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
         return html`
-          <select class="uk-select uk-form-small" name="genus" disabled>
+          <select class="uk-select uk-form-small" name="genus">
             <option value="${genus.genus}" selected>${genus.genus}</option>
           </select>
         `;
@@ -463,7 +470,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   override renderForm() {
 
     // render the form's selectors
-    const genusSelector = this._renderGenusSelector(this.only);
+    const genusSelector = this._renderGenusSelector(this.genus);
     const speciesSelector = this._renderSpeciesSelector();
     const strainSelector = this._renderStrainSelector();
 
