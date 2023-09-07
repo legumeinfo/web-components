@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - develop
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,13 +18,12 @@ jobs:
       # Setup npm environment to run tests
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npx eslint-config-prettier src/*.ts src/**/*.ts
-      - run: npx prettier --write src/*.ts src/**/*.ts
-      - run: npx prettier --check src/*.ts src/**/*.ts
-      - run: npx eslint src/*.ts src/**/*.ts
+      - run: npm run lint:eslint-config-prettier
+      - run: npm run format
+      - run: npm run lint
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply prettier formatting changes and check with eslint

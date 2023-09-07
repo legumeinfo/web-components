@@ -25,6 +25,7 @@
     "clean": "npm run bundle:clean & npm run build:clean & npm run test:clean",
     "lint": "npm run lint:eslint",
     "lint:eslint": "eslint src/*.ts src/**/*.ts",
+    "lint:eslint-config-prettier": "eslint-config-prettier src/*.ts src/**/*.ts",
     "lint:lit-analyzer": "lit-analyzer src/*.ts src/**/*.ts",
     "format": "prettier src/*.ts src/**/*.ts --write",
     "docs": "npm run docs:clean && npm run docs:gen",
@@ -43,7 +44,7 @@
     "bundle": "rollup -c rollup.config.js",
     "bundle:clean": "rimraf dist",
     "bundle:watch": "rollup -c -w",
-    "prepare": "husky install"
+    "postinstall": "husky install"
   },
   "keywords": [
     "typescript",
