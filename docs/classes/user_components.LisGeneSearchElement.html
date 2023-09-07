@@ -51,6 +51,11 @@ the function immediately and set the <a href="user_components.LisGeneSearchEleme
 result. For example:</p>
 <pre><code class="language-html"><span class="hl-4">&lt;!-- add the Web Component to your HTML --&gt;</span><br/><span class="hl-2">&lt;</span><span class="hl-3">lis-gene-search-element</span><span class="hl-1"> </span><span class="hl-5">id</span><span class="hl-1">=</span><span class="hl-6">&quot;gene-search&quot;</span><span class="hl-2">&gt;&lt;/</span><span class="hl-3">lis-gene-search-element</span><span class="hl-2">&gt;</span><br/><br/><span class="hl-4">&lt;!-- configure the Web Component via JavaScript --&gt;</span><br/><span class="hl-2">&lt;</span><span class="hl-3">script</span><span class="hl-7"> </span><span class="hl-5">type</span><span class="hl-7">=</span><span class="hl-6">&quot;text/javascript&quot;</span><span class="hl-2">&gt;</span><br/><span class="hl-7">  </span><span class="hl-4">// a site-specific function that gets genus, species, and strain data from an API</span><br/><span class="hl-7">  </span><span class="hl-10">function</span><span class="hl-7"> </span><span class="hl-12">getFormData</span><span class="hl-7">() {</span><br/><span class="hl-7">    </span><span class="hl-4">// returns a Promise that resolves to a form data object</span><br/><span class="hl-7">  }</span><br/><span class="hl-7">  </span><span class="hl-4">// get the gene search element</span><br/><span class="hl-7">  </span><span class="hl-10">const</span><span class="hl-7"> </span><span class="hl-14">geneSearchElement</span><span class="hl-7"> </span><span class="hl-1">=</span><span class="hl-7"> </span><span class="hl-0">document</span><span class="hl-7">.</span><span class="hl-12">getElementById</span><span class="hl-7">(</span><span class="hl-9">&#39;gene-search&#39;</span><span class="hl-7">);</span><br/><span class="hl-7">  </span><span class="hl-4">// set the element&#39;s formDataFunction property</span><br/><span class="hl-7">  </span><span class="hl-0">geneSearchElement</span><span class="hl-7">.</span><span class="hl-0">formDataFunction</span><span class="hl-7"> </span><span class="hl-1">=</span><span class="hl-7"> </span><span class="hl-0">getGeneFormData</span><span class="hl-7">;</span><br/><span class="hl-2">&lt;/</span><span class="hl-3">script</span><span class="hl-2">&gt;</span>
 </code><button>Copy</button></pre>
+
+<h4>Example</h4><p>The <a href="user_components.LisGeneSearchElement.html#genus" class="tsd-kind-property"><code>genus</code></a> property can be used to show just a single genus in the search form dropdown.
+This is useful for sites that only have a single genus like SoyBase. For example:</p>
+<pre><code class="language-html"><span class="hl-4">&lt;!-- add the Web Component to your HTML --&gt;</span><br/><span class="hl-2">&lt;</span><span class="hl-3">lis-gene-search-element</span><span class="hl-1"> </span><span class="hl-5">genus</span><span class="hl-1">=</span><span class="hl-6">&quot;Glycine&quot;</span><span class="hl-2">&gt;&lt;/</span><span class="hl-3">lis-gene-search-element</span><span class="hl-2">&gt;</span>
+</code><button>Copy</button></pre>
 </div></section>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
@@ -59,7 +64,7 @@ result. For example:</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">LisGeneSearchElement</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L171">src/lis-gene-search-element.ts:171</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L180">src/lis-gene-search-element.ts:180</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -156,6 +161,7 @@ result. For example:</p>
 <a href="user_components.LisGeneSearchElement.html#formData" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data</span></a>
 <a href="user_components.LisGeneSearchElement.html#formDataCancelPromiseController" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data<wbr/>Cancel<wbr/>Promise<wbr/>Controller</span></a>
 <a href="user_components.LisGeneSearchElement.html#formDataFunction" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data<wbr/>Function</span></a>
+<a href="user_components.LisGeneSearchElement.html#genus" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>genus?</span></a>
 <a href="user_components.LisGeneSearchElement.html#hidden" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>hidden</span></a>
 <a href="user_components.LisGeneSearchElement.html#id" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>id</span></a>
 <a href="user_components.LisGeneSearchElement.html#inert" class="tsd-index-link tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>inert</span></a>
@@ -488,7 +494,7 @@ result. For example:</p>
 <h4 class="tsd-returns-title">Returns <a href="user_components.LisGeneSearchElement.html" class="tsd-signature-type tsd-kind-class">LisGeneSearchElement</a></h4><aside class="tsd-sources">
 <p>Overrides LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L215">src/lis-gene-search-element.ts:215</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L232">src/lis-gene-search-element.ts:232</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties - Other</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="ATTRIBUTE_NODE" class="tsd-anchor"></a>
@@ -642,7 +648,7 @@ result. For example:</p>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_form<wbr/>Loading<wbr/>Ref</span><a href="#_formLoadingRef" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">_form<wbr/>Loading<wbr/>Ref</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Ref</span><span class="tsd-signature-symbol">&lt;</span><a href="core_components.LisLoadingElement.html" class="tsd-signature-type tsd-kind-class">LisLoadingElement</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L213">src/lis-gene-search-element.ts:213</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L230">src/lis-gene-search-element.ts:230</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="accessKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>access<wbr/>Key</span><a href="#accessKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">access<wbr/>Key</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -1053,7 +1059,7 @@ object passed to the component&#39;s <a href="../types/mixins.SearchFunction.htm
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().cancelPromiseController</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L179">src/mixins/lis-paginated-search-mixin.ts:179</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L179">src/mixins/lis-paginated-search-mixin.ts:179</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="childElementCount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>child<wbr/>Element<wbr/>Count</span><a href="#childElementCount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">child<wbr/>Element<wbr/>Count</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
@@ -1181,7 +1187,7 @@ redraw of the template will be handled by the controller.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().domContentLoadedController</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L166">src/mixins/lis-paginated-search-mixin.ts:166</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L166">src/mixins/lis-paginated-search-mixin.ts:166</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="draggable" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>draggable</span><a href="#draggable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">draggable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -1227,12 +1233,12 @@ redraw of the template will be handled by the controller.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L185">src/lis-gene-search-element.ts:185</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L202">src/lis-gene-search-element.ts:202</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected"><a id="formDataCancelPromiseController" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>form<wbr/>Data<wbr/>Cancel<wbr/>Promise<wbr/>Controller</span><a href="#formDataCancelPromiseController" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">form<wbr/>Data<wbr/>Cancel<wbr/>Promise<wbr/>Controller</span><span class="tsd-signature-symbol">:</span> <a href="controllers.LisCancelPromiseController.html" class="tsd-signature-type tsd-kind-class">LisCancelPromiseController</a><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L210">src/lis-gene-search-element.ts:210</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L227">src/lis-gene-search-element.ts:227</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="formDataFunction" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagAttribute">Attribute</code> <span>form<wbr/>Data<wbr/>Function</span><a href="#formDataFunction" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">form<wbr/>Data<wbr/>Function</span><span class="tsd-signature-symbol">:</span> <a href="../types/user_components.GeneFormDataFunction.html" class="tsd-signature-type tsd-kind-type-alias">GeneFormDataFunction</a><span class="tsd-signature-symbol"> = ...</span></div>
@@ -1241,7 +1247,16 @@ If used, the <code>formData</code> attribute/property will be updated using the 
 </div>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L194">src/lis-gene-search-element.ts:194</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L211">src/lis-gene-search-element.ts:211</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="genus" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagOptional">Optional</code> <span>genus</span><a href="#genus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">genus</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
+<div class="tsd-comment tsd-typography"><p>Property to only show a single genus in the search form dropdown.
+Useful for sites that only have a single genus like SoyBase.</p>
+</div>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L188">src/lis-gene-search-element.ts:188</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="hidden" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>hidden</span><a href="#hidden" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">hidden</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
@@ -3993,7 +4008,7 @@ element&#39;s value will be updated in the component&#39;s template.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().queryStringController</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L154">src/mixins/lis-paginated-search-mixin.ts:154</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L154">src/mixins/lis-paginated-search-mixin.ts:154</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited"><a id="requiredQueryStringParams" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>required<wbr/>Query<wbr/>String<wbr/>Params</span><a href="#requiredQueryStringParams" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">required<wbr/>Query<wbr/>String<wbr/>Params</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></div>
@@ -4007,7 +4022,7 @@ trigger a search if all parameters within a group are present.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().requiredQueryStringParams</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L189">src/mixins/lis-paginated-search-mixin.ts:189</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L189">src/mixins/lis-paginated-search-mixin.ts:189</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="resultAttributes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>result<wbr/>Attributes</span><a href="#resultAttributes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">result<wbr/>Attributes</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
@@ -4022,7 +4037,7 @@ default result attributes defined by the component.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().resultAttributes</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L113">src/mixins/lis-paginated-search-mixin.ts:113</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L113">src/mixins/lis-paginated-search-mixin.ts:113</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="role" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>role</span><a href="#role" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">role</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div><aside class="tsd-sources">
@@ -4077,7 +4092,7 @@ component&#39;s submitted search form.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().searchFunction</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L102">src/mixins/lis-paginated-search-mixin.ts:102</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L102">src/mixins/lis-paginated-search-mixin.ts:102</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="searchResults" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>search<wbr/>Results</span><a href="#searchResults" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">search<wbr/>Results</span><span class="tsd-signature-symbol">:</span> <a href="../types/user_components.GeneSearchResult.html" class="tsd-signature-type tsd-kind-type-alias">GeneSearchResult</a><span class="tsd-signature-symbol">[]</span></div>
@@ -4086,22 +4101,22 @@ component&#39;s submitted search form.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().searchResults</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L194">src/mixins/lis-paginated-search-mixin.ts:194</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L194">src/mixins/lis-paginated-search-mixin.ts:194</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="selectedGenus" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>selected<wbr/>Genus</span><a href="#selectedGenus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">selected<wbr/>Genus</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L199">src/lis-gene-search-element.ts:199</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L216">src/lis-gene-search-element.ts:216</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="selectedSpecies" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>selected<wbr/>Species</span><a href="#selectedSpecies" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">selected<wbr/>Species</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L203">src/lis-gene-search-element.ts:203</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L220">src/lis-gene-search-element.ts:220</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="selectedStrain" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>selected<wbr/>Strain</span><a href="#selectedStrain" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">selected<wbr/>Strain</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L207">src/lis-gene-search-element.ts:207</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L224">src/lis-gene-search-element.ts:224</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="shadowRoot" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>shadow<wbr/>Root</span><a href="#shadowRoot" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">shadow<wbr/>Root</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">ShadowRoot</span></div>
@@ -4163,7 +4178,7 @@ run-time to override the default table column classes defined by the component.<
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().tableColumnClasses</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L136">src/mixins/lis-paginated-search-mixin.ts:136</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L136">src/mixins/lis-paginated-search-mixin.ts:136</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="tableHeader" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>table<wbr/>Header</span><a href="#tableHeader" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">table<wbr/>Header</span><span class="tsd-signature-symbol">:</span> <a href="../types/models.StringObjectModel.html" class="tsd-signature-type tsd-kind-type-alias">StringObjectModel</a></div>
@@ -4179,7 +4194,7 @@ headers defined by the component.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().tableHeader</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L125">src/mixins/lis-paginated-search-mixin.ts:125</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L125">src/mixins/lis-paginated-search-mixin.ts:125</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="tagName" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>tag<wbr/>Name</span><a href="#tagName" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">tag<wbr/>Name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
@@ -4461,7 +4476,7 @@ before fulfilling this Promise. To do this, first await
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L289">src/lis-gene-search-element.ts:289</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L315">src/lis-gene-search-element.ts:315</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_initializeSelections" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_initialize<wbr/>Selections</span><a href="#_initializeSelections" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4469,15 +4484,20 @@ before fulfilling this Promise. To do this, first await
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L314">src/lis-gene-search-element.ts:314</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L340">src/lis-gene-search-element.ts:340</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_renderGenusSelector" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_render<wbr/>Genus<wbr/>Selector</span><a href="#_renderGenusSelector" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
-<li class="tsd-signature tsd-anchor-link" id="_renderGenusSelector._renderGenusSelector-1"><span class="tsd-kind-call-signature">_render<wbr/>Genus<wbr/>Selector</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">TemplateResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">&gt;</span><a href="#_renderGenusSelector._renderGenusSelector-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="_renderGenusSelector._renderGenusSelector-1"><span class="tsd-kind-call-signature">_render<wbr/>Genus<wbr/>Selector</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">onlyGenus</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">TemplateResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">&gt;</span><a href="#_renderGenusSelector._renderGenusSelector-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">onlyGenus</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">TemplateResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L359">src/lis-gene-search-element.ts:359</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L385">src/lis-gene-search-element.ts:385</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_renderSpeciesSelector" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_render<wbr/>Species<wbr/>Selector</span><a href="#_renderSpeciesSelector" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4485,7 +4505,7 @@ before fulfilling this Promise. To do this, first await
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">TemplateResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L382">src/lis-gene-search-element.ts:382</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L422">src/lis-gene-search-element.ts:422</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_renderStrainSelector" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_render<wbr/>Strain<wbr/>Selector</span><a href="#_renderStrainSelector" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4493,7 +4513,7 @@ before fulfilling this Promise. To do this, first await
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">TemplateResult</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L407">src/lis-gene-search-element.ts:407</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L447">src/lis-gene-search-element.ts:447</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_selectGenus" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_select<wbr/>Genus</span><a href="#_selectGenus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4506,7 +4526,7 @@ before fulfilling this Promise. To do this, first await
 <h5><span class="tsd-kind-parameter">event</span>: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/Event" class="tsd-signature-type external" target="_blank">Event</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L351">src/lis-gene-search-element.ts:351</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L377">src/lis-gene-search-element.ts:377</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_selectSpecies" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_select<wbr/>Species</span><a href="#_selectSpecies" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4519,7 +4539,7 @@ before fulfilling this Promise. To do this, first await
 <h5><span class="tsd-kind-parameter">event</span>: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/Event" class="tsd-signature-type external" target="_blank">Event</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L375">src/lis-gene-search-element.ts:375</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L415">src/lis-gene-search-element.ts:415</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_selectStrain" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_select<wbr/>Strain</span><a href="#_selectStrain" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -4532,7 +4552,7 @@ before fulfilling this Promise. To do this, first await
 <h5><span class="tsd-kind-parameter">event</span>: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Event/Event" class="tsd-signature-type external" target="_blank">Event</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L401">src/lis-gene-search-element.ts:401</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L441">src/lis-gene-search-element.ts:441</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="addEventListener" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Event<wbr/>Listener</span><a href="#addEventListener" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -4952,7 +4972,7 @@ instance.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().formToObject</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L213">src/mixins/lis-paginated-search-mixin.ts:213</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L213">src/mixins/lis-paginated-search-mixin.ts:213</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="getAnimations" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Animations</span><a href="#getAnimations" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -5909,7 +5929,7 @@ mixin can override this portion of the template by implementing their own
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().renderResults</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L249">src/mixins/lis-paginated-search-mixin.ts:249</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L249">src/mixins/lis-paginated-search-mixin.ts:249</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited"><a id="renderResultsInfo" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>render<wbr/>Results<wbr/>Info</span><a href="#renderResultsInfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -5925,7 +5945,7 @@ mixin can override this portion of the template by implementing their own
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().renderResultsInfo</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L237">src/mixins/lis-paginated-search-mixin.ts:237</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L237">src/mixins/lis-paginated-search-mixin.ts:237</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="replaceChild" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>replace<wbr/>Child</span><a href="#replaceChild" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -6233,7 +6253,7 @@ programmatically.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().submit</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/mixins/lis-paginated-search-mixin.ts#L144">src/mixins/lis-paginated-search-mixin.ts:144</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/mixins/lis-paginated-search-mixin.ts#L144">src/mixins/lis-paginated-search-mixin.ts:144</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="toggleAttribute" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>toggle<wbr/>Attribute</span><a href="#toggleAttribute" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -6268,7 +6288,7 @@ programmatically.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Overrides LisPaginatedSearchMixin(LitElement)&lt;GeneSearchData, GeneSearchResult&gt;().updated</p>
 <ul>
-<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/18309ab/src/lis-gene-search-element.ts#L277">src/lis-gene-search-element.ts:277</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/legumeinfo/web-components/blob/0ee61f6/src/lis-gene-search-element.ts#L303">src/lis-gene-search-element.ts:303</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited tsd-is-external"><a id="webkitMatchesSelector" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>webkit<wbr/>Matches<wbr/>Selector</span><a href="#webkitMatchesSelector" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited tsd-is-external">
@@ -6898,6 +6918,7 @@ properties and are used in the rest of the update process.</p>
 <li><a href="#formData" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data</span></a></li>
 <li><a href="#formDataCancelPromiseController" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data<wbr/>Cancel<wbr/>Promise<wbr/>Controller</span></a></li>
 <li><a href="#formDataFunction" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>form<wbr/>Data<wbr/>Function</span></a></li>
+<li><a href="#genus" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>genus</span></a></li>
 <li><a href="#hidden" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>hidden</span></a></li>
 <li><a href="#id" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>id</span></a></li>
 <li><a href="#inert" class="tsd-is-inherited tsd-is-external"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>inert</span></a></li>

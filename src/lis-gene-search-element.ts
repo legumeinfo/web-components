@@ -172,7 +172,7 @@ export type GeneSearchFunction =
  * This is useful for sites that only have a single genus like SoyBase. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
- * <lis-gene-search-element id="gene-search" genus="Glycine"></lis-gene-search-element>
+ * <lis-gene-search-element genus="Glycine"></lis-gene-search-element>
  * ```
  *
  */
@@ -185,7 +185,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
    * Useful for sites that only have a single genus like SoyBase.
    */
   @property({type: String})
-  genus: string = '';
+  genus?: string;
 
 
   /** @ignore */
@@ -382,9 +382,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   }
 
   // renders the genus selector
-  private _renderGenusSelector(onlyGenus: string) {
+  private _renderGenusSelector(onlyGenus?: string) {
     // if onlyGenus is set, render a disabled select element with the onlyGenus value as the selected and only option.
-    if (onlyGenus.length > 0) {
+    if (onlyGenus) {
       const genus = this.formData.genuses.find(({genus}) => genus === onlyGenus.charAt(0).toUpperCase() + onlyGenus.slice(1));
       if (genus) {
         this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
@@ -470,7 +470,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   override renderForm() {
 
     // render the form's selectors
-    const genusSelector = this._renderGenusSelector(this.genus);
+    const genusSelector = this._renderGenusSelector(this.genus ? this.genus : undefined);
     const speciesSelector = this._renderSpeciesSelector();
     const strainSelector = this._renderStrainSelector();
 
