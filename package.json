@@ -44,7 +44,9 @@
     "bundle": "rollup -c rollup.config.js",
     "bundle:clean": "rimraf dist",
     "bundle:watch": "rollup -c -w",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "prepack": "pinst --disable",
+    "postpack": "pinst --enable"
   },
   "keywords": [
     "typescript",
