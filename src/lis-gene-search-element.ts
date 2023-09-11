@@ -168,24 +168,29 @@ export type GeneSearchFunction =
  * ```
  *
  * @example
- * The {@link genus | `genus`} property can be used to show just a single genus in the search form dropdown.
- * This is useful for sites that only have a single genus like SoyBase. For example:
+ * The {@link genus | `genus`} property can be used to limit all searches to a specific
+ * genus. This will cause the genus field of the search form to be automatically set and
+ * disabled so that users cannot change it. Additionally, this property cannot be
+ * overridden using the `genus` querystring parameter. However, like the `genus`
+ * querystring parameter, if the genus set is not present in the `formData` then the
+ * genus form field will be set to the default `any` value. For example:
  * ```html
- * <!-- add the Web Component to your HTML -->
+ * <!-- restrict the genus via HTML -->
  * <lis-gene-search-element genus="Glycine"></lis-gene-search-element>
- * ```
  *
+ * <!-- restrict the genus via JavaScript -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <script type="text/javascript">
+ *   // get the gene search element
+ *   const geneSearchElement = document.getElementById('gene-search');
+ *   // set the element's genus property
+ *   geneSearchElement.genus = "Cicer";
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends
 LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
-
-  /**
-   * Property to only show a single genus in the search form dropdown.
-   * Useful for sites that only have a single genus like SoyBase.
-   */
-  @property({type: String})
-  genus?: string;
 
 
   /** @ignore */
@@ -210,6 +215,12 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   @property({type: Function, attribute: false})
   formDataFunction: GeneFormDataFunction =
     () => Promise.reject(new Error('No form data function provided'));
+
+  /**
+   * An optional property that limits searches to a specific genus.
+   */
+  @property({type: String})
+  genus?: string;
 
   // the selected index of the genus select element
   @state()
@@ -263,21 +274,17 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     this.tableColumnClasses = {
       description: "uk-table-expand",
     };
+  }
+
+  // called when the component is added to the DOM; attributes should have properties now
+  override connectedCallback() {
+    super.connectedCallback()
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
-    let genus = this.queryStringController.getParameter('genus');
-    // Check if a single genus is specified 
-    let onlyGenus = document.getElementsByTagName('lis-gene-search-element')[0].getAttribute('genus') || '';
+    const genus = this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
-      if(genus.length > 0) { // Check if a genus is specified
-        console.log("this.genus len more than 0")
-        if (genus != genus || (onlyGenus.length > 0 && onlyGenus.toUpperCase() != genus.toUpperCase())) { // Check if the genus specified in the query string matches the genus specified in the genus property
-          throw new Error('The genus specified in the query string does not match the genus specified in the genus property');
-        }
-      } else {
-        formData.genuses.push({genus, species: []});
-      }
+      formData.genuses.push({genus, species: []});
       const species = this.queryStringController.getParameter('species');
       if (species) {
         formData
@@ -306,7 +313,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       this._getFormData();
     }
     // use querystring parameters to update the selectors when the form data changes
-    if (changedProperties.has('formData')) {
+    if (changedProperties.has('formData') || changedProperties.has('genus')) {
       this._initializeSelections();
     }
   }
@@ -338,7 +345,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // sets the selected indexes based on querystring parameters
   private _initializeSelections() {
-    const genus = this.queryStringController.getParameter('genus');
+    const genus = this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       this.selectedGenus =
         this.formData
@@ -382,25 +389,23 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   }
 
   // renders the genus selector
-  private _renderGenusSelector(onlyGenus?: string) {
-    // if onlyGenus is set, render a disabled select element with the onlyGenus value as the selected and only option.
-    if (onlyGenus) {
-      const genus = this.formData.genuses.find(({genus}) => genus === onlyGenus.charAt(0).toUpperCase() + onlyGenus.slice(1));
-      if (genus) {
-        this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
-        return html`
-          <select class="uk-select uk-form-small" name="genus">
-            <option value="${genus.genus}" selected>${genus.genus}</option>
-          </select>
-        `;
-      }
-    }
-    // otherwise, render a normal select element
+  private _renderGenusSelector() {
     const options =
         this.formData.genuses.map(({genus}) => {
         return html`<option value="${genus}">${genus}</option>`;
       });
-
+    // HACK: the disabled attribute can't be set via template literal...
+    if (this.genus) {
+      return html`
+        <select class="uk-select uk-form-small" disabled
+          .selectedIndex=${live(this.selectedGenus)}
+          @change="${this._selectGenus}">
+          <option value="">-- any --</option>
+          ${options}
+        </select>
+        <input type="hidden" name="genus" value="${this.genus}" />
+      `;
+    }
     return html`
       <select class="uk-select uk-form-small" name="genus"
         .selectedIndex=${live(this.selectedGenus)}
@@ -470,7 +475,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   override renderForm() {
 
     // render the form's selectors
-    const genusSelector = this._renderGenusSelector(this.genus ? this.genus : undefined);
+    const genusSelector = this._renderGenusSelector();
     const speciesSelector = this._renderSpeciesSelector();
     const strainSelector = this._renderStrainSelector();
 
