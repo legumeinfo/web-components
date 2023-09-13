@@ -32,7 +32,7 @@ export type AssociationSearchFormDataOptions = {abortSignal?: AbortSignal};
 
 
 export type AssociationFormDataFunction =
-    (options: AssociationSearchFormDataOptions) => Promise<AssociationSearchFormData>;
+  (options: AssociationSearchFormDataOptions) => Promise<AssociationSearchFormData>;
 
 
 
@@ -235,7 +235,7 @@ export class LisTraitAssociationSearchElement extends
         // make the form data function cancellable
         this.formDataCancelPromiseController.cancel();
         const options = {abortSignal: this.formDataCancelPromiseController.abortSignal};
-        const formDataPromise = this.formDataFunction(options);
+        const formDataPromise = this.formDataFunction(options, );
         // call the cancellable function
         this.formDataCancelPromiseController.wrapPromise(formDataPromise)
             .then(
