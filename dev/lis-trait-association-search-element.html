@@ -152,7 +152,6 @@
           variables.start = (page-1)*pageSize;
           return graphqlQuery(uri, associationQuery, variables, abortSignal)
             .then(({data}) => {
-              console.log(data);
               // extract the page info
               const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
                 = data.traits.pageInfo;
