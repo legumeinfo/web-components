@@ -81,7 +81,7 @@
     "rimraf": "^5.0.1",
     "rollup": "^3.26.3",
     "rollup-plugin-summary": "^2.0.0",
-    "typedoc": "^0.24.8",
+    "typedoc": "^0.25.1",
     "typescript": "^5.1.6",
     "uikit": "^3.16.22"
   },
