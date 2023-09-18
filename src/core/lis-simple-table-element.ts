@@ -6,7 +6,6 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import {LisSlotController} from '../controllers';
 import {StringObjectModel} from '../models';
 
-
 /**
  * @htmlElement `<lis-simple-table-element>`
  *
@@ -91,7 +90,6 @@ import {StringObjectModel} from '../models';
  */
 @customElement('lis-simple-table-element')
 export class LisSimpleTableElement extends LitElement {
-
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -160,8 +158,13 @@ export class LisSimpleTableElement extends LitElement {
 
   /** @ignore */
   // converts an object to a table row
-  private _objectToRow(o: StringObjectModel, cellTag: string='td', classes: StringObjectModel={}) {
-    const startTag = (cls: string) => cls ? `<${cellTag} class="${cls}">` : `<${cellTag}>`;
+  private _objectToRow(
+    o: StringObjectModel,
+    cellTag: string = 'td',
+    classes: StringObjectModel = {},
+  ) {
+    const startTag = (cls: string) =>
+      cls ? `<${cellTag} class="${cls}">` : `<${cellTag}>`;
     const endTag = `</${cellTag}>`;
     const cells = this.dataAttributes.map((a) => {
       const cls = classes.hasOwnProperty(a) ? classes[a] : '';
@@ -169,7 +172,9 @@ export class LisSimpleTableElement extends LitElement {
       const cell = startTag(cls) + data + endTag;
       return cell;
     });
-    return html`<tr>${unsafeHTML(cells.join(''))}</tr>`;
+    return html`<tr>
+      ${unsafeHTML(cells.join(''))}
+    </tr>`;
   }
 
   /** @ignore */
@@ -178,7 +183,9 @@ export class LisSimpleTableElement extends LitElement {
     if (!this.caption) {
       return html``;
     }
-    return html`<caption>${this.caption}</caption>`;
+    return html`<caption>
+      ${this.caption}
+    </caption>`;
   }
 
   /** @ignore */
@@ -188,7 +195,9 @@ export class LisSimpleTableElement extends LitElement {
       return html``;
     }
     const row = this._objectToRow(this.header, 'th');
-    return html`<thead>${row}</thead>`;
+    return html`<thead>
+      ${row}
+    </thead>`;
   }
 
   /** @ignore */
@@ -198,13 +207,14 @@ export class LisSimpleTableElement extends LitElement {
       return html``;
     }
     const rows = this.data.map((o) => this._objectToRow(o));
-    return html`<tbody>${rows}</tbody>`;
+    return html`<tbody>
+      ${rows}
+    </tbody>`;
   }
 
   /** @ignore */
   // used by Lit to draw the template
   override render() {
-
     // compute table parts
     const caption = this._getCaption();
     const header = this._getHeader();
@@ -212,15 +222,15 @@ export class LisSimpleTableElement extends LitElement {
 
     // draw the table
     return html`
-      <table class="uk-table uk-table-divider uk-table-small" ${ref(this.defaultSlotRef)}>
-        ${caption}
-        ${header}
-        ${body}
+      <table
+        class="uk-table uk-table-divider uk-table-small"
+        ${ref(this.defaultSlotRef)}
+      >
+        ${caption} ${header} ${body}
       </table>
     `;
   }
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

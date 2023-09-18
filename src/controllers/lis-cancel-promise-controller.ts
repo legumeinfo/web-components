@@ -1,9 +1,11 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-
 // defines internal state as an object to avoid race conditions
-type CancelState = {abortSignal: AbortSignal; wrapCount: number; promise?: Promise<void>};
-
+type CancelState = {
+  abortSignal: AbortSignal;
+  wrapCount: number;
+  promise?: Promise<void>;
+};
 
 /**
  * A controller that allows Promises to be cancelled.
@@ -13,11 +15,11 @@ type CancelState = {abortSignal: AbortSignal; wrapCount: number; promise?: Promi
  * used if multiple signals are desired.
  */
 export class LisCancelPromiseController implements ReactiveController {
-
   /** @ignore */
   host: ReactiveControllerHost;
 
   /** @ignore */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   private _abortController: AbortController;
 
@@ -25,11 +27,13 @@ export class LisCancelPromiseController implements ReactiveController {
    * The abort signal that will cause the wrapped promises to cancel. This
    * signal can be used externally.
    */
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   abortSignal: AbortSignal;
 
   /** @ignore */
   // wrap state with promise to avoid race conditions
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   private _cancelState: CancelState;
 
@@ -73,7 +77,6 @@ export class LisCancelPromiseController implements ReactiveController {
   wrapPromise<T>(promise: Promise<T>): Promise<T> {
     // create a Promise race that will reject when the abort signal emits
     const cancelState = this._cancelState;
-    // @ts-ignore
     cancelState.wrapCount += 1;
     return Promise.race([promise, cancelState.promise]) as Promise<T>;
   }
@@ -97,7 +100,9 @@ export class LisCancelPromiseController implements ReactiveController {
 
   /** @ignore */
   private _addEventListener(): void {
-    this.abortSignal.addEventListener('abort', this._aborted.bind(this), {once: true});
+    this.abortSignal.addEventListener('abort', this._aborted.bind(this), {
+      once: true,
+    });
   }
 
   /** @ignore */
@@ -109,15 +114,18 @@ export class LisCancelPromiseController implements ReactiveController {
     // add the abort event listener
     this._addEventListener();
     // intialize the cancel state
-    let cancelState: CancelState = {abortSignal: this.abortSignal, wrapCount: 0};
+    const cancelState: CancelState = {
+      abortSignal: this.abortSignal,
+      wrapCount: 0,
+    };
     cancelState.promise = new Promise<void>((_, reject) => {
-        // cancel the promise when the abort signal emits
-        cancelState.abortSignal.addEventListener(
-          'abort',
-          (event: Event) => reject(event),
-          {once: true},
-        );
-      })
+      // cancel the promise when the abort signal emits
+      cancelState.abortSignal.addEventListener(
+        'abort',
+        (event: Event) => reject(event),
+        {once: true},
+      );
+    })
       // the default error handler
       .catch((error: Error) => {
         // only throw an error if a Promise downstream can catch it
@@ -136,13 +144,11 @@ export class LisCancelPromiseController implements ReactiveController {
     // redraw the host
     this.host.requestUpdate();
     // wait for the redraw to complete in case any listeners rely on state from the template
-    this.host.updateComplete
-      .then(() => {
-        // call each listener
-        this._listeners.forEach((listener) => {
-          listener(event);
-        });
+    this.host.updateComplete.then(() => {
+      // call each listener
+      this._listeners.forEach((listener) => {
+        listener(event);
       });
+    });
   }
-
 }
