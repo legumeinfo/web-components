@@ -72,7 +72,7 @@
     "@web/test-runner-playwright": "^0.10.1",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "eslint": "^8.45.0",
-    "eslint-config-prettier": "^8.10.0",
+    "eslint-config-prettier": "^9.0.0",
     "husky": "^8.0.0",
     "lint-staged": "^13.2.3",
     "lit-analyzer": "^1.2.1",
