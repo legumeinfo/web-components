@@ -124,11 +124,24 @@ export type AssociationSearchFunction =
  * ```
  *
  * @example
- * The {@link only | `only`} property can be used to only show a single genus in the search form.
- * For example:
+ * The {@link genus | `genus`} property can be used to limit all searches to a specific
+ * genus. This will cause the genus field of the search form to be automatically set and
+ * disabled so that users cannot change it. Additionally, this property cannot be
+ * overridden using the `genus` querystring parameter. However, like the `genus`
+ * querystring parameter, if the genus set is not present in the `formData` then the
+ * genus form field will be set to the default `any` value. For example:
  * ```html
- * <!-- add the Web Component to your HTML -->
- * <lis-association-search-element id="association-search" only="Glycine"></lis-association-search-element>
+ * <!-- restrict the genus via HTML -->
+ * <lis-association-search-element genus="Glycine"></lis-association-search-element>
+ *
+ * <!-- restrict the genus via JavaScript -->
+ * <lis-association-search-element id="association-search"></lis-association-search-element>
+ * <script type="text/javascript">
+ *   // get the trait association search element
+ *   const AssociationSearchElement = document.getElementById('association-search');
+ *   // set the element's genus property
+ *   AssociationSearchElement.genus = "Cicer";
+ * </script>
  * ```
  */
 
@@ -146,11 +159,10 @@ export class LisTraitAssociationSearchElement extends
     static override styles = css``;
 
     /**
-     * Property to only show a single genus in the search form.
-     * Useful for sites that only have a single genus.
+     * An optional property that limits searches to a specific genus.
      */
     @property({type: String})
-    only: string = '';
+    genus?: string;
 
     /**
      * The data used to construct the search form in the template.
@@ -215,6 +227,31 @@ export class LisTraitAssociationSearchElement extends
             this._initializeSelections();
         });
     }
+  // called when the component is added to the DOM; attributes should have properties now
+  override connectedCallback() {
+    super.connectedCallback()
+    // initialize the form data with querystring parameters so a search can be performed
+    // before the actual form data is loaded
+    const formData: AssociationSearchFormData = {genuses: []};
+    const genus = this.genus || this.queryStringController.getParameter('genus');
+    if (genus) {
+      formData.genuses.push({genus, species: []});
+      const species = this.queryStringController.getParameter('species');
+      if (species) {
+        formData
+          .genuses[0]
+          .species.push({species}); 
+      }
+    }
+    this.formData = formData;
+    // set the selector values before the DOM is updated when the querystring parameters change
+    this.queryStringController.addPreUpdateListener((_) => {
+      this._initializeSelections();
+    });
+  }
+
+
+
 
     // called after every component update, e.g. when a property changes
     override updated(changedProperties: Map<string, any>) {
@@ -255,7 +292,7 @@ export class LisTraitAssociationSearchElement extends
 
     // called when the form is submitted
     private _initializeSelections() {
-        const genus = this.queryStringController.getParameter('genus');
+        const genus = this.genus || this.queryStringController.getParameter('genus');
         if (genus) {
             this.selectedGenus =
                 this.formData
@@ -277,45 +314,43 @@ export class LisTraitAssociationSearchElement extends
             this.selectedSpecies = 0;
         }
     }
-    // called when a genus is selected
-    private _selectGenus(event: Event) {
-        // @ts-ignore
-        this.selectedGenus = event.target.selectedIndex;
-        this.selectedSpecies = 0;
-    }
+        // called when a genus is selected
+        private _selectGenus(event: Event) {
+            // @ts-ignore
+            this.selectedGenus = event.target.selectedIndex;
+            this.selectedSpecies = 0;
+        }
 
     /**
      * Renders the genus selector.
      * @param onlyGenus - If set, only render a single genus.
      * @private
      */
-    private _renderGenusSelector(onlyGenus: string) {
-        // if onlyGenus is set, render a disabled select element with the onlyGenus value as the selected and only option.
-        if (onlyGenus.length > 0) {
-            const genus = this.formData.genuses.find(({genus}) => genus === onlyGenus.charAt(0).toUpperCase() + onlyGenus.slice(1));
-            if (genus) {
-                this.selectedGenus = this.formData.genuses.indexOf(genus)+1;
-                return html`
-                  <select class="uk-select uk-form-small" name="genus">
-                    <option value="${genus.genus}" selected>${genus.genus}</option>
-                  </select>
-                `;
-            }
-        }
-        // otherwise, render a normal select element
+    private _renderGenusSelector() {
         const options =
             this.formData.genuses.map(({genus}) => {
-                return html`<option value="${genus}">${genus}</option>`;
-            });
-
+            return html`<option value="${genus}">${genus}</option>`;
+        });
+        // HACK: the disabled attribute can't be set via template literal...
+        if (this.genus) {
         return html`
-      <select class="uk-select uk-form-small" name="genus"
-        .selectedIndex=${live(this.selectedGenus)}
-        @change="${this._selectGenus}">
-        <option value="">-- any --</option>
-        ${options}
-      </select>
-    `;
+            <select class="uk-select uk-form-small" disabled
+            .selectedIndex=${live(this.selectedGenus)}
+            @change="${this._selectGenus}">
+            <option value="">-- any --</option>
+            ${options}
+            </select>
+            <input type="hidden" name="genus" value="${this.genus}" />
+        `;
+        }
+        return html`
+        <select class="uk-select uk-form-small" name="genus"
+            .selectedIndex=${live(this.selectedGenus)}
+            @change="${this._selectGenus}">
+            <option value="">-- any --</option>
+            ${options}
+        </select>
+        `;
     }
     // called when a species is selected
     private _selectSpecies(event: Event) {
@@ -372,7 +407,7 @@ export class LisTraitAssociationSearchElement extends
     // used by LisPaginatedSearchMixin to draw the search form part of template
     override renderForm() {
         // render the form's selectors
-        const genusSelector = this._renderGenusSelector(this.only);
+        const genusSelector = this._renderGenusSelector();
         const speciesSelector = this._renderSpeciesSelector();
         const typeSelector = this._renderTypeSelector();
 
