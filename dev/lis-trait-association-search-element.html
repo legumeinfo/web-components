@@ -83,8 +83,8 @@
       }
 
       const associationQuery = `
-        query Traits($name: String, $start: Int, $pageSize: Int) {
-          traits(name: $name, page: $start, pageSize: $pageSize) { 
+        query Traits($pageSize: Int, $page: Int, $name: String) {
+          traits(pageSize: $pageSize, page: $page, name: $name) {
             results {
               name
               qtlStudy {
@@ -138,7 +138,7 @@
       function getTraits(searchData, page,{abortSignal}) {
         const genus = searchData['genus'];
         const species = searchData['species'];
-        const name = searchData['traits'];
+        const name = searchData['traits'] || '';
         const type = searchData['type'];
         const pubId = searchData['pubId'];
         const author = searchData['author'];
@@ -147,8 +147,8 @@
         // pageSize+1 because we want to see if there's a "next" page
         const variables = {
           name,
-          start,
-          size: pageSize+1
+          page,
+          pageSize: pageSize+1
         };
         const fetchResults = (page) => {
           variables.start = (page-1)*pageSize;
