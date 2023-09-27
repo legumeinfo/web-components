@@ -112,7 +112,7 @@ export type AssociationSearchFunction =
  *
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
- *   // a site-specific function that sends a request to a gene search API
+ *   // Site specific search function
  *   function getTraits(searchData, page, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
@@ -415,7 +415,7 @@ export class LisTraitAssociationSearchElement extends
         return html`
           <form class="uk-form-stacked uk-inline">
             <fieldset class="uk-fieldset">
-              <legend class="uk-legend">Gene Search</legend>
+              <legend class="uk-legend">Trait Association Search</legend>
               <lis-loading-element ${ref(this._formLoadingRef)}></lis-loading-element>
               <div class="uk-margin uk-grid-medium" uk-grid>
                   <div class="uk-width-1-5@s">
@@ -555,6 +555,7 @@ export class LisTraitAssociationSearchElement extends
     /** @ignore */
     // used by LisPaginatedSearchMixin to draw the results part of template
     override renderResults() {
+        this.queryStringController.getParameter('type');
         return this.searchResults.map((result) => this._renderResult(result));
     }
 
