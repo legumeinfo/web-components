@@ -3,11 +3,9 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
-
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-
 
 /**
  * The data used to construct the search form in the
@@ -15,16 +13,15 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  */
 export type GeneSearchFormData = {
   genuses: {
-    genus: string,
+    genus: string;
     species: {
-      species: string,
+      species: string;
       strains: {
-        strain: string,
-      }[],
-    }[],
+        strain: string;
+      }[];
+    }[];
   }[];
 };
-
 
 /**
  * Optional parameters that may be given to a form data function. The
@@ -34,14 +31,13 @@ export type GeneSearchFormData = {
  */
 export type GeneFormDataOptions = {abortSignal?: AbortSignal};
 
-
 /**
  * The type signature of a function that may be used to load the data used to construct
  * the search form in the {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
  */
-export type GeneFormDataFunction =
-  (options: GeneFormDataOptions) => Promise<GeneSearchFormData>;
-
+export type GeneFormDataFunction = (
+  options: GeneFormDataOptions,
+) => Promise<GeneSearchFormData>;
 
 /**
  * The data that will be passed to the search function by the
@@ -54,7 +50,6 @@ export type GeneSearchData = {
   identifier: string;
   description: string;
 };
-
 
 /**
  * A single result of a gene search performed by the
@@ -71,7 +66,6 @@ export type GeneSearchResult = {
   locations: string[];
 };
 
-
 /**
  * The signature of the function the
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
@@ -87,20 +81,18 @@ export type GeneSearchResult = {
  * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
  * objects.
  */
-export type GeneSearchFunction =
-  (
-    searchData: {
-      genus: string,
-      species: string,
-      strain: string,
-      identifier: string,
-      description: string,
-      family: string,
-    },
-    page: number,
-    options: PaginatedSearchOptions
-  ) => Promise<Array<GeneSearchResult>>;
-
+export type GeneSearchFunction = (
+  searchData: {
+    genus: string;
+    species: string;
+    strain: string;
+    identifier: string;
+    description: string;
+    family: string;
+  },
+  page: number,
+  options: PaginatedSearchOptions,
+) => Promise<Array<GeneSearchResult>>;
 
 /**
  * @htmlElement `<lis-gene-search-element>`
@@ -121,7 +113,7 @@ export type GeneSearchFunction =
  * - **family:** The gene family identifier provided in the search form.
  * - **page:** What page of results to load.
  *
- * @example 
+ * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
  * must be set on a `<lis-gene-search-element>` tag's instance of the
@@ -143,7 +135,7 @@ export type GeneSearchFunction =
  * </script>
  * ```
  *
- * @example 
+ * @example
  * Data must be provided for the genus, species, and strain selectors in the search form.
  * This can be done by setting the form's {@link formData | `formData`}
  * attribute/property directly or by setting the
@@ -189,10 +181,10 @@ export type GeneSearchFunction =
  * ```
  */
 @customElement('lis-gene-search-element')
-export class LisGeneSearchElement extends
-LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
-
-
+export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
+  GeneSearchData,
+  GeneSearchResult
+>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -204,7 +196,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
    * @attribute
    */
   @property()
-  formData: GeneSearchFormData = {genuses: []}
+  formData: GeneSearchFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
@@ -213,8 +205,8 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
    * @attribute
    */
   @property({type: Function, attribute: false})
-  formDataFunction: GeneFormDataFunction =
-    () => Promise.reject(new Error('No form data function provided'));
+  formDataFunction: GeneFormDataFunction = () =>
+    Promise.reject(new Error('No form data function provided'));
 
   /**
    * An optional property that limits searches to a specific genus.
@@ -235,7 +227,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   private selectedStrain: number = 0;
 
   // a controller that allows in-flight form data requests to be cancelled
-  protected formDataCancelPromiseController = new LisCancelPromiseController(this);
+  protected formDataCancelPromiseController = new LisCancelPromiseController(
+    this,
+  );
 
   // bind to the loading element in the template
   private _formLoadingRef: Ref<LisLoadingElement> = createRef();
@@ -244,58 +238,54 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     super();
     // configure query string parameters
     this.requiredQueryStringParams = [
-        ['genus'],
-        ['genus', 'species'],
-        ['genus', 'species', 'strain'],
-        ['identifier'],
-        ['description'],
-        ['family'],
-      ];
+      ['genus'],
+      ['genus', 'species'],
+      ['genus', 'species', 'strain'],
+      ['identifier'],
+      ['description'],
+      ['family'],
+    ];
     this.resultAttributes = [
-      "name",
-      "identifier",
-      "locations",
-      "description",
-      "geneFamilyAssignments",
-      "genus",
-      "species",
-      "strain",
+      'name',
+      'identifier',
+      'locations',
+      'description',
+      'geneFamilyAssignments',
+      'genus',
+      'species',
+      'strain',
     ];
     this.tableHeader = {
-      name: "Name",
-      identifier: "Identifier",
-      description: "Description",
-      genus: "Genus",
-      species: "Species",
-      strain: "Strain",
-      geneFamilyAssignments: "Gene Family Assignments",
-      locations: "Locations",
+      name: 'Name',
+      identifier: 'Identifier',
+      description: 'Description',
+      genus: 'Genus',
+      species: 'Species',
+      strain: 'Strain',
+      geneFamilyAssignments: 'Gene Family Assignments',
+      locations: 'Locations',
     };
     this.tableColumnClasses = {
-      description: "uk-table-expand",
+      description: 'uk-table-expand',
     };
   }
 
   // called when the component is added to the DOM; attributes should have properties now
   override connectedCallback() {
-    super.connectedCallback()
+    super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
-    const genus = this.genus || this.queryStringController.getParameter('genus');
+    const genus =
+      this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       formData.genuses.push({genus, species: []});
       const species = this.queryStringController.getParameter('species');
       if (species) {
-        formData
-          .genuses[0]
-          .species.push({species, strains: []});
+        formData.genuses[0].species.push({species, strains: []});
         const strain = this.queryStringController.getParameter('strain');
         if (strain) {
-          formData
-            .genuses[0]
-            .species[0]
-            .strains.push({strain});
+          formData.genuses[0].species[0].strains.push({strain});
         }
       }
     }
@@ -307,7 +297,7 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
   }
 
   // called after every component update, e.g. when a property changes
-  override updated(changedProperties: Map<string, any>) {
+  override updated(changedProperties: Map<string, unknown>) {
     // call the formDataFunction every time its value changes
     if (changedProperties.has('formDataFunction')) {
       this._getFormData();
@@ -324,57 +314,54 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
     this._formLoadingRef.value?.loading();
     // make the form data function cancellable
     this.formDataCancelPromiseController.cancel();
-    const options = {abortSignal: this.formDataCancelPromiseController.abortSignal};
+    const options = {
+      abortSignal: this.formDataCancelPromiseController.abortSignal,
+    };
     const formDataPromise = this.formDataFunction(options);
     // call the cancellable function
-    this.formDataCancelPromiseController.wrapPromise(formDataPromise)
-      .then(
-        (formData) => {
-          this._formLoadingRef.value?.success();
-          this.formData = formData;
-        },
-        (error: Error) => {
-          // do nothing if the request was aborted
-          if ((error as any).type !== 'abort') {
-            this._formLoadingRef.value?.failure();
-            throw error;
-          }
-        },
-      );
+    this.formDataCancelPromiseController.wrapPromise(formDataPromise).then(
+      (formData) => {
+        this._formLoadingRef.value?.success();
+        this.formData = formData;
+      },
+      (error: Error | Event) => {
+        // do nothing if the request was aborted
+        //if ((error as unknown).type !== 'abort') {
+        if (!(error instanceof Event && error.type === 'abort')) {
+          this._formLoadingRef.value?.failure();
+          throw error;
+        }
+      },
+    );
   }
 
   // sets the selected indexes based on querystring parameters
   private _initializeSelections() {
-    const genus = this.genus || this.queryStringController.getParameter('genus');
+    const genus =
+      this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       this.selectedGenus =
-        this.formData
-          .genuses
-            .map(({genus}) => genus)
-            .indexOf(genus)+1;
+        this.formData.genuses.map(({genus}) => genus).indexOf(genus) + 1;
     } else {
       this.selectedGenus = 0;
     }
     const species = this.queryStringController.getParameter('species');
     if (this.selectedGenus && species) {
       this.selectedSpecies =
-        this.formData
-          .genuses[this.selectedGenus-1]
-          .species
-            .map(({species}) => species)
-            .indexOf(species)+1;
+        this.formData.genuses[this.selectedGenus - 1].species
+          .map(({species}) => species)
+          .indexOf(species) + 1;
     } else {
       this.selectedSpecies = 0;
     }
     const strain = this.queryStringController.getParameter('strain');
     if (this.selectedSpecies && strain) {
       this.selectedStrain =
-        this.formData
-          .genuses[this.selectedGenus-1]
-          .species[this.selectedSpecies-1]
-          .strains
-            .map(({strain}) => strain)
-            .indexOf(strain)+1;
+        this.formData.genuses[this.selectedGenus - 1].species[
+          this.selectedSpecies - 1
+        ].strains
+          .map(({strain}) => strain)
+          .indexOf(strain) + 1;
     } else {
       this.selectedStrain = 0;
     }
@@ -382,24 +369,27 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when a genus is selected
   private _selectGenus(event: Event) {
-    // @ts-ignore
-    this.selectedGenus = event.target.selectedIndex;
-    this.selectedSpecies = 0;
-    this.selectedStrain = 0;
+    if (event.target != null) {
+      this.selectedGenus = (event.target as HTMLSelectElement).selectedIndex;
+      this.selectedSpecies = 0;
+      this.selectedStrain = 0;
+    }
   }
 
   // renders the genus selector
   private _renderGenusSelector() {
-    const options =
-        this.formData.genuses.map(({genus}) => {
-        return html`<option value="${genus}">${genus}</option>`;
-      });
+    const options = this.formData.genuses.map(({genus}) => {
+      return html`<option value="${genus}">${genus}</option>`;
+    });
     // HACK: the disabled attribute can't be set via template literal...
     if (this.genus) {
       return html`
-        <select class="uk-select uk-form-small" disabled
+        <select
+          class="uk-select uk-form-small"
+          disabled
           .selectedIndex=${live(this.selectedGenus)}
-          @change="${this._selectGenus}">
+          @change="${this._selectGenus}"
+        >
           <option value="">-- any --</option>
           ${options}
         </select>
@@ -407,9 +397,12 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       `;
     }
     return html`
-      <select class="uk-select uk-form-small" name="genus"
+      <select
+        class="uk-select uk-form-small"
+        name="genus"
         .selectedIndex=${live(this.selectedGenus)}
-        @change="${this._selectGenus}">
+        @change="${this._selectGenus}"
+      >
         <option value="">-- any --</option>
         ${options}
       </select>
@@ -418,24 +411,29 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when a species is selected
   private _selectSpecies(event: Event) {
-    // @ts-ignore
-    this.selectedSpecies = event.target.selectedIndex;
-    this.selectedStrain = 0;
+    if (event.target != null) {
+      this.selectedSpecies = (event.target as HTMLSelectElement).selectedIndex;
+      this.selectedStrain = 0;
+    }
   }
 
   // renders the species selector
   private _renderSpeciesSelector() {
     let options = [html``];
     if (this.selectedGenus) {
-      options =
-        this.formData.genuses[this.selectedGenus-1].species.map(({species}) => {
+      options = this.formData.genuses[this.selectedGenus - 1].species.map(
+        ({species}) => {
           return html`<option value="${species}">${species}</option>`;
-        });
+        },
+      );
     }
     return html`
-      <select class="uk-select uk-form-small" name="species"
+      <select
+        class="uk-select uk-form-small"
+        name="species"
         .selectedIndex=${live(this.selectedSpecies)}
-        @change="${this._selectSpecies}">
+        @change="${this._selectSpecies}"
+      >
         <option value="">-- any --</option>
         ${options}
       </select>
@@ -444,36 +442,37 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
 
   // called when an strain is selected
   private _selectStrain(event: Event) {
-    // @ts-ignore
-    this.selectedStrain = event.target.selectedIndex;
+    if (event.target != null) {
+      this.selectedStrain = (event.target as HTMLSelectElement).selectedIndex;
+    }
   }
 
   // renders the strain selector
   private _renderStrainSelector() {
     let options = [html``];
     if (this.selectedSpecies) {
-      options =
-        this.formData
-          .genuses[this.selectedGenus-1]
-          .species[this.selectedSpecies-1]
-          .strains.map(({strain}) => {
-            return html`<option value="${strain}">${strain}</option>`;
-          });
+      options = this.formData.genuses[this.selectedGenus - 1].species[
+        this.selectedSpecies - 1
+      ].strains.map(({strain}) => {
+        return html`<option value="${strain}">${strain}</option>`;
+      });
     }
     return html`
-      <select class="uk-select uk-form-small" name="strain"
+      <select
+        class="uk-select uk-form-small"
+        name="strain"
         .selectedIndex=${live(this.selectedStrain)}
-        @change="${this._selectStrain}">
+        @change="${this._selectStrain}"
+      >
         <option value="">-- any --</option>
         ${options}
       </select>
-    `
+    `;
   }
 
   /** @ignore */
   // used by LisPaginatedSearchMixin to draw the search form part of template
   override renderForm() {
-
     // render the form's selectors
     const genusSelector = this._renderGenusSelector();
     const speciesSelector = this._renderSpeciesSelector();
@@ -484,7 +483,9 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
       <form class="uk-form-stacked uk-inline">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Gene Search</legend>
-          <lis-loading-element ${ref(this._formLoadingRef)}></lis-loading-element>
+          <lis-loading-element
+            ${ref(this._formLoadingRef)}
+          ></lis-loading-element>
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
@@ -502,33 +503,47 @@ LisPaginatedSearchMixin(LitElement)<GeneSearchData, GeneSearchResult>() {
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="identifier">Identifier</label>
-              <input class="uk-input" type="text" name="identifier"
-                .value=${this.queryStringController.getParameter('identifier')}/>
+              <input
+                class="uk-input"
+                type="text"
+                name="identifier"
+                .value=${this.queryStringController.getParameter('identifier')}
+              />
               <span class="uk-text-small">e.g. Glyma.13G357700</span>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="description">Description</label>
-              <input class="uk-input" type="text" name="description"
-                .value=${this.queryStringController.getParameter('description')}/>
-              <span class="uk-text-small">e.g. protein disulfide isomerase-like protein</span>
+              <input
+                class="uk-input"
+                type="text"
+                name="description"
+                .value=${this.queryStringController.getParameter('description')}
+              />
+              <span class="uk-text-small"
+                >e.g. protein disulfide isomerase-like protein</span
+              >
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="family">Gene Family ID</label>
-              <input class="uk-input" type="text" name="family"
-                .value=${this.queryStringController.getParameter('family')}/>
+              <input
+                class="uk-input"
+                type="text"
+                name="family"
+                .value=${this.queryStringController.getParameter('family')}
+              />
               <span class="uk-text-small">e.g. L_HZ6G4Z</span>
             </div>
           </div>
           <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary">Search</button>
+            <button type="submit" class="uk-button uk-button-primary">
+              Search
+            </button>
           </div>
         </fieldset>
       </form>
     `;
   }
-
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

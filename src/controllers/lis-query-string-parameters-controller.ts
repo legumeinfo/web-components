@@ -1,13 +1,11 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-
 /**
  * A controller that allows components to interact with URL query string
  * parameters in a manner that triggers changes in the component's template when
  * parameter values change.
  */
 export class LisQueryStringParametersController implements ReactiveController {
-
   /** @ignore */
   host: ReactiveControllerHost;
 
@@ -65,7 +63,8 @@ export class LisQueryStringParametersController implements ReactiveController {
       return;
     }
     // push the new params onto the browser's history stack
-    const queryString = '?' +
+    const queryString =
+      '?' +
       Object.entries(parameters)
         .map(([key, value]) => `${key}=${value}`)
         .join('&');
@@ -98,8 +97,9 @@ export class LisQueryStringParametersController implements ReactiveController {
   // determines if any of the given parameters have different values than the URL parameters
   private _differentValues(parameters: Object): boolean {
     const params = new URLSearchParams(window.location.search);
-    return Object.entries(parameters)
-      .some(([key, value]) => value.toString() !== params.get(key));
+    return Object.entries(parameters).some(
+      ([key, value]) => value.toString() !== params.get(key),
+    );
   }
 
   /** @ignore */
@@ -112,13 +112,11 @@ export class LisQueryStringParametersController implements ReactiveController {
     // redraw the host
     this.host.requestUpdate();
     // wait for the redraw to complete in case any listeners rely on state from the template
-    this.host.updateComplete
-      .then(() => {
-        // call each listener
-        this._listeners.forEach((listener) => {
-          listener(event);
-        });
+    this.host.updateComplete.then(() => {
+      // call each listener
+      this._listeners.forEach((listener) => {
+        listener(event);
       });
+    });
   }
-
 }

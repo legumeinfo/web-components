@@ -1,14 +1,13 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, queryAssignedElements} from 'lit/decorators.js';
 
-
 /**
  * @htmlElement `<lis-form-wrapper-element>`
  *
  * A Web Component that provides boilerplate functionality for the form it wraps,
  * i.e. the form in its slot.
  *
- * @example 
+ * @example
  * As the name suggests, the component should enclose a form. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
@@ -47,7 +46,6 @@ import {customElement, queryAssignedElements} from 'lit/decorators.js';
  */
 @customElement('lis-form-wrapper-element')
 export class LisFormWrapperElement extends LitElement {
-
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -78,11 +76,12 @@ export class LisFormWrapperElement extends LitElement {
     // only submit the first form
     const formElement = this._forms[0];
     // get the form's submit element
-    const submitElement: HTMLElement | null = formElement.querySelector('[type="submit"]');
+    const submitElement: HTMLElement | null =
+      formElement.querySelector('[type="submit"]');
     // use the element to submit the form if it exists
     if (submitElement !== null) {
       formElement.requestSubmit(submitElement);
-    // otherwise, use the form as the submit element
+      // otherwise, use the form as the submit element
     } else {
       formElement.requestSubmit();
     }
@@ -100,7 +99,7 @@ export class LisFormWrapperElement extends LitElement {
     const options = {
       detail: {data},
       bubbles: true,
-      composed: true
+      composed: true,
     };
     this.dispatchEvent(new CustomEvent('submit', options));
   }
@@ -110,9 +109,7 @@ export class LisFormWrapperElement extends LitElement {
   override render() {
     return html`<slot @submit="${this._submit}"></slot>`;
   }
-
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

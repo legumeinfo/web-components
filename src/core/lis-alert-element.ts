@@ -6,7 +6,6 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import {LisSlotController} from '../controllers';
 import {AlertModifierModel} from '../models';
 
-
 /**
  * @htmlElement `<lis-alert-element>`
  *
@@ -64,7 +63,6 @@ import {AlertModifierModel} from '../models';
  */
 @customElement('lis-alert-element')
 export class LisAlertElement extends LitElement {
-
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -104,14 +102,14 @@ export class LisAlertElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  type: AlertModifierModel|'' = '';
+  type: AlertModifierModel | '' = '';
 
   constructor() {
     super();
     this.slotController = new LisSlotController(this, this.defaultSlotRef);
   }
 
-  public updateAlert(content: string, type: AlertModifierModel|'') {
+  public updateAlert(content: string, type: AlertModifierModel | '') {
     this.content = content;
     this.type = type;
   }
@@ -162,9 +160,7 @@ export class LisAlertElement extends LitElement {
       </div>
     `;
   }
-
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {
