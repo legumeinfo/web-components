@@ -158,6 +158,27 @@ export type GeneSearchFunction = (
  *   geneSearchElement.formDataFunction = getGeneFormData;
  * </script>
  * ```
+ *
+ * @example
+ * The {@link genus | `genus`} property can be used to limit all searches to a specific
+ * genus. This will cause the genus field of the search form to be automatically set and
+ * disabled so that users cannot change it. Additionally, this property cannot be
+ * overridden using the `genus` querystring parameter. However, like the `genus`
+ * querystring parameter, if the genus set is not present in the `formData` then the
+ * genus form field will be set to the default `any` value. For example:
+ * ```html
+ * <!-- restrict the genus via HTML -->
+ * <lis-gene-search-element genus="Glycine"></lis-gene-search-element>
+ *
+ * <!-- restrict the genus via JavaScript -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <script type="text/javascript">
+ *   // get the gene search element
+ *   const geneSearchElement = document.getElementById('gene-search');
+ *   // set the element's genus property
+ *   geneSearchElement.genus = "Cicer";
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
@@ -186,6 +207,12 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   @property({type: Function, attribute: false})
   formDataFunction: GeneFormDataFunction = () =>
     Promise.reject(new Error('No form data function provided'));
+
+  /**
+   * An optional property that limits searches to a specific genus.
+   */
+  @property({type: String})
+  genus?: string;
 
   // the selected index of the genus select element
   @state()
@@ -241,10 +268,16 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     this.tableColumnClasses = {
       description: 'uk-table-expand',
     };
+  }
+
+  // called when the component is added to the DOM; attributes should have properties now
+  override connectedCallback() {
+    super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
-    const genus = this.queryStringController.getParameter('genus');
+    const genus =
+      this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       formData.genuses.push({genus, species: []});
       const species = this.queryStringController.getParameter('species');
@@ -270,7 +303,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       this._getFormData();
     }
     // use querystring parameters to update the selectors when the form data changes
-    if (changedProperties.has('formData')) {
+    if (changedProperties.has('formData') || changedProperties.has('genus')) {
       this._initializeSelections();
     }
   }
@@ -304,7 +337,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
   // sets the selected indexes based on querystring parameters
   private _initializeSelections() {
-    const genus = this.queryStringController.getParameter('genus');
+    const genus =
+      this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       this.selectedGenus =
         this.formData.genuses.map(({genus}) => genus).indexOf(genus) + 1;
@@ -347,6 +381,21 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     const options = this.formData.genuses.map(({genus}) => {
       return html`<option value="${genus}">${genus}</option>`;
     });
+    // HACK: the disabled attribute can't be set via template literal...
+    if (this.genus) {
+      return html`
+        <select
+          class="uk-select uk-form-small"
+          disabled
+          .selectedIndex=${live(this.selectedGenus)}
+          @change="${this._selectGenus}"
+        >
+          <option value="">-- any --</option>
+          ${options}
+        </select>
+        <input type="hidden" name="genus" value="${this.genus}" />
+      `;
+    }
     return html`
       <select
         class="uk-select uk-form-small"
