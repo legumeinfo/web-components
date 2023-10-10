@@ -414,22 +414,22 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
           <lis-loading-element
             ${ref(this._formLoadingRef)}
           ></lis-loading-element>
-          <div class="uk-margin uk-grid-medium" uk-grid>
-            <div class="uk-width-1-5@s">
+          <div class="uk-margin uk-grid-small" uk-grid>
+            <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
               ${genusSelector}
             </div>
-            <div class="uk-width-1-5@s">
+            <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="species">Species</label>
               ${speciesSelector}
             </div>
-            <div class="uk-width-1-5@s">
+            <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="type">Study Type</label>
               ${typeSelector}
             </div>
           </div>
-          <div class="uk-margin uk-grid-medium" uk-grid>
-            <div class="uk-width-1-5@s">
+          <div class="uk-margin uk-grid-small" uk-grid>
+            <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="traits">Traits</label>
               <input
                 class="uk-input"
@@ -453,7 +453,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 >e.g. 10.2135/cropsci2005.05-0168</span
               >
             </div>
-            <div class="uk-width-1-5@s">
+            <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="author">Author</label>
               <input
                 class="uk-input"
