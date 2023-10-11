@@ -6,7 +6,7 @@ import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
 import {createRef, ref, Ref} from 'lit/directives/ref.js';
 import {live} from 'lit/directives/live.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+// import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 /**
  * The data used to construct the search form in the
@@ -49,8 +49,11 @@ export type AssociationSearchData = {
  */
 export type TraitAssociationResult = {
   name: string;
-  qtlStudy: Object;
-  gwas: Object;
+  type: string;
+  identifier: string;
+  synopsis: string;
+  description: string;
+  genotypes: string;  
 };
 
 /**
@@ -200,6 +203,28 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       ['pubID'],
       ['author'],
     ];
+    this.resultAttributes = [
+      'identifier',
+      'type',
+      'synopsis',
+      'description',
+      'name',
+      'genotypes',
+
+    ];
+    this.tableHeader = {
+      identifier: 'Study Name',
+      type: 'Study Type',
+      synopsis: 'Synopsis',
+      description: 'Description',
+      name: 'Name',
+      genotypes: 'Genotypes',
+      
+    };  
+    this.tableColumnClasses = {
+      description: 'uk-table-expand',
+    };
+
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: AssociationSearchFormData = {genuses: []};
@@ -474,152 +499,152 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     `;
   }
 
-  /**
-   * Renders the GWAS results of the search
-   * @param result
-   * @private
-   */
-  private _renderGwasResult(result: {
-    gwas: {
-      identifier: string;
-      synopsis: string;
-      description: string;
-      genotypes: string;
-    };
-    name: string;
-  }) {
-    return html`
-      <div>
-        <div>
-          <b>Study name: </b>
-          <span>${unsafeHTML(result.gwas.identifier)}</span>
-        </div>
-        <div>
-          <b>Study Type: </b>
-          <span>GWAS</span>
-        </div>
-        <div>
-          <b>Synopsis: </b>
-          <span>${unsafeHTML(result.gwas.synopsis)}</span>
-        </div>
-        <div>
-          <b>Description: </b>
-          <span>${unsafeHTML(result.gwas.description)}</span>
-        </div>
-        <div>
-          <b>Trait name: </b>
-          <span>${unsafeHTML(result.name)}</span>
-        </div>
-        <div>
-          <b>Genotypes: </b>
-          <span>${unsafeHTML(result.gwas.genotypes)}</span>
-        </div>
-      </div>
-      <hr />
-    `;
-  }
+//   /**
+//    * Renders the GWAS results of the search
+//    * @param result
+//    * @private
+//    */
+//   private _renderGwasResult(result: {
+//     gwas: {
+//       identifier: string;
+//       synopsis: string;
+//       description: string;
+//       genotypes: string;
+//     };
+//     name: string;
+//   }) {
+//     return html`
+//       <div>
+//         <div>
+//           <b>Study name: </b>
+//           <span>${unsafeHTML(result.gwas.identifier)}</span>
+//         </div>
+//         <div>
+//           <b>Study Type: </b>
+//           <span>GWAS</span>
+//         </div>
+//         <div>
+//           <b>Synopsis: </b>
+//           <span>${unsafeHTML(result.gwas.synopsis)}</span>
+//         </div>
+//         <div>
+//           <b>Description: </b>
+//           <span>${unsafeHTML(result.gwas.description)}</span>
+//         </div>
+//         <div>
+//           <b>Trait name: </b>
+//           <span>${unsafeHTML(result.name)}</span>
+//         </div>
+//         <div>
+//           <b>Genotypes: </b>
+//           <span>${unsafeHTML(result.gwas.genotypes)}</span>
+//         </div>
+//       </div>
+//       <hr />
+//     `;
+//   }
 
-  /**
-   * Renders the QTL results of the search
-   * @param result
-   * @private
-   */
-  private _renderQtlResult(result: {
-    qtlStudy: {
-      identifier: string;
-      synopsis: string;
-      description: string;
-      genotypes: string;
-    };
-    name: string;
-  }) {
-    return html`
-      <div>
-        <div>
-          <b>Study name: </b>
-          <span>${unsafeHTML(result.qtlStudy.identifier)}</span>
-        </div>
-        <div>
-          <b>Study Type: </b>
-          <span>QTL</span>
-        </div>
-        <div>
-          <b>Synopsis: </b>
-          <span>${unsafeHTML(result.qtlStudy.synopsis)}</span>
-        </div>
-        <div>
-          <b>Description: </b>
-          <span>${unsafeHTML(result.qtlStudy.description)}</span>
-        </div>
-        <div>
-          <b>Trait name: </b>
-          <span>${unsafeHTML(result.name)}</span>
-        </div>
-        <div>
-          <b>Genotypes: </b>
-          <span>${unsafeHTML(result.qtlStudy.genotypes)}</span>
-        </div>
-      </div>
-      <hr />
-    `;
-  }
+//   /**
+//    * Renders the QTL results of the search
+//    * @param result
+//    * @private
+//    */
+//   private _renderQtlResult(result: {
+//     qtlStudy: {
+//       identifier: string;
+//       synopsis: string;
+//       description: string;
+//       genotypes: string;
+//     };
+//     name: string;
+//   }) {
+//     return html`
+//       <div>
+//         <div>
+//           <b>Study name: </b>
+//           <span>${unsafeHTML(result.qtlStudy.identifier)}</span>
+//         </div>
+//         <div>
+//           <b>Study Type: </b>
+//           <span>QTL</span>
+//         </div>
+//         <div>
+//           <b>Synopsis: </b>
+//           <span>${unsafeHTML(result.qtlStudy.synopsis)}</span>
+//         </div>
+//         <div>
+//           <b>Description: </b>
+//           <span>${unsafeHTML(result.qtlStudy.description)}</span>
+//         </div>
+//         <div>
+//           <b>Trait name: </b>
+//           <span>${unsafeHTML(result.name)}</span>
+//         </div>
+//         <div>
+//           <b>Genotypes: </b>
+//           <span>${unsafeHTML(result.qtlStudy.genotypes)}</span>
+//         </div>
+//       </div>
+//       <hr />
+//     `;
+//   }
 
-  /**
-   * Used by LisPaginatedSearchMixin to draw the results part of template
-   * @param result
-   * @private
-   */
-  private _renderResult(result: {
-    gwas?: {
-      identifier: string;
-      synopsis: string;
-      description: string;
-      genotypes: string;
-    };
-    qtlStudy?: {
-      identifier: string;
-      synopsis: string;
-      description: string;
-      genotypes: string;
-    };
-    name: string;
-  }) {
-    if (result.gwas) {
-      return this._renderGwasResult({gwas: result.gwas, name: result.name});
-    } else if (result.qtlStudy) {
-      return this._renderQtlResult({
-        qtlStudy: result.qtlStudy,
-        name: result.name,
-      });
-    }
-    return;
-  }
-  /** @ignore */
-  // used by LisPaginatedSearchMixin to draw the results part of template
-  override renderResults() {
-    this.queryStringController.getParameter('type');
-    return this.searchResults.map((result) =>
-      this._renderResult({
-        gwas: result.gwas as
-          | {
-              identifier: string;
-              synopsis: string;
-              description: string;
-              genotypes: string;
-            }
-          | undefined,
-        qtlStudy: result.qtlStudy as
-          | {
-              identifier: string;
-              synopsis: string;
-              description: string;
-              genotypes: string;
-            }
-          | undefined,
-        name: result.name,
-      }),
-    );
-  }
+//   /**
+//    * Used by LisPaginatedSearchMixin to draw the results part of template
+//    * @param result
+//    * @private
+//    */
+//   private _renderResult(result: {
+//     gwas?: {
+//       identifier: string;
+//       synopsis: string;
+//       description: string;
+//       genotypes: string;
+//     };
+//     qtlStudy?: {
+//       identifier: string;
+//       synopsis: string;
+//       description: string;
+//       genotypes: string;
+//     };
+//     name: string;
+//   }) {
+//     if (result.gwas) {
+//       return this._renderGwasResult({gwas: result.gwas, name: result.name});
+//     } else if (result.qtlStudy) {
+//       return this._renderQtlResult({
+//         qtlStudy: result.qtlStudy,
+//         name: result.name,
+//       });
+//     }
+//     return;
+//   }
+//   /** @ignore */
+//   // used by LisPaginatedSearchMixin to draw the results part of template
+//   override renderResults() {
+//     this.queryStringController.getParameter('type');
+//     return this.searchResults.map((result) =>
+//       this._renderResult({
+//         gwas: result.gwas as
+//           | {
+//               identifier: string;
+//               synopsis: string;
+//               description: string;
+//               genotypes: string;
+//             }
+//           | undefined,
+//         qtlStudy: result.qtlStudy as
+//           | {
+//               identifier: string;
+//               synopsis: string;
+//               description: string;
+//               genotypes: string;
+//             }
+//           | undefined,
+//         name: result.name,
+//       }),
+//     );
+//   }
 }
 declare global {
   interface HTMLElementTagNameMap {

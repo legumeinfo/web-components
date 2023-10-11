@@ -161,7 +161,6 @@
 
               // Filter by pubId
               if (pubId) {
-                console.log("Has pubid");
                 data.traits.results = data.traits.results.filter(trait => {
                   if (trait.qtlStudy) {
                     return (trait.qtlStudy.dataSet.publication.pubMedId === pubId || trait.qtlStudy.dataSet.publication.doi === pubId);
@@ -169,10 +168,6 @@
                     return (trait.gwas.dataSet.publication.pubMedId === pubId || trait.gwas.dataSet.publication.doi === pubId);
                   }
                 });
-                // Since publication ID is unique, we can stop here
-                // if(data.traits.results.length > 0) {
-                //   hasNext = false;
-                // }
               }
               // Filter by genus
               if (genus !== '') {
@@ -201,7 +196,24 @@
                 });
               }
 
-
+              // Map qtlStudy or gwas to study
+              data.traits.results = data.traits.results.map(trait => {
+                if (trait.qtlStudy) {
+                  trait.type = 'QTL';
+                  trait.identifier = trait.qtlStudy.identifier;
+                  trait.synopsis = trait.qtlStudy.synopsis;
+                  trait.description = trait.qtlStudy.description;
+                  trait.genotypes = trait.qtlStudy.genotypes;
+                  
+                } else if (trait.gwas) {
+                  trait.type = 'GWAS';
+                  trait.identifier = trait.gwas.identifier;
+                  trait.synopsis = trait.gwas.synopsis;
+                  trait.description = trait.gwas.description;
+                  trait.genotypes = trait.gwas.genotypes;
+                }
+                return trait;
+              });
 
 
               // If there are results, append them to finalResults
