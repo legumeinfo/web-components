@@ -53,7 +53,7 @@ export type TraitAssociationResult = {
   identifier: string;
   synopsis: string;
   description: string;
-  genotypes: string;  
+  genotypes: string;
 };
 
 /**
@@ -210,7 +210,6 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       'description',
       'name',
       'genotypes',
-
     ];
     this.tableHeader = {
       identifier: 'Study Name',
@@ -219,8 +218,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       description: 'Description',
       name: 'Name',
       genotypes: 'Genotypes',
-      
-    };  
+    };
     this.tableColumnClasses = {
       description: 'uk-table-expand',
     };
