@@ -484,7 +484,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="author"
                 .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small">e.g. Nichols, D. M.</span>
+              <span class="uk-text-small">e.g. Blair</span>
             </div>
           </div>
           <div class="uk-margin">
