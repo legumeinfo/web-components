@@ -161,10 +161,7 @@
             // Flatten results
             const results = 
               data.traits.results.map(({name, ...study}) => {
-                //const studyType = study.qtlStudy || study.gwas; // Only one study 
-                // Needs to return identifier, type, synopsis, description, name, genotypes
                 const type = study.qtlStudy ? 'QTL' : 'GWAS';
-                console.log(type);
                 const studyTypeObject = study.qtlStudy || study.gwas;
                 if (!studyTypeObject) { // Should never happen
                   return {};
