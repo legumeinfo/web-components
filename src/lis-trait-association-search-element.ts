@@ -152,8 +152,8 @@ export type AssociationSearchFunction = (
  * <!-- restrict the species via HTML -->
  * <lis-association-search-element genus="Glycine" species="max"></lis-association-search-element>
  * ```
- * 
- * 
+ *
+ *
  */
 
 @customElement('lis-association-search-element')
@@ -269,7 +269,8 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       formData.genuses.push({genus, species: []});
-      const species = this.species || this.queryStringController.getParameter('species');
+      const species =
+        this.species || this.queryStringController.getParameter('species');
       if (species) {
         formData.genuses[0].species.push({species});
       }
@@ -329,7 +330,8 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     } else {
       this.selectedGenus = 0;
     }
-    const species = this.species || this.queryStringController.getParameter('species');
+    const species =
+      this.species || this.queryStringController.getParameter('species');
     if (this.selectedGenus && species) {
       this.selectedSpecies =
         this.formData.genuses[this.selectedGenus - 1].species
@@ -398,7 +400,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
         },
       );
     }
-    if (this.species && this.selectedGenus) { 
+    if (this.species && this.selectedGenus) {
       return html`
         <select
           class="uk-select uk-form-small"
