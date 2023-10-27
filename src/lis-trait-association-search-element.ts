@@ -140,6 +140,20 @@ export type AssociationSearchFunction = (
  *   AssociationSearchElement.genus = "Cicer";
  * </script>
  * ```
+ * @example
+ * The {@link species | `species`} property can be used to limit all searches to a specific
+ * species. This will cause the species field of the search form to be automatically set and
+ * disabled so that users cannot change it. This property cannot be
+ * overridden using the `species` querystring parameter. However, like the `species`
+ * querystring parameter, if the species set is not present in the `formData` then the
+ * species form field will be set to the default `any` value.
+ * To function correctly, the genus must be selected For example:
+ * ```html
+ * <!-- restrict the species via HTML -->
+ * <lis-association-search-element genus="Glycine" species="max"></lis-association-search-element>
+ * ```
+ * 
+ * 
  */
 
 @customElement('lis-association-search-element')
@@ -159,6 +173,11 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    */
   @property({type: String})
   genus?: string;
+  /**
+   * Optional property that limits searches to a specific species.
+   */
+  @property({type: String})
+  species?: string;
 
   /**
    * The data used to construct the search form in the template.
@@ -250,7 +269,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       formData.genuses.push({genus, species: []});
-      const species = this.queryStringController.getParameter('species');
+      const species = this.species || this.queryStringController.getParameter('species');
       if (species) {
         formData.genuses[0].species.push({species});
       }
@@ -310,7 +329,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     } else {
       this.selectedGenus = 0;
     }
-    const species = this.queryStringController.getParameter('species');
+    const species = this.species || this.queryStringController.getParameter('species');
     if (this.selectedGenus && species) {
       this.selectedSpecies =
         this.formData.genuses[this.selectedGenus - 1].species
@@ -330,7 +349,6 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
 
   /**
    * Renders the genus selector.
-   * @param onlyGenus - If set, only render a single genus.
    * @private
    */
   private _renderGenusSelector() {
@@ -379,6 +397,19 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
           return html`<option value="${species}">${species}</option>`;
         },
       );
+    }
+    if (this.species && this.selectedGenus) { 
+      return html`
+        <select
+          class="uk-select uk-form-small"
+          disabled
+          .selectedIndex=${live(this.selectedSpecies)}
+          @change="${this._selectSpecies}"
+        >
+          <option value="${this.species}">${this.species}</option>
+        </select>
+        <input type="hidden" name="species" value="${this.species}" />
+      `;
     }
     return html`
       <select

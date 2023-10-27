@@ -29,9 +29,9 @@
         Queries can be initiated with the form or through URL parameters. The form will update the URL parameters and vice versa.
       </p>
       <p>
-        Optionally, all searches can be limited to a specific genus by setting the <code>genus</code> attribute/property.
-        This will cause the genus field of the search form to be automatically set and disabled so that users cannot change it.
-        You can try setting the <code>genus</code> property in this example using the <code>AssociationSearchElement</code> variable in the Web console.
+        Optionally, all searches can be limited to a specific genus and species by setting the <code>genus</code> and <code>species</code> attributes/properties.
+        This will cause the genus and/or genus and species field of the search form to be automatically set and disabled so that users cannot change it.
+        You can try setting the <code>genus</code> and <code>species</code> property in this example using the <code>AssociationSearchElement</code> variable in the Web console.
       </p>
       <hr>
 
@@ -83,8 +83,8 @@
       }
 
       const associationQuery = `
-        query Traits($pageSize: Int, $page: Int, $name: String, $genus: String, $species: String, $studyType: String, $publicationId: String, $author: String) {
-            traits(pageSize: $pageSize, page: $page, name: $name, genus: $genus, species: $species, studyType: $studyType, publicationId: $publicationId, author: $author) {
+        query Traits($pageSize: Int, $page: Int, $name: String, $studyType: String, $publicationId: String, $author: String) {
+            traits(pageSize: $pageSize, page: $page, name: $name, studyType: $studyType, publicationId: $publicationId, author: $author) {
               results {
                 name
                 qtlStudy {
