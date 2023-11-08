@@ -80,7 +80,6 @@
     "prettier": "^3.0.3",
     "rimraf": "^5.0.5",
     "rollup": "^4.3.0",
-    "rollup-plugin-summary": "^2.0.0",
     "typedoc": "^0.25.3",
     "typescript": "^5.2.2",
     "uikit": "^3.17.8"
