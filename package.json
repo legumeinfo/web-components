@@ -83,7 +83,7 @@
     "rollup-plugin-summary": "^2.0.0",
     "typedoc": "^0.25.3",
     "typescript": "^5.2.2",
-    "uikit": "^3.16.22"
+    "uikit": "^3.17.8"
   },
   "dependencies": {
     "lit": "^3.0.2"
