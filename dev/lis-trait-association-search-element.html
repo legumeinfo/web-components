@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-association-search-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-association-search-element&gt;</h1>
+      <p>
+          The <code>&lt;lis-association-search-element&gt;</code> provides a web component for loading and displaying trait associations in a paginated view.
+            In this example, associations are loaded for traits using the LIS GraphQL API.
+      </p>
+      <p>
+        Queries can be initiated with the form or through URL parameters. The form will update the URL parameters and vice versa.
+      </p>
+      <p>
+        Optionally, all searches can be limited to a specific genus and species by setting the <code>genus</code> and <code>species</code> attributes/properties.
+        This will cause the genus and/or genus and species field of the search form to be automatically set and disabled so that users cannot change it.
+        You can try setting the <code>genus</code> and <code>species</code> property in this example using the <code>AssociationSearchElement</code> variable in the Web console.
+      </p>
+      <hr>
+
+      <!-- the custom trait search element -->
+      <lis-association-search-element id="association-search"></lis-association-search-element>
+
+    </div>
+
+  <!-- set the search function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // uses the LIS GraphQL API to get data used to construct the search form
+      const FormDataQuery = `
+        query FormDataQuery {
+          organisms {
+            results {
+              genus
+              species
+            }
+          }
+        }
+      `;
+
+      function getFormData({abortSignal}) {
+        return graphqlQuery(uri, FormDataQuery, {}, abortSignal)
+            .then(({data}) => {
+              // bin the strains by genus then species
+              const binnedFormData = {};
+              data.organisms.results.forEach(({genus, species}) => {
+                if (!(genus in binnedFormData)) {
+                  binnedFormData[genus] = {}
+                }
+                if (!(species in binnedFormData[genus])) {
+                  binnedFormData[genus][species] = [];
+                }
+              });
+              // collapse the bins into arrays of objects
+              const genuses =
+                      Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+                        const species =
+                                Object.entries(binnedSpecies).map(([species, strainObjects]) => {
+                                  return {species};
+                                });
+                        return {genus, species};
+                      });
+              // return the expected form data object
+              return {genuses};
+            });
+      }
+
+      const associationQuery = `
+        query Traits($pageSize: Int, $page: Int, $name: String, $studyType: String, $publicationId: String, $author: String) {
+            traits(pageSize: $pageSize, page: $page, name: $name, studyType: $studyType, publicationId: $publicationId, author: $author) {
+              results {
+                name
+                qtlStudy {
+                  identifier
+                  synopsis
+                  description
+                  genotypes
+                  organism {
+                    genus
+                    species
+                  }
+                  dataSet {
+                    publication {
+                      firstAuthor
+                      pubMedId
+                      doi
+                    }
+                  }
+                }
+                gwas {
+                  identifier
+                  synopsis
+                  description
+                  genotypes
+                  organism {
+                    genus
+                    species
+                  }
+                  dataSet {
+                    publication {
+                      firstAuthor
+                      pubMedId
+                      doi
+                    }
+                  }
+                }
+              }
+              pageInfo {
+                currentPage
+                pageSize
+                numResults
+                pageCount
+                hasPreviousPage
+                hasNextPage
+              }
+            }
+          }
+      `;
+
+      // search function
+      function getTraits(searchData, page,{abortSignal}) {
+        const genus = searchData['genus'];
+        const species = searchData['species'];
+        const name = searchData['traits'] || '';
+        const studyType = searchData['type'];
+        const publicationId = searchData['pubId'];
+        const author = searchData['author'];
+        const variables = {
+          name,
+          genus,
+          species,
+          studyType,
+          publicationId,
+          author,
+          page,
+          pageSize: 10,
+        };
+        return graphqlQuery(uri, associationQuery, variables, abortSignal)
+          .then(({data}) => {
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = data.traits.pageInfo;
+
+            // Flatten results
+            const results = 
+              data.traits.results.map(({name, ...study}) => {
+                const type = study.qtlStudy ? 'QTL' : 'GWAS';
+                const studyTypeObject = study.qtlStudy || study.gwas;
+                if (!studyTypeObject) { // Should never happen
+                  return {};
+                }
+                const identifier = studyTypeObject.identifier;
+                const synopsis = studyTypeObject.synopsis;
+                const description = studyTypeObject.description;
+                const genotypes = studyTypeObject.genotypes;
+                return {
+                  identifier,
+                  type,
+                  synopsis,
+                  description,
+                  name,
+                  genotypes
+                };
+              });
+              // construct the expected paginated results object
+              const paginatedResults = {hasNext, numResults, pageSize, numPages, results};
+              return paginatedResults;
+          });          
+      }
+
+      // wait for the page to load before binding component properties
+      const AssociationSearchElement = document.getElementById('association-search');
+      AssociationSearchElement.formDataFunction = getFormData;
+      AssociationSearchElement.searchFunction = getTraits;
+
+    </script>
+
+  </body>
+
+</html>
