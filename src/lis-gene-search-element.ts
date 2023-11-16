@@ -162,23 +162,30 @@ export type GeneSearchFunction = (
  * ```
  *
  * @example
- * The {@link genus | `genus`} property can be used to limit all searches to a specific
- * genus. This will cause the genus field of the search form to be automatically set and
- * disabled so that users cannot change it. Additionally, this property cannot be
- * overridden using the `genus` querystring parameter. However, like the `genus`
- * querystring parameter, if the genus set is not present in the `formData` then the
- * genus form field will be set to the default `any` value. For example:
+ * The {@link genus | `genus`} and {@link species | `species`} properties can be used to limit all
+ * searches to a specific genus and species. This will cause the genus and species field of the
+ * search form to be automatically set and disabled so that users cannot change them. Additionally,
+ * these properties cannot be overridden using the `genus` and `species` querystring parameters.
+ * However, like the `genus` and `species` querystring parameters, if the genus/species set are not
+ * present in the `formData` then the genus/species form field will be set to the default `any`
+ * value. Note that setting the `species` value has no effect if the `genus` value is not also set.
+ * For example:
  * ```html
  * <!-- restrict the genus via HTML -->
  * <lis-gene-search-element genus="Glycine"></lis-gene-search-element>
  *
- * <!-- restrict the genus via JavaScript -->
+ * <!-- restrict the genus and species via HTML -->
+ * <lis-gene-search-element genus="Glycine" species="max"></lis-gene-search-element>
+ *
+ * <!-- restrict the genus and species via JavaScript -->
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ *
  * <script type="text/javascript">
  *   // get the gene search element
  *   const searchElement = document.getElementById('gene-search');
- *   // set the element's genus property
+ *   // set the element's genus and species properties
  *   searchElement.genus = "Cicer";
+ *   searchElement.species = "arietinum";
  * </script>
  * ```
  */
@@ -215,6 +222,15 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    */
   @property({type: String})
   genus?: string;
+
+  /**
+   * An optional property that limits searches to a specific species.
+   * Doesn't work without the `genus` property.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  species?: string;
 
   // the selected index of the genus select element
   @state()
@@ -282,7 +298,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
       formData.genuses.push({genus, species: []});
-      const species = this.queryStringController.getParameter('species');
+      const species =
+        this.species || this.queryStringController.getParameter('species');
       if (species) {
         formData.genuses[0].species.push({species, strains: []});
         const strain = this.queryStringController.getParameter('strain');
@@ -305,7 +322,11 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       this._getFormData();
     }
     // use querystring parameters to update the selectors when the form data changes
-    if (changedProperties.has('formData') || changedProperties.has('genus')) {
+    if (
+      changedProperties.has('formData') ||
+      changedProperties.has('genus') ||
+      changedProperties.has('species')
+    ) {
       this._initializeSelections();
     }
   }
@@ -349,7 +370,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
     await this.updateComplete;
 
-    const species = this.queryStringController.getParameter('species');
+    const species =
+      this.species || this.queryStringController.getParameter('species');
     if (this.selectedGenus && species) {
       this.selectedSpecies =
         this.formData.genuses[this.selectedGenus - 1].species
@@ -433,6 +455,21 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
           return html`<option value="${species}">${species}</option>`;
         },
       );
+    }
+    // HACK: the disabled attribute can't be set via template literal...
+    if (this.genus && this.species) {
+      return html`
+        <select
+          class="uk-select uk-form-small"
+          disabled
+          .selectedIndex=${live(this.selectedSpecies)}
+          @change="${this._selectSpecies}"
+        >
+          <option value="">-- any --</option>
+          ${options}
+        </select>
+        <input type="hidden" name="species" value="${this.species}" />
+      `;
     }
     return html`
       <select
