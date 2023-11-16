@@ -137,6 +137,20 @@ export declare class LisPaginatedSearchElementInterface<
   tableColumnClasses: StringObjectModel;
 
   /**
+   * A helper method that returns that first value that's defined: the given value, the value of the
+   * specified querystring parameter, an empty string.
+   *
+   * @param value - The value to potentially return.
+   * @param parameter - The querystring parameter to potentially return the value of.
+   *
+   * @returns The first value that was defined.
+   */
+  protected valueOrQuerystringParameter(
+    value: string | undefined,
+    parameter: string,
+  ): string;
+
+  /**
    * Components that use the
    * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin will
    * inherit this method. It allows the component's search form to be submitted
@@ -474,6 +488,20 @@ export const LisPaginatedSearchMixin =
       // what page should be used for the first search
       // TODO: is there a better way to handle the page in the query string search?
       private _searchPage = 1;
+
+      ////////////////////
+      // helper methods //
+      ////////////////////
+
+      protected valueOrQuerystringParameter(
+        value: string | undefined,
+        parameter: string,
+      ): string {
+        if (value === undefined) {
+          return this.queryStringController.getParameter(parameter);
+        }
+        return value;
+      }
 
       ////////////////////
       // search methods //
