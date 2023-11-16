@@ -46,6 +46,8 @@ export type GeneFormDataFunction = (
  */
 export type GeneSearchData = {
   genus: string;
+  species: string;
+  strain: string;
   name: string;
   identifier: string;
   description: string;
@@ -106,7 +108,7 @@ export type GeneSearchFunction = (
  *
  * @queryStringParameters
  * - **genus:** The selected genus in the search form.
- * - **species:** The selected genus in the search form.
+ * - **species:** The selected species in the search form.
  * - **strain:** The selected strain in the search form.
  * - **identifier:** The identifier provided in the search form.
  * - **description:** The description provided in the search form.
@@ -153,9 +155,9 @@ export type GeneSearchFunction = (
  *     // returns a Promise that resolves to a form data object
  *   }
  *   // get the gene search element
- *   const geneSearchElement = document.getElementById('gene-search');
+ *   const searchElement = document.getElementById('gene-search');
  *   // set the element's formDataFunction property
- *   geneSearchElement.formDataFunction = getGeneFormData;
+ *   searchElement.formDataFunction = getGeneFormData;
  * </script>
  * ```
  *
@@ -174,9 +176,9 @@ export type GeneSearchFunction = (
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
  * <script type="text/javascript">
  *   // get the gene search element
- *   const geneSearchElement = document.getElementById('gene-search');
+ *   const searchElement = document.getElementById('gene-search');
  *   // set the element's genus property
- *   geneSearchElement.genus = "Cicer";
+ *   searchElement.genus = "Cicer";
  * </script>
  * ```
  */
@@ -201,8 +203,6 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
-   *
-   * @attribute
    */
   @property({type: Function, attribute: false})
   formDataFunction: GeneFormDataFunction = () =>
@@ -210,6 +210,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
   /**
    * An optional property that limits searches to a specific genus.
+   *
+   * @attribute
    */
   @property({type: String})
   genus?: string;
@@ -326,7 +328,6 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       },
       (error: Error | Event) => {
         // do nothing if the request was aborted
-        //if ((error as unknown).type !== 'abort') {
         if (!(error instanceof Event && error.type === 'abort')) {
           this._formLoadingRef.value?.failure();
           throw error;
@@ -335,8 +336,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     );
   }
 
-  // sets the selected indexes based on querystring parameters
-  private _initializeSelections() {
+  // sets the selected indexes based on properties and querystring parameters
+  private async _initializeSelections() {
     const genus =
       this.genus || this.queryStringController.getParameter('genus');
     if (genus) {
@@ -345,6 +346,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     } else {
       this.selectedGenus = 0;
     }
+
+    await this.updateComplete;
+
     const species = this.queryStringController.getParameter('species');
     if (this.selectedGenus && species) {
       this.selectedSpecies =
@@ -354,6 +358,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     } else {
       this.selectedSpecies = 0;
     }
+
+    await this.updateComplete;
+
     const strain = this.queryStringController.getParameter('strain');
     if (this.selectedSpecies && strain) {
       this.selectedStrain =

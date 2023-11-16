@@ -39,7 +39,7 @@
       <hr>
 
       <!-- the custom gene search element -->
-      <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+      <lis-gene-search-element genus="dumby" id="gene-search"></lis-gene-search-element>
 
     </div>
 
@@ -47,7 +47,7 @@
     <script type="text/javascript">
 
       // uses the LIS GraphQL API to get data used to construct the gene search form
-      const geneFormDataQuery = `
+      const formDataQuery = `
       query FormDataQuery {
         organisms {
           results {
@@ -61,14 +61,14 @@
       }
       `;
 
-      function getGeneFormData({abortSignal}) {
-        return graphqlQuery(uri, geneFormDataQuery, {}, abortSignal)
+    function getFormData({abortSignal}) {
+        return graphqlQuery(uri, formDataQuery, {}, abortSignal)
           .then(({data}) => {
             // bin the strains by genus then species
             const binnedFormData = {};
             data.organisms.results.forEach(({genus, species, strains}) => {
               if (!(genus in binnedFormData)) {
-                binnedFormData[genus] = {}
+                binnedFormData[genus] = {};
               }
               if (!(species in binnedFormData[genus])) {
                 binnedFormData[genus][species] = [];
@@ -133,8 +133,8 @@
           page,
           pageSize: 10,
         };
-        // returns a Promise that resolves to an array of Gene objects the gene search
-        // Web Component knows how to parse: {name: string, description: string}[]
+
+        // shim the results for the Web Component
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
             // extract the page info
@@ -171,9 +171,9 @@
           });
       }
 
-      // wait for the page to load before binding component properties
+      // bind component properties
       const geneSearchElement = document.getElementById('gene-search');
-      geneSearchElement.formDataFunction = getGeneFormData;
+      geneSearchElement.formDataFunction = getFormData;
       geneSearchElement.searchFunction = getGenes;
 
     </script>
