@@ -418,6 +418,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     });
     // HACK: the disabled attribute can't be set via template literal...
     if (this.genus !== undefined) {
+      const value = this.selectedGenus
+        ? this.formData.genuses[this.selectedGenus - 1].genus
+        : '';
       return html`
         <select
           class="uk-select uk-form-small"
@@ -428,7 +431,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
           <option value="">-- any --</option>
           ${options}
         </select>
-        <input type="hidden" name="genus" value="${this.genus}" />
+        <input type="hidden" name="genus" value="${value}" />
       `;
     }
     return html`
@@ -464,6 +467,12 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     }
     // HACK: the disabled attribute can't be set via template literal...
     if (this.genus !== undefined && this.species !== undefined) {
+      const value =
+        this.selectedGenus && this.selectedSpecies
+          ? this.formData.genuses[this.selectedGenus - 1].species[
+              this.selectedSpecies - 1
+            ].species
+          : '';
       return html`
         <select
           class="uk-select uk-form-small"
@@ -474,7 +483,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
           <option value="">-- any --</option>
           ${options}
         </select>
-        <input type="hidden" name="species" value="${this.species}" />
+        <input type="hidden" name="species" value="${value}" />
       `;
     }
     return html`
@@ -500,7 +509,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   // renders the strain selector
   private _renderStrainSelector() {
     let options = [html``];
-    if (this.selectedSpecies) {
+    if (this.selectedGenus && this.selectedSpecies) {
       options = this.formData.genuses[this.selectedGenus - 1].species[
         this.selectedSpecies - 1
       ].strains.map(({strain}) => {
