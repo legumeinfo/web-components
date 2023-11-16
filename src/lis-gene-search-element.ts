@@ -216,7 +216,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     Promise.reject(new Error('No form data function provided'));
 
   /**
-   * An optional property that limits searches to a specific genus.
+   * An optional property that limits searches to a specific genus. Setting the property to the
+   * empty string "" will cause the genus form field to be set to the default "any" value.
    *
    * @attribute
    */
@@ -224,8 +225,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   genus?: string;
 
   /**
-   * An optional property that limits searches to a specific species.
-   * Doesn't work without the `genus` property.
+   * An optional property that limits searches to a specific species. Setting the property to the
+   * empty string "" will cause the species form field to be set to the default "any" value. Doesn't
+   * work without the `genus` property.
    *
    * @attribute
    */
@@ -288,18 +290,24 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     };
   }
 
+  private _getDefaultGenus(): string {
+    return this.valueOrQuerystringParameter(this.genus, 'genus');
+  }
+
+  private _getDefaultSpecies(): string {
+    return this.valueOrQuerystringParameter(this.species, 'species');
+  }
+
   // called when the component is added to the DOM; attributes should have properties now
   override connectedCallback() {
     super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneSearchFormData = {genuses: []};
-    const genus =
-      this.genus || this.queryStringController.getParameter('genus');
+    const genus = this._getDefaultGenus();
     if (genus) {
       formData.genuses.push({genus, species: []});
-      const species =
-        this.species || this.queryStringController.getParameter('species');
+      const species = this._getDefaultSpecies();
       if (species) {
         formData.genuses[0].species.push({species, strains: []});
         const strain = this.queryStringController.getParameter('strain');
@@ -359,8 +367,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
   // sets the selected indexes based on properties and querystring parameters
   private async _initializeSelections() {
-    const genus =
-      this.genus || this.queryStringController.getParameter('genus');
+    const genus = this._getDefaultGenus();
     if (genus) {
       this.selectedGenus =
         this.formData.genuses.map(({genus}) => genus).indexOf(genus) + 1;
@@ -370,8 +377,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
     await this.updateComplete;
 
-    const species =
-      this.species || this.queryStringController.getParameter('species');
+    const species = this._getDefaultSpecies();
     if (this.selectedGenus && species) {
       this.selectedSpecies =
         this.formData.genuses[this.selectedGenus - 1].species
@@ -411,7 +417,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       return html`<option value="${genus}">${genus}</option>`;
     });
     // HACK: the disabled attribute can't be set via template literal...
-    if (this.genus) {
+    if (this.genus !== undefined) {
       return html`
         <select
           class="uk-select uk-form-small"
@@ -457,7 +463,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       );
     }
     // HACK: the disabled attribute can't be set via template literal...
-    if (this.genus && this.species) {
+    if (this.genus !== undefined && this.species !== undefined) {
       return html`
         <select
           class="uk-select uk-form-small"
