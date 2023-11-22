@@ -34,7 +34,8 @@
       <p>
         Optionally, all searches can be limited to a specific genus by setting the <code>genus</code> attribute/property.
         This will cause the genus field of the search form to be automatically set and disabled so that users cannot change it.
-        You can try setting the <code>genus</code> property in this example using the <code>geneSearchElement</code> variable in the Web console.
+        Similarly, all searches can be limited to a specific species by setting the <code>species</code> attribute/property in conjunction with the <code>genus</code> attribute/property.
+        You can try setting the <code>genus</code> and <code>species</code> properties in this example using the <code>geneSearchElement</code> variable in the Web console.
       </p>
       <hr>
 
@@ -47,7 +48,7 @@
     <script type="text/javascript">
 
       // uses the LIS GraphQL API to get data used to construct the gene search form
-      const geneFormDataQuery = `
+      const formDataQuery = `
       query FormDataQuery {
         organisms {
           results {
@@ -61,14 +62,14 @@
       }
       `;
 
-      function getGeneFormData({abortSignal}) {
-        return graphqlQuery(uri, geneFormDataQuery, {}, abortSignal)
+    function getFormData({abortSignal}) {
+        return graphqlQuery(uri, formDataQuery, {}, abortSignal)
           .then(({data}) => {
             // bin the strains by genus then species
             const binnedFormData = {};
             data.organisms.results.forEach(({genus, species, strains}) => {
               if (!(genus in binnedFormData)) {
-                binnedFormData[genus] = {}
+                binnedFormData[genus] = {};
               }
               if (!(species in binnedFormData[genus])) {
                 binnedFormData[genus][species] = [];
@@ -133,8 +134,8 @@
           page,
           pageSize: 10,
         };
-        // returns a Promise that resolves to an array of Gene objects the gene search
-        // Web Component knows how to parse: {name: string, description: string}[]
+
+        // shim the results for the Web Component
         return graphqlQuery(uri, geneQuery, variables, abortSignal)
           .then(({data}) => {
             // extract the page info
@@ -171,9 +172,9 @@
           });
       }
 
-      // wait for the page to load before binding component properties
+      // bind component properties
       const geneSearchElement = document.getElementById('gene-search');
-      geneSearchElement.formDataFunction = getGeneFormData;
+      geneSearchElement.formDataFunction = getFormData;
       geneSearchElement.searchFunction = getGenes;
 
     </script>

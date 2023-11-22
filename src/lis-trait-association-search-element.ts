@@ -1,24 +1,21 @@
 import {LitElement, css, html} from 'lit';
-import {customElement, property, state} from 'lit/decorators.js';
-import {live} from 'lit/directives/live.js';
-import {Ref, createRef, ref} from 'lit/directives/ref.js';
-
+import {customElement} from 'lit/decorators.js';
+import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {property, state} from 'lit/decorators.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {createRef, ref, Ref} from 'lit/directives/ref.js';
+import {live} from 'lit/directives/live.js';
 
 /**
  * The data used to construct the search form in the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} template.
  */
-export type GeneSearchFormData = {
+export type TraitAssociationSearchFormData = {
   genuses: {
     genus: string;
     species: {
       species: string;
-      strains: {
-        strain: string;
-      }[];
     }[];
   }[];
 };
@@ -29,133 +26,132 @@ export type GeneSearchFormData = {
  * before the current function completes. This signal should be used to cancel in-flight
  * requests if the external API supports it.
  */
-export type GeneFormDataOptions = {abortSignal?: AbortSignal};
+export type TraitAssociationSearchFormDataOptions = {abortSignal?: AbortSignal};
 
 /**
  * The type signature of a function that may be used to load the data used to construct
- * the search form in the {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
+ * the search form in the {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`}
+ * template.
  */
-export type GeneFormDataFunction = (
-  options: GeneFormDataOptions,
-) => Promise<GeneSearchFormData>;
+export type TraitAssociationFormDataFunction = (
+  options: TraitAssociationSearchFormDataOptions,
+) => Promise<TraitAssociationSearchFormData>;
 
 /**
  * The data that will be passed to the search function by the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class when a search is
- * performed.
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class when a search
+ * is performed.
  */
-export type GeneSearchData = {
+export type TraitAssociationSearchData = {
   genus: string;
   species: string;
-  strain: string;
-  name: string;
-  identifier: string;
-  description: string;
+  type: string;
+  traits: string;
+  pubId: string;
+  author: string;
 };
 
 /**
- * A single result of a gene search performed by the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class.
+ * A single result of a trait association search performed by the
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class.
+ * Contains the name of the trait and either a GWAS or QTL study object.
+ *
  */
-export type GeneSearchResult = {
+export type TraitAssociationSearchResult = {
   name: string;
+  type: string;
   identifier: string;
+  synopsis: string;
   description: string;
-  genus: string;
-  species: string;
-  strain: string;
-  geneFamilyAssignments: string[];
-  locations: string[];
+  genotypes: string;
 };
 
 /**
  * The signature of the function the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
- * performing a gene search.
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class requires for
+ * performing a trait association search.
  *
  * @param searchData An object containing a value of each field in the submitted form.
- * @param page What page of results the search is for. Will always be 1 when a
- * new search is performed.
- * @param options Optional parameters that aren't required to perform a gene
- * search but may be useful.
+ * @param page What page of results the search is for. Will always be 1 when a new search is performed.
+ * @param options Optional parameters that aren't required to perform a trait association search
+ * but may be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
+ * {@link !Array | `Array`} of {@link TraitAssociationSearchResult | `TraitAssociationSearchResult`}
  * objects.
  */
-export type GeneSearchFunction = (
+export type TraitAssociationSearchFunction = (
   searchData: {
     genus: string;
     species: string;
-    strain: string;
-    identifier: string;
-    description: string;
-    family: string;
+    traits: string;
+    type: string;
+    pubId: string;
+    author: string;
   },
   page: number,
   options: PaginatedSearchOptions,
-) => Promise<Array<GeneSearchResult>>;
+) => Promise<Array<TraitAssociationSearchResult>>;
 
 /**
- * @htmlElement `<lis-gene-search-element>`
+ * @htmlElement `<lis-trait-association-search-element>`
  *
- * A Web Component that provides an interface for performing searches for genes and
- * displaying results in a view table. Note that the component saves its state to the
- * URL query string parameters and a search will be automatically performed if the
- * parameters are present when the componnent is loaded. The component uses the
- * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See the
- * mixin docs for further details.
+ * A Web Component that provides a search form for searching for GWAS and QTL trait associations and
+ * displaying the results in a view table. Note that the component saves its state to the URL query
+ * string parameters and a search will be automatically performed if the parameters are present when
+ * the componnent is loaded. The component uses the
+ * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See the mixin docs for
+ * further details.
  *
  * @queryStringParameters
- * - **genus:** The selected genus in the search form.
- * - **species:** The selected species in the search form.
- * - **strain:** The selected strain in the search form.
- * - **identifier:** The identifier provided in the search form.
- * - **description:** The description provided in the search form.
- * - **family:** The gene family identifier provided in the search form.
- * - **page:** What page of results to load.
+ * - **genus:** The selected genus in the search for.
+ * - **species:** The selected species in the search for.
+ * - **type:** The selected type in the search form. Either 'GWAS' or 'QTL'.
+ * - **traits:** The traits provided in the search form.
+ * - **pubid** The publication ID provided in the search form. Either a PubMed ID or a DOI.
+ * - **author** The author provided in the search form.
+ * - **page:** What page of results is loaded. Starts at 1.
  *
  * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
- * must be set on a `<lis-gene-search-element>` tag's instance of the
- * {@link LisGeneSearchElement | `LisGeneSearchElement`} class. For example:
+ * must be set on a `<lis-trait-association-search-element>` tag's instance of the
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class. For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
- * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
  *
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
- *   // a site-specific function that sends a request to a gene search API
- *   function getGenes(searchData, page, {abortSignal}) {
+ *   // a site-specific function that sends a request to a trait association search API
+ *   function getTraits(searchData, page, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
- *   // get the gene search element
- *   const searchElement = document.getElementById('gene-search');
+ *   // get the trait association search element
+ *   const searchElement = document.getElementById('trait-association-search');
  *   // set the element's searchFunction property
- *   searchElement.searchFunction = getGenes;
+ *   searchElement.searchFunction = getTraits;
  * </script>
  * ```
  *
  * @example
- * Data must be provided for the genus, species, and strain selectors in the search form.
- * This can be done by setting the form's {@link formData | `formData`}
- * attribute/property directly or by setting the
- * {@link formDataFunction | `formDataFunction`} property. Setting the latter will call
- * the function immediately and set the {@link formData | `formData`} value using the
- * result. For example:
+ * Data must be provided for the genus and species selectors in the search form.
+ * This can be done by setting the form's {@link formData | `formData`} attribute/property directly
+ * or by setting the {@link formDataFunction | `formDataFunction`} property. Setting the latter will
+ * call the function immediately and set the {@link formData | `formData`} value using the result.
+ * For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
- * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
  *
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
- *   // a site-specific function that gets genus, species, and strain data from an API
+ *   // a site-specific function that gets genus and species data from an API
  *   function getFormData() {
  *     // returns a Promise that resolves to a form data object
  *   }
- *   // get the gene search element
- *   const searchElement = document.getElementById('gene-search');
+ *   // get the trait association search element
+ *   const searchElement = document.getElementById('trait-association-search');
  *   // set the element's formDataFunction property
  *   searchElement.formDataFunction = getGeneFormData;
  * </script>
@@ -163,37 +159,36 @@ export type GeneSearchFunction = (
  *
  * @example
  * The {@link genus | `genus`} and {@link species | `species`} properties can be used to limit all
- * searches to a specific genus and species. This will cause the genus and species field of the
+ * searches to a specific genus and species. This will cause the genus and species fields of the
  * search form to be automatically set and disabled so that users cannot change them. Additionally,
  * these properties cannot be overridden using the `genus` and `species` querystring parameters.
  * However, like the `genus` and `species` querystring parameters, if the genus/species set are not
- * present in the `formData` then the genus/species form field will be set to the default `any`
+ * present in the `formData` then the genus/species form fields will be set to the default `any`
  * value. Note that setting the `species` value has no effect if the `genus` value is not also set.
  * For example:
  * ```html
  * <!-- restrict the genus via HTML -->
- * <lis-gene-search-element genus="Glycine"></lis-gene-search-element>
+ * <lis-trait-association-search-element genus="Glycine"></lis-trait-association-search-element>
  *
  * <!-- restrict the genus and species via HTML -->
- * <lis-gene-search-element genus="Glycine" species="max"></lis-gene-search-element>
+ * <lis-trait-association-search-element genus="Glycine" species="max"></lis-trait-association-search-element>
  *
  * <!-- restrict the genus and species via JavaScript -->
- * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
  *
  * <script type="text/javascript">
- *   // get the gene search element
- *   const searchElement = document.getElementById('gene-search');
+ *   // get the trait association search element
+ *   const searchElement = document.getElementById('trait-association-search');
  *   // set the element's genus and species properties
  *   searchElement.genus = "Cicer";
  *   searchElement.species = "arietinum";
  * </script>
  * ```
  */
-@customElement('lis-gene-search-element')
-export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
-  GeneSearchData,
-  GeneSearchResult
->() {
+@customElement('lis-trait-association-search-element')
+export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
+  LitElement,
+)<TraitAssociationSearchData, TraitAssociationSearchResult>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -205,14 +200,14 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    * @attribute
    */
   @property()
-  formData: GeneSearchFormData = {genuses: []};
+  formData: TraitAssociationSearchFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: GeneFormDataFunction = () =>
+  formDataFunction: TraitAssociationFormDataFunction = () =>
     Promise.reject(new Error('No form data function provided'));
 
   /**
@@ -242,9 +237,12 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   @state()
   private selectedSpecies: number = 0;
 
-  // the selected index of the strain select element
+  // available study types
+  private _studyTypes = ['GWAS', 'QTL'];
+
+  // the index of the selected type of study (GWAS or QTL)
   @state()
-  private selectedStrain: number = 0;
+  private selectedType: number = 0;
 
   // a controller that allows in-flight form data requests to be cancelled
   protected formDataCancelPromiseController = new LisCancelPromiseController(
@@ -260,30 +258,26 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     this.requiredQueryStringParams = [
       ['genus'],
       ['genus', 'species'],
-      ['genus', 'species', 'strain'],
-      ['identifier'],
-      ['description'],
-      ['family'],
+      ['traits'],
+      ['type'],
+      ['pubid'],
+      ['author'],
     ];
     this.resultAttributes = [
-      'name',
       'identifier',
-      'locations',
+      'type',
+      'synopsis',
       'description',
-      'geneFamilyAssignments',
-      'genus',
-      'species',
-      'strain',
+      'name',
+      'genotypes',
     ];
     this.tableHeader = {
-      name: 'Name',
-      identifier: 'Identifier',
+      identifier: 'Study Name',
+      type: 'Study Type',
+      synopsis: 'Synopsis',
       description: 'Description',
-      genus: 'Genus',
-      species: 'Species',
-      strain: 'Strain',
-      geneFamilyAssignments: 'Gene Family Assignments',
-      locations: 'Locations',
+      name: 'Name',
+      genotypes: 'Genotypes',
     };
     this.tableColumnClasses = {
       description: 'uk-table-expand',
@@ -303,17 +297,13 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
-    const formData: GeneSearchFormData = {genuses: []};
+    const formData: TraitAssociationSearchFormData = {genuses: []};
     const genus = this._getDefaultGenus();
     if (genus) {
       formData.genuses.push({genus, species: []});
       const species = this._getDefaultSpecies();
       if (species) {
-        formData.genuses[0].species.push({species, strains: []});
-        const strain = this.queryStringController.getParameter('strain');
-        if (strain) {
-          formData.genuses[0].species[0].strains.push({strain});
-        }
+        formData.genuses[0].species.push({species});
       }
     }
     this.formData = formData;
@@ -355,7 +345,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
         this._formLoadingRef.value?.success();
         this.formData = formData;
       },
-      (error: Error | Event) => {
+      (error: Error) => {
         // do nothing if the request was aborted
         if (!(error instanceof Event && error.type === 'abort')) {
           this._formLoadingRef.value?.failure();
@@ -389,16 +379,11 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
     await this.updateComplete;
 
-    const strain = this.queryStringController.getParameter('strain');
-    if (this.selectedSpecies && strain) {
-      this.selectedStrain =
-        this.formData.genuses[this.selectedGenus - 1].species[
-          this.selectedSpecies - 1
-        ].strains
-          .map(({strain}) => strain)
-          .indexOf(strain) + 1;
+    const type = this.queryStringController.getParameter('type');
+    if (type) {
+      this.selectedType = this._studyTypes.indexOf(type) + 1;
     } else {
-      this.selectedStrain = 0;
+      this.selectedType = 0;
     }
   }
 
@@ -407,7 +392,6 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     if (event.target != null) {
       this.selectedGenus = (event.target as HTMLSelectElement).selectedIndex;
       this.selectedSpecies = 0;
-      this.selectedStrain = 0;
     }
   }
 
@@ -451,10 +435,8 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   private _selectSpecies(event: Event) {
     if (event.target != null) {
       this.selectedSpecies = (event.target as HTMLSelectElement).selectedIndex;
-      this.selectedStrain = 0;
     }
   }
-
   // renders the species selector
   private _renderSpeciesSelector() {
     let options = [html``];
@@ -499,29 +481,24 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     `;
   }
 
-  // called when an strain is selected
-  private _selectStrain(event: Event) {
+  // called when a type is selected
+  private _selectType(event: Event) {
     if (event.target != null) {
-      this.selectedStrain = (event.target as HTMLSelectElement).selectedIndex;
+      this.selectedType = (event.target as HTMLSelectElement).selectedIndex;
     }
   }
 
-  // renders the strain selector
-  private _renderStrainSelector() {
-    let options = [html``];
-    if (this.selectedGenus && this.selectedSpecies) {
-      options = this.formData.genuses[this.selectedGenus - 1].species[
-        this.selectedSpecies - 1
-      ].strains.map(({strain}) => {
-        return html`<option value="${strain}">${strain}</option>`;
-      });
-    }
+  // renders the type selector
+  private _renderTypeSelector() {
+    const options = this._studyTypes.map((type) => {
+      return html`<option value="${type}">${type}</option>`;
+    });
     return html`
       <select
         class="uk-select uk-form-small"
-        name="strain"
-        .selectedIndex=${live(this.selectedStrain)}
-        @change="${this._selectStrain}"
+        name="type"
+        .selectedIndex=${live(this.selectedType)}
+        @change="${this._selectType}"
       >
         <option value="">-- any --</option>
         ${options}
@@ -535,13 +512,13 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     // render the form's selectors
     const genusSelector = this._renderGenusSelector();
     const speciesSelector = this._renderSpeciesSelector();
-    const strainSelector = this._renderStrainSelector();
+    const typeSelector = this._renderTypeSelector();
 
     // render the form
     return html`
       <form class="uk-form-stacked uk-inline">
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">Gene Search</legend>
+          <legend class="uk-legend">Trait Association Search</legend>
           <lis-loading-element
             ${ref(this._formLoadingRef)}
           ></lis-loading-element>
@@ -555,42 +532,44 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
               ${speciesSelector}
             </div>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="strain">Strain</label>
-              ${strainSelector}
+              <label class="uk-form-label" for="type">Study Type</label>
+              ${typeSelector}
             </div>
           </div>
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="identifier">Identifier</label>
+              <label class="uk-form-label" for="traits">Traits</label>
               <input
                 class="uk-input"
                 type="text"
-                name="identifier"
-                .value=${this.queryStringController.getParameter('identifier')}
+                name="traits"
+                .value=${this.queryStringController.getParameter('traits')}
               />
-              <span class="uk-text-small">e.g. Glyma.13G357700</span>
+              <span class="uk-text-small">e.g. R8 full maturity</span>
             </div>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="description">Description</label>
+              <label class="uk-form-label" for="pubId"
+                >Publication ID (DOI or PMID)</label
+              >
               <input
                 class="uk-input"
                 type="text"
-                name="description"
-                .value=${this.queryStringController.getParameter('description')}
+                name="pubId"
+                .value=${this.queryStringController.getParameter('pubid')}
               />
               <span class="uk-text-small"
-                >e.g. protein disulfide isomerase-like protein</span
+                >e.g. 10.2135/cropsci2005.05-0168</span
               >
             </div>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="family">Gene Family ID</label>
+              <label class="uk-form-label" for="author">Author</label>
               <input
                 class="uk-input"
                 type="text"
-                name="family"
-                .value=${this.queryStringController.getParameter('family')}
+                name="author"
+                .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small">e.g. L_HZ6G4Z</span>
+              <span class="uk-text-small">e.g. Blair</span>
             </div>
           </div>
           <div class="uk-margin">
@@ -606,6 +585,6 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lis-gene-search-element': LisGeneSearchElement;
+    'lis-trait-association-search-element': LisTraitAssociationSearchElement;
   }
 }
