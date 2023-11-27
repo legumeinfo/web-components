@@ -64,27 +64,27 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@web/dev-server": "^0.4.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@web/dev-server": "^0.4.1",
     "@web/dev-server-legacy": "^2.1.0",
     "@web/test-runner": "^0.18.0",
     "@web/test-runner-playwright": "^0.11.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "eslint": "^8.53.0",
+    "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "husky": "^8.0.0",
-    "lint-staged": "^15.0.2",
+    "lint-staged": "^15.1.0",
     "lit-analyzer": "^2.0.1",
     "pinst": "^3.0.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "rimraf": "^5.0.5",
-    "rollup": "^4.3.0",
-    "typedoc": "^0.25.3",
-    "typescript": "^5.2.2",
-    "uikit": "^3.17.8"
+    "rollup": "^4.6.0",
+    "typedoc": "^0.25.4",
+    "typescript": "^5.3.2",
+    "uikit": "^3.17.11"
   },
   "dependencies": {
-    "lit": "^3.0.2"
+    "lit": "^3.1.0"
   }
 }
