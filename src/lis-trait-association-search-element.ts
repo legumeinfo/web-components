@@ -229,6 +229,24 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   @property({type: String})
   species?: string;
 
+  /**
+   * An optional parameter to set the example text for the Traits input field.
+   */
+  @property({type: String})
+  traitsExampleText: string = 'R8 full maturity';
+
+  /**
+   * An optional parameter to set the example text for the Publication ID input field.
+   */
+  @property({type: String})
+  publicationExampleText: string = '10.2135/cropsci2005.05-0168';
+
+  /**
+   * An optional parameter to set the example text for the Author input field.
+   */
+  @property({type: String})
+  authorExampleText: string = 'Blair';
+
   // the selected index of the genus select element
   @state()
   private selectedGenus: number = 0;
@@ -545,7 +563,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="traits"
                 .value=${this.queryStringController.getParameter('traits')}
               />
-              <span class="uk-text-small">e.g. R8 full maturity</span>
+              <span class="uk-text-small">e.g. ${this.traitsExampleText}</span>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="pubId"
@@ -558,7 +576,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 .value=${this.queryStringController.getParameter('pubid')}
               />
               <span class="uk-text-small"
-                >e.g. 10.2135/cropsci2005.05-0168</span
+                >e.g. ${this.publicationExampleText}</span
               >
             </div>
             <div class="uk-width-1-3@s">
@@ -569,7 +587,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="author"
                 .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small">e.g. Blair</span>
+              <span class="uk-text-small">e.g. ${this.authorExampleText}</span>
             </div>
           </div>
           <div class="uk-margin">
