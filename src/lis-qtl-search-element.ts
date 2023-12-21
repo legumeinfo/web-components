@@ -114,20 +114,20 @@ export type QTLSearchFunction = (
  * ```
  *
  * @example
- * The {@link exampleTrait | `exampleTrait`} property can be used to set the
+ * The {@link traitExample | `traitExample`} property can be used to set the
  * example text in the search form. This property can be overridden via
  * JavaScript. For example:
  *
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-qtl-search-element id="qtl-search" exampleTrait="flower"></lis-qtl-search-element>
+ * <lis-qtl-search-element id="qtl-search" traitExample="flower"></lis-qtl-search-element>
  *
  * <!-- set the example text via JavaScript -->
  * <script type="text/javascript">
  * // get the qtl search element
  * const searchElement = document.getElementById('qtl-search');
- * // set the element's exampleTrait property
- * searchElement.exampleTrait = "flower";
+ * // set the element's traitExample property
+ * searchElement.traitExample = "flower";
  * </script>
  */
 @customElement('lis-qtl-search-element')
@@ -144,7 +144,7 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
    * An optional parameter to set the example trait text
    */
   @property({type: String})
-  exampleTrait: string = 'flower';
+  traitExample?: string;
 
   constructor() {
     super();
@@ -178,7 +178,8 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
       <form>
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">
-            QTL trait name search (e.g. ${this.exampleTrait})
+            QTL trait name search
+            ${this.traitExample ? `(e.g. ${this.traitExample})` : null}
           </legend>
           <div class="uk-margin">
             <input

@@ -254,19 +254,19 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    * An optional parameter to set the example text for the Traits input field.
    */
   @property({type: String})
-  traitsExample: string = 'R8 full maturity';
+  traitsExample?: string;
 
   /**
    * An optional parameter to set the example text for the Publication ID input field.
    */
   @property({type: String})
-  publicationExample: string = '10.2135/cropsci2005.05-0168';
+  publicationExample?: string;
 
   /**
    * An optional parameter to set the example text for the Author input field.
    */
   @property({type: String})
-  authorExample: string = 'Blair';
+  authorExample?: string;
 
   // the selected index of the genus select element
   @state()
@@ -584,7 +584,11 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="traits"
                 .value=${this.queryStringController.getParameter('traits')}
               />
-              <span class="uk-text-small">e.g. ${this.traitsExample}</span>
+              <span class="uk-text-small"
+                >${this.traitsExample
+                  ? `e.g. ${this.traitsExample}`
+                  : null}</span
+              >
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="pubId"
@@ -596,7 +600,11 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="pubId"
                 .value=${this.queryStringController.getParameter('pubid')}
               />
-              <span class="uk-text-small">e.g. ${this.publicationExample}</span>
+              <span class="uk-text-small"
+                >${this.publicationExample
+                  ? `e.g. ${this.publicationExample}`
+                  : null}</span
+              >
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="author">Author</label>
@@ -606,7 +614,11 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="author"
                 .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small">e.g. ${this.authorExample}</span>
+              <span class="uk-text-small"
+                >${this.authorExample
+                  ? `e.g. ${this.authorExample}`
+                  : null}</span
+              >
             </div>
           </div>
           <div class="uk-margin">

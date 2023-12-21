@@ -113,19 +113,19 @@ export type PublicationSearchFunction = (
  * ```
  *
  * @example
- * The {@link exampleTitle | `exampleTitle`} property can be used to set the
+ * The {@link titleExample | `titleExample`} property can be used to set the
  * example text in the search form. This property can be overridden via
  * JavaScript. For example:
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-publication-search-element id="publication-search" exampleTitle="expression"></lis-publication-search-element>
+ * <lis-publication-search-element id="publication-search" titleExample="expression"></lis-publication-search-element>
  *
  * <!-- set the example text via JavaScript -->
  * <script type="text/javascript">
  *  // get the publication search element
  * const searchElement = document.getElementById('publication-search');
- * // set the element's exampleTitle property
- * searchElement.exampleTitle = "expression";
+ * // set the element's titleExample property
+ * searchElement.titleExample = "expression";
  * </script>
  * ```
  */
@@ -142,7 +142,7 @@ export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
    * An optional parameter to set the example text
    */
   @property({type: String})
-  exampleTitle: string = 'expression';
+  titleExample?: string;
 
   constructor() {
     super();
@@ -174,7 +174,8 @@ export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
       <form>
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">
-            Publication title search (e.g. ${this.exampleTitle})
+            Publication title search
+            ${this.titleExample ? `(e.g.${this.titleExample})` : null}
           </legend>
           <div class="uk-margin">
             <input

@@ -111,20 +111,20 @@ export type TraitSearchFunction = (
  * ```
  *
  * @example
- * The {@link exampleTrait | `exampleTrait`} property can be used to set the
+ * The {@link traitExample | `traitExample`} property can be used to set the
  * example text in the search form. This property can be overridden via
  * JavaScript. For example:
  *
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-trait-search-element id="trait-search" exampleTrait="flower"></lis-trait-search-element>
+ * <lis-trait-search-element id="trait-search" traitExample="flower"></lis-trait-search-element>
  *
  * <!-- set the example text via JavaScript -->
  * <script type="text/javascript">
  * // get the trait search element
  * const searchElement = document.getElementById('trait-search');
- * // set the element's exampleTrait property
- * searchElement.exampleTrait = "flower";
+ * // set the element's traitExample property
+ * searchElement.traitExample = "flower";
  * </script>
  * ```
  */
@@ -142,7 +142,7 @@ export class LisTraitSearchElement extends LisPaginatedSearchMixin(LitElement)<
    * An optional parameter to set the example trait text
    */
   @property({type: String})
-  exampleTrait: string = 'flower';
+  traitExample?: string;
 
   constructor() {
     super();
@@ -164,7 +164,8 @@ export class LisTraitSearchElement extends LisPaginatedSearchMixin(LitElement)<
       <form>
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">
-            Trait name search (e.g. ${this.exampleTrait})
+            Trait name search
+            ${this.traitExample ? `(e.g. ${this.traitExample})` : null}
           </legend>
           <div class="uk-margin">
             <input

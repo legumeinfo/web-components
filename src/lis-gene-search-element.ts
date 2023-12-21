@@ -259,19 +259,19 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    * An optional parameter to set the example text for the identifier input field.
    */
   @property({type: String})
-  identifierExample: string = 'Glyma.13G357700';
+  identifierExample?: string;
 
   /**
    * An optional parameter to set the example text for the description input field.
    */
   @property({type: String})
-  descriptionExample: string = 'protein disulfide isomerase-like protein';
+  descriptionExample?: string;
 
   /**
    * An optional parameter to set the example text for the gene family input field.
    */
   @property({type: String})
-  familyExample: string = 'L_HZ6G4Z';
+  familyExample?: string;
 
   // the selected index of the genus select element
   @state()
@@ -607,7 +607,11 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="identifier"
                 .value=${this.queryStringController.getParameter('identifier')}
               />
-              <span class="uk-text-small">e.g. ${this.identifierExample}</span>
+              <span class="uk-text-small"
+                >${this.identifierExample
+                  ? `e.g. ${this.identifierExample}`
+                  : null}</span
+              >
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="description">Description</label>
@@ -617,7 +621,11 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="description"
                 .value=${this.queryStringController.getParameter('description')}
               />
-              <span class="uk-text-small">e.g. ${this.descriptionExample}</span>
+              <span class="uk-text-small"
+                >${this.descriptionExample
+                  ? `e.g. ${this.descriptionExample}`
+                  : null}</span
+              >
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="family">Gene Family ID</label>
@@ -627,7 +635,11 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="family"
                 .value=${this.queryStringController.getParameter('family')}
               />
-              <span class="uk-text-small">e.g. ${this.familyExample}</span>
+              <span class="uk-text-small"
+                >${this.familyExample
+                  ? `e.g. ${this.familyExample}`
+                  : null}</span
+              >
             </div>
           </div>
           <div class="uk-margin">
