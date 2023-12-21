@@ -1,5 +1,5 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
@@ -112,6 +112,23 @@ export type QTLSearchFunction = (
  *   };
  * </script>
  * ```
+ *
+ * @example
+ * The {@link exampleTrait | `exampleTrait`} property can be used to set the
+ * example text in the search form. This property can be overridden via
+ * JavaScript. For example:
+ *
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-qtl-search-element id="qtl-search" exampleTrait="flower"></lis-qtl-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <script type="text/javascript">
+ * // get the qtl search element
+ * const searchElement = document.getElementById('qtl-search');
+ * // set the element's exampleTrait property
+ * searchElement.exampleTrait = "flower";
+ * </script>
  */
 @customElement('lis-qtl-search-element')
 export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
@@ -122,6 +139,12 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
   static override styles = css``;
+
+  /**
+   * An optional parameter to set the example trait text
+   */
+  @property({type: String})
+  exampleTrait: string = 'flower';
 
   constructor() {
     super();
@@ -154,7 +177,9 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
     return html`
       <form>
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">QTL trait name search (e.g. flower)</legend>
+          <legend class="uk-legend">
+            QTL trait name search (e.g. ${this.exampleTrait})
+          </legend>
           <div class="uk-margin">
             <input
               name="query"
