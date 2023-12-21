@@ -584,7 +584,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
     // render the form
     return html`
-      <form class="uk-form-stacked uk-inline">
+      <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Gene Search</legend>
           <lis-loading-element

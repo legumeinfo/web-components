@@ -561,7 +561,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
 
     // render the form
     return html`
-      <form class="uk-form-stacked uk-inline">
+      <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Trait Association Search</legend>
           <lis-loading-element
