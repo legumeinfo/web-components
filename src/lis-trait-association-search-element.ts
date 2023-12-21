@@ -251,19 +251,25 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   species?: string;
 
   /**
-   * An optional parameter to set the example text for the Traits input field.
+   * An optional property to set the example text for the Traits input field.
+   *
+   * @attribute
    */
   @property({type: String})
   traitsExample?: string;
 
   /**
-   * An optional parameter to set the example text for the Publication ID input field.
+   * An optional property to set the example text for the Publication ID input field.
+   *
+   * @attribute
    */
   @property({type: String})
   publicationExample?: string;
 
   /**
-   * An optional parameter to set the example text for the Author input field.
+   * An optional property to set the example text for the author input field.
+   *
+   * @attribute
    */
   @property({type: String})
   authorExample?: string;

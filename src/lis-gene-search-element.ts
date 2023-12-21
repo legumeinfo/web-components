@@ -256,19 +256,25 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   species?: string;
 
   /**
-   * An optional parameter to set the example text for the identifier input field.
+   * An optional property to set the example text for the Identifier input field.
+   *
+   * @attribute
    */
   @property({type: String})
   identifierExample?: string;
 
   /**
-   * An optional parameter to set the example text for the description input field.
+   * An optional property to set the example text for the Description input field.
+   *
+   * @attribute
    */
   @property({type: String})
   descriptionExample?: string;
 
   /**
-   * An optional parameter to set the example text for the gene family input field.
+   * An optional property to set the example text for the Gene Family input field.
+   *
+   * @attribute
    */
   @property({type: String})
   familyExample?: string;

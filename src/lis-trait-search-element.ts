@@ -139,7 +139,9 @@ export class LisTraitSearchElement extends LisPaginatedSearchMixin(LitElement)<
   static override styles = css``;
 
   /**
-   * An optional parameter to set the example trait text
+   * An optional property to set the example text for the Trait name input field.
+   *
+   * @attribute
    */
   @property({type: String})
   traitExample?: string;

@@ -139,7 +139,9 @@ export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
   static override styles = css``;
 
   /**
-   * An optional parameter to set the example text
+   * An optional property to set the example text for the search field.
+   *
+   * @attribute
    */
   @property({type: String})
   titleExample?: string;
