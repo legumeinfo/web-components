@@ -201,12 +201,12 @@ export type GeneSearchFunction = (
  * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
  *
  * <script type="text/javascript">
- *  // get the gene search element
- * const searchElement = document.getElementById('gene-search');
- * // set the element's example text properties
- * searchElement.identifierExample = "Glyma.13G357700";
- * searchElement.descriptionExample = "protein disulfide isomerase-like protein";
- * searchElement.familyExample = "L_HZ6G4Z";
+ *   // get the gene search element
+ *   const searchElement = document.getElementById('gene-search');
+ *   // set the element's example text properties
+ *   searchElement.identifierExample = 'Glyma.13G357700';
+ *   searchElement.descriptionExample = 'protein disulfide isomerase-like protein';
+ *   searchElement.familyExample = 'L_HZ6G4Z';
  * </script>
  * ```
  */

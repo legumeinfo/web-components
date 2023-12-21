@@ -112,19 +112,20 @@ export type TraitSearchFunction = (
  *
  * @example
  * The {@link traitExample | `traitExample`} property can be used to set the
- * example text in the search form. This property can be overridden via
- * JavaScript. For example:
+ * example text in the search form. For example:
  *
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-trait-search-element id="trait-search" traitExample="flower"></lis-trait-search-element>
+ * <lis-trait-search-element traitExample="flower"></lis-trait-search-element>
  *
  * <!-- set the example text via JavaScript -->
+ * <lis-trait-search-element id="trait-search"></lis-trait-search-element>
+ *
  * <script type="text/javascript">
- * // get the trait search element
- * const searchElement = document.getElementById('trait-search');
- * // set the element's traitExample property
- * searchElement.traitExample = "flower";
+ *   // get the trait search element
+ *   const searchElement = document.getElementById('trait-search');
+ *   // set the element's traitExample property
+ *   searchElement.traitExample = 'flower';
  * </script>
  * ```
  */

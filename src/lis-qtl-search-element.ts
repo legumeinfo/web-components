@@ -115,19 +115,20 @@ export type QTLSearchFunction = (
  *
  * @example
  * The {@link traitExample | `traitExample`} property can be used to set the
- * example text in the search form. This property can be overridden via
- * JavaScript. For example:
+ * example text in the search form. For example:
  *
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-qtl-search-element id="qtl-search" traitExample="flower"></lis-qtl-search-element>
+ * <lis-qtl-search-element traitExample="flower"></lis-qtl-search-element>
  *
  * <!-- set the example text via JavaScript -->
+ * <lis-qtl-search-element id="qtl-search"></lis-qtl-search-element>
+ *
  * <script type="text/javascript">
- * // get the qtl search element
- * const searchElement = document.getElementById('qtl-search');
- * // set the element's traitExample property
- * searchElement.traitExample = "flower";
+ *   // get the qtl search element
+ *   const searchElement = document.getElementById('qtl-search');
+ *   // set the element's traitExample property
+ *   searchElement.traitExample = 'flower';
  * </script>
  */
 @customElement('lis-qtl-search-element')

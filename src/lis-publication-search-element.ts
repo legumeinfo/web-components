@@ -114,18 +114,19 @@ export type PublicationSearchFunction = (
  *
  * @example
  * The {@link titleExample | `titleExample`} property can be used to set the
- * example text in the search form. This property can be overridden via
- * JavaScript. For example:
+ * example text in the search form. For example:
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-publication-search-element id="publication-search" titleExample="expression"></lis-publication-search-element>
+ * <lis-publication-search-element titleExample="expression"></lis-publication-search-element>
  *
  * <!-- set the example text via JavaScript -->
+ * <lis-publication-search-element id="publication-search"></lis-publication-search-element>
+ *
  * <script type="text/javascript">
- *  // get the publication search element
- * const searchElement = document.getElementById('publication-search');
- * // set the element's titleExample property
- * searchElement.titleExample = "expression";
+ *   // get the publication search element
+ *   const searchElement = document.getElementById('publication-search');
+ *   // set the element's titleExample property
+ *   searchElement.titleExample = 'expression';
  * </script>
  * ```
  */

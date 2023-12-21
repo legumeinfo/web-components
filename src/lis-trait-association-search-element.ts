@@ -197,12 +197,12 @@ export type TraitAssociationSearchFunction = (
  * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
  *
  * <script type="text/javascript">
- *  // get the trait association search element
- * const searchElement = document.getElementById('trait-association-search');
- * // set the element's example text properties
- * searchElement.traitsExample = "R8 full maturity";
- * searchElement.publicationExample = "10.2135/cropsci2005.05-0168";
- * searchElement.authorExample = "Specht";
+ *   // get the trait association search element
+ *   const searchElement = document.getElementById('trait-association-search');
+ *   // set the element's example text properties
+ *   searchElement.traitsExample = 'R8 full maturity';
+ *   searchElement.publicationExample = '10.2135/cropsci2005.05-0168';
+ *   searchElement.authorExample = 'Specht';
  * </script>
  * ```
  */
