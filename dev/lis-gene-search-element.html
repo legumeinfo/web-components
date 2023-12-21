@@ -19,7 +19,7 @@
 
   <body>
 
-    <div class="uk-container">
+    <div class="uk-container uk-margin-bottom">
       <h1>&lt;lis-gene-search-element&gt;</h1>
       <p>
         The <code>&lt;lis-gene-search-element&gt;</code> provides a form for performing gene searches and displays the results in a paginated view.
@@ -41,10 +41,11 @@
         Example text for the Identifier, Description, and Gene Family ID form fields can be provided by setting the <code>identifierExample</code>, <code>descriptionExample</code>, and <code>familyExample</code> attributes/properties, respectively.
       </p>
       <hr>
+    </div>
 
+    <div class="uk-container uk-container-expand">
       <!-- the custom gene search element -->
       <lis-gene-search-element id="gene-search" identifierExample="Glyma.13G357700" descriptionExample="protein disulfide isomerase-like protein" familyExample="L_HZ6G4Z"></lis-gene-search-element>
-
     </div>
 
     <!-- set the search function by property because functions can't be set as attributes -->
