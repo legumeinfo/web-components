@@ -179,19 +179,18 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
     return html`
       <form>
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">
-            QTL trait name search
-            ${this.traitExample ? `(e.g. ${this.traitExample})` : null}
-          </legend>
+          <legend class="uk-legend">QTL trait name search</legend>
           <div class="uk-margin">
             <input
               name="query"
               class="uk-input"
               type="text"
-              placeholder="Input"
               aria-label="Input"
               .value=${this.queryStringController.getParameter('query')}
             />
+            <lis-form-input-example-element
+              .text=${this.traitExample}
+            ></lis-form-input-example-element>
           </div>
           <div class="uk-margin">
             <button type="submit" class="uk-button uk-button-primary">

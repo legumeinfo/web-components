@@ -590,11 +590,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="traits"
                 .value=${this.queryStringController.getParameter('traits')}
               />
-              <span class="uk-text-small"
-                >${this.traitsExample
-                  ? `e.g. ${this.traitsExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.traitsExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="pubId"
@@ -606,11 +604,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="pubId"
                 .value=${this.queryStringController.getParameter('pubid')}
               />
-              <span class="uk-text-small"
-                >${this.publicationExample
-                  ? `e.g. ${this.publicationExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.publicationExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="author">Author</label>
@@ -620,11 +616,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="author"
                 .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small"
-                >${this.authorExample
-                  ? `e.g. ${this.authorExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.authorExample}
+              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin">

@@ -175,19 +175,18 @@ export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
     return html`
       <form>
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">
-            Publication title search
-            ${this.titleExample ? `(e.g.${this.titleExample})` : null}
-          </legend>
+          <legend class="uk-legend">Publication title search</legend>
           <div class="uk-margin">
             <input
               name="query"
               class="uk-input"
               type="text"
-              placeholder="Input"
               aria-label="Input"
               .value=${this.queryStringController.getParameter('query')}
             />
+            <lis-form-input-example-element
+              .text=${this.titleExample}
+            ></lis-form-input-example-element>
           </div>
           <div class="uk-margin">
             <button type="submit" class="uk-button uk-button-primary">

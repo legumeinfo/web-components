@@ -613,11 +613,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="identifier"
                 .value=${this.queryStringController.getParameter('identifier')}
               />
-              <span class="uk-text-small"
-                >${this.identifierExample
-                  ? `e.g. ${this.identifierExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.identifierExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="description">Description</label>
@@ -627,11 +625,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="description"
                 .value=${this.queryStringController.getParameter('description')}
               />
-              <span class="uk-text-small"
-                >${this.descriptionExample
-                  ? `e.g. ${this.descriptionExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.descriptionExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="family">Gene Family ID</label>
@@ -641,11 +637,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="family"
                 .value=${this.queryStringController.getParameter('family')}
               />
-              <span class="uk-text-small"
-                >${this.familyExample
-                  ? `e.g. ${this.familyExample}`
-                  : null}</span
-              >
+              <lis-form-input-example-element
+                .text=${this.familyExample}
+              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin">
