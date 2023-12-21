@@ -28,7 +28,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
  * ```
  */
 @customElement('lis-form-input-example-element')
-export class LisFormInputexampleElement extends LitElement {
+export class LisFormInputExampleElement extends LitElement {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -69,6 +69,6 @@ export class LisFormInputexampleElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lis-form-input-example-element': LisFormInputexampleElement;
+    'lis-form-input-example-element': LisFormInputExampleElement;
   }
 }
