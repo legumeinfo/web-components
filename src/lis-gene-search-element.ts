@@ -188,6 +188,27 @@ export type GeneSearchFunction = (
  *   searchElement.species = "arietinum";
  * </script>
  * ```
+ *
+ * @example
+ * The {@link identifierExample | `identifierExample`}, {@link descriptionExample | `descriptionExample`},
+ * and {@link familyExample | `familyExample`} properties can be used to set the example text for the
+ * identifier, description, and gene family input fields, respectively. For example:
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-gene-search-element identifierExample="Glyma.13G357700" descriptionExample="protein disulfide isomerase-like protein" familyExample="L_HZ6G4Z"></lis-gene-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ *
+ * <script type="text/javascript">
+ *  // get the gene search element
+ * const searchElement = document.getElementById('gene-search');
+ * // set the element's example text properties
+ * searchElement.identifierExample = "Glyma.13G357700";
+ * searchElement.descriptionExample = "protein disulfide isomerase-like protein";
+ * searchElement.familyExample = "L_HZ6G4Z";
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
@@ -233,6 +254,24 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    */
   @property({type: String})
   species?: string;
+
+  /**
+   * An optional parameter to set the example text for the identifier input field.
+   */
+  @property({type: String})
+  identifierExample: string = 'Glyma.13G357700';
+
+  /**
+   * An optional parameter to set the example text for the description input field.
+   */
+  @property({type: String})
+  descriptionExample: string = 'protein disulfide isomerase-like protein';
+
+  /**
+   * An optional parameter to set the example text for the gene family input field.
+   */
+  @property({type: String})
+  familyExample: string = 'L_HZ6G4Z';
 
   // the selected index of the genus select element
   @state()
@@ -568,7 +607,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="identifier"
                 .value=${this.queryStringController.getParameter('identifier')}
               />
-              <span class="uk-text-small">e.g. Glyma.13G357700</span>
+              <span class="uk-text-small">e.g. ${this.identifierExample}</span>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="description">Description</label>
@@ -578,9 +617,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="description"
                 .value=${this.queryStringController.getParameter('description')}
               />
-              <span class="uk-text-small"
-                >e.g. protein disulfide isomerase-like protein</span
-              >
+              <span class="uk-text-small">e.g. ${this.descriptionExample}</span>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="family">Gene Family ID</label>
@@ -590,7 +627,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="family"
                 .value=${this.queryStringController.getParameter('family')}
               />
-              <span class="uk-text-small">e.g. L_HZ6G4Z</span>
+              <span class="uk-text-small">e.g. ${this.familyExample}</span>
             </div>
           </div>
           <div class="uk-margin">
