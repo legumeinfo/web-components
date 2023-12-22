@@ -184,6 +184,27 @@ export type TraitAssociationSearchFunction = (
  *   searchElement.species = "arietinum";
  * </script>
  * ```
+ *
+ * @example
+ * The {@link traitsExample | `traitsExample`}, {@link publicationExample | `publicationExample`}, and
+ * {@link authorExample | `authorExample`} properties can be used to set the example text for the
+ * Traits, Publication ID, and Author input fields, respectively. For example:
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-trait-association-search-element traitsExample="R8 full maturity" publicationExample="10.2135/cropsci2005.05-0168" authorExample="Specht"></lis-trait-association-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the trait association search element
+ *   const searchElement = document.getElementById('trait-association-search');
+ *   // set the element's example text properties
+ *   searchElement.traitsExample = 'R8 full maturity';
+ *   searchElement.publicationExample = '10.2135/cropsci2005.05-0168';
+ *   searchElement.authorExample = 'Specht';
+ * </script>
+ * ```
  */
 @customElement('lis-trait-association-search-element')
 export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
@@ -228,6 +249,30 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    */
   @property({type: String})
   species?: string;
+
+  /**
+   * An optional property to set the example text for the Traits input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  traitsExample?: string;
+
+  /**
+   * An optional property to set the example text for the Publication ID input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  publicationExample?: string;
+
+  /**
+   * An optional property to set the example text for the author input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  authorExample?: string;
 
   // the selected index of the genus select element
   @state()
@@ -516,7 +561,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
 
     // render the form
     return html`
-      <form class="uk-form-stacked uk-inline">
+      <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Trait Association Search</legend>
           <lis-loading-element
@@ -545,7 +590,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="traits"
                 .value=${this.queryStringController.getParameter('traits')}
               />
-              <span class="uk-text-small">e.g. R8 full maturity</span>
+              <lis-form-input-example-element
+                .text=${this.traitsExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="pubId"
@@ -557,9 +604,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="pubId"
                 .value=${this.queryStringController.getParameter('pubid')}
               />
-              <span class="uk-text-small"
-                >e.g. 10.2135/cropsci2005.05-0168</span
-              >
+              <lis-form-input-example-element
+                .text=${this.publicationExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="author">Author</label>
@@ -569,7 +616,9 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 name="author"
                 .value=${this.queryStringController.getParameter('author')}
               />
-              <span class="uk-text-small">e.g. Blair</span>
+              <lis-form-input-example-element
+                .text=${this.authorExample}
+              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin">

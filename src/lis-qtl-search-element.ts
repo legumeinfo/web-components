@@ -1,5 +1,5 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
@@ -112,6 +112,24 @@ export type QTLSearchFunction = (
  *   };
  * </script>
  * ```
+ *
+ * @example
+ * The {@link traitExample | `traitExample`} property can be used to set the
+ * example text in the search form. For example:
+ *
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-qtl-search-element traitExample="flower"></lis-qtl-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-qtl-search-element id="qtl-search"></lis-qtl-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the qtl search element
+ *   const searchElement = document.getElementById('qtl-search');
+ *   // set the element's traitExample property
+ *   searchElement.traitExample = 'flower';
+ * </script>
  */
 @customElement('lis-qtl-search-element')
 export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
@@ -122,6 +140,14 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
   static override styles = css``;
+
+  /**
+   * An optional property to set the example text for the QTL trait name search field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  traitExample?: string;
 
   constructor() {
     super();
@@ -154,16 +180,18 @@ export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
     return html`
       <form>
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">QTL trait name search (e.g. flower)</legend>
+          <legend class="uk-legend">QTL trait name search</legend>
           <div class="uk-margin">
             <input
               name="query"
               class="uk-input"
               type="text"
-              placeholder="Input"
               aria-label="Input"
               .value=${this.queryStringController.getParameter('query')}
             />
+            <lis-form-input-example-element
+              .text=${this.traitExample}
+            ></lis-form-input-example-element>
           </div>
           <div class="uk-margin">
             <button type="submit" class="uk-button uk-button-primary">

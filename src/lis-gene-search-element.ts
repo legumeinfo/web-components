@@ -188,6 +188,27 @@ export type GeneSearchFunction = (
  *   searchElement.species = "arietinum";
  * </script>
  * ```
+ *
+ * @example
+ * The {@link identifierExample | `identifierExample`}, {@link descriptionExample | `descriptionExample`},
+ * and {@link familyExample | `familyExample`} properties can be used to set the example text for the
+ * identifier, description, and gene family input fields, respectively. For example:
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-gene-search-element identifierExample="Glyma.13G357700" descriptionExample="protein disulfide isomerase-like protein" familyExample="L_HZ6G4Z"></lis-gene-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-gene-search-element id="gene-search"></lis-gene-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the gene search element
+ *   const searchElement = document.getElementById('gene-search');
+ *   // set the element's example text properties
+ *   searchElement.identifierExample = 'Glyma.13G357700';
+ *   searchElement.descriptionExample = 'protein disulfide isomerase-like protein';
+ *   searchElement.familyExample = 'L_HZ6G4Z';
+ * </script>
+ * ```
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
@@ -233,6 +254,30 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    */
   @property({type: String})
   species?: string;
+
+  /**
+   * An optional property to set the example text for the Identifier input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  identifierExample?: string;
+
+  /**
+   * An optional property to set the example text for the Description input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  descriptionExample?: string;
+
+  /**
+   * An optional property to set the example text for the Gene Family input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  familyExample?: string;
 
   // the selected index of the genus select element
   @state()
@@ -539,7 +584,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
 
     // render the form
     return html`
-      <form class="uk-form-stacked uk-inline">
+      <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Gene Search</legend>
           <lis-loading-element
@@ -568,7 +613,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="identifier"
                 .value=${this.queryStringController.getParameter('identifier')}
               />
-              <span class="uk-text-small">e.g. Glyma.13G357700</span>
+              <lis-form-input-example-element
+                .text=${this.identifierExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="description">Description</label>
@@ -578,9 +625,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="description"
                 .value=${this.queryStringController.getParameter('description')}
               />
-              <span class="uk-text-small"
-                >e.g. protein disulfide isomerase-like protein</span
-              >
+              <lis-form-input-example-element
+                .text=${this.descriptionExample}
+              ></lis-form-input-example-element>
             </div>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="family">Gene Family ID</label>
@@ -590,7 +637,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
                 name="family"
                 .value=${this.queryStringController.getParameter('family')}
               />
-              <span class="uk-text-small">e.g. L_HZ6G4Z</span>
+              <lis-form-input-example-element
+                .text=${this.familyExample}
+              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin">
