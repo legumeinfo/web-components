@@ -65,6 +65,7 @@ export type GeneSearchResult = {
   species: string;
   strain: string;
   geneFamilyAssignments: string[];
+  panGeneSets: string[];
   locations: string[];
 };
 
@@ -316,6 +317,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       'locations',
       'description',
       'geneFamilyAssignments',
+      'panGeneSets',
       'genus',
       'species',
       'strain',
@@ -328,6 +330,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
       species: 'Species',
       strain: 'Strain',
       geneFamilyAssignments: 'Gene Family Assignments',
+      panGeneSets: 'PanGene Sets',
       locations: 'Locations',
     };
     this.tableColumnClasses = {

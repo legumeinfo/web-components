@@ -108,6 +108,7 @@
             organism { genus species }
             strain { identifier }
             geneFamilyAssignments { geneFamily { identifier } }
+            panGeneSets { identifier }
             locations { chromosome { identifier } supercontig { identifier } start end strand }
           }
           pageInfo {
@@ -151,6 +152,9 @@
                 const geneFamilyAssignments =
                   gene.geneFamilyAssignments
                     .map(({geneFamily: {identifier}}) => identifier);
+                const panGeneSets =
+                  gene.panGeneSets
+                    .map(({identifier}) => identifier);
                 const locations =
                   gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
                     const interval = `${start}-${end} (${strand})`;
@@ -167,6 +171,7 @@
                   strain: strain.identifier,
                   ...gene,
                   geneFamilyAssignments,
+                  panGeneSets,
                   locations,
                 };
               });
