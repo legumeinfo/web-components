@@ -103,6 +103,7 @@
             organism { genus species }
             strain { identifier }
             geneFamilyAssignments { geneFamily { identifier } }
+            panGeneSets { identifier }
             locations { chromosome { identifier } supercontig { identifier } start end strand }
           }
           pageInfo {
@@ -145,8 +146,11 @@
               data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
                 const identifier = `<a href="#modal" data-gene="${gene.identifier}" uk-toggle>${gene.identifier}</a>`;
                 const geneFamilyAssignments =
-                  gene.geneFamilyAssignments
-                    .map(({geneFamily: {identifier}}) => identifier);
+                      gene.geneFamilyAssignments
+                      .map(({geneFamily: {identifier}}) => `<a href="#modal" data-genefamily="${identifier}" uk-toggle>${identifier}</a>`);
+                const panGeneSets =
+                      gene.panGeneSets
+                      .map(({identifier}) => `<a href="#modal" data-pangeneset="${identifier}" uk-toggle>${identifier}</a>`);
                 const locations =
                   gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
                     let location = `unknown`;
@@ -172,6 +176,7 @@
                   ...gene,
                   identifier,
                   geneFamilyAssignments,
+                  panGeneSets,
                   locations,
                 };
               });
@@ -205,6 +210,30 @@
       }
       `;
 
+      // gene family linkout query for the LIS GraphQL API
+      const geneFamilyLinkoutsQuery = `
+      query GeneFamilyLinkoutsQuery($identifier: ID!) {
+        geneFamilyLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // pangene set linkout query for the LIS GraphQL API
+      const panGeneSetLinkoutsQuery = `
+      query PanGeneSetLinkoutsQuery($identifier: ID!) {
+        panGeneSetLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
       // the linkout function to give to the linkout component
       function linkoutFunction({type, variables}, {abortSignal}) {
         if (type == 'gene') {
@@ -217,6 +246,16 @@
           // linkout Web Component knows how to parse: {text: string, href: string}[]
           return graphqlQuery(uri, locationLinkoutsQuery, variables, abortSignal)
             .then(({data}) => ({results: data.locationLinkouts.results}));
+        } else if (type == 'geneFamily') {
+            // returns a Promise that resolves to an array of linkout objects that the
+            // linkout Web Component knows how to parse: {text: string, href: string}[]
+            return graphqlQuery(uri, geneFamilyLinkoutsQuery, variables, abortSignal)
+                .then(({data}) => ({results: data.geneFamilyLinkouts.results}));
+        } else if (type == 'panGeneSet') {
+            // returns a Promise that resolves to an array of linkout objects that the
+            // linkout Web Component knows how to parse: {text: string, href: string}[]
+            return graphqlQuery(uri, panGeneSetLinkoutsQuery, variables, abortSignal)
+                .then(({data}) => ({results: data.panGeneSetLinkouts.results}));
         }
         return Promise.reject();
       }
@@ -233,7 +272,7 @@
         const modal = document.getElementById('modal');
         modal.addEventListener('toggle', (event) => {
           const [{$el: link}, ...uikitComponents] = event.detail;
-          const {gene, location, start, end} = link.dataset;
+          const {gene, location, start, end, genefamily, pangeneset} = link.dataset;
           let type = '';
           let variables = {};
           if (gene !== undefined) {
@@ -242,6 +281,12 @@
           } else if (location !== undefined && start !== undefined && end !== undefined) {
             type = 'location';
             variables = {identifier: location, start: parseInt(start), end: parseInt(end)};
+          } else if (genefamily !== undefined) {
+            type = 'geneFamily';
+            variables = {identifier: genefamily};
+          } else if (pangeneset !== undefined) {
+            type = 'panGeneSet';
+            variables = {identifier: pangeneset};
           }
           linkoutElement.getLinkouts({type, variables});
         });
