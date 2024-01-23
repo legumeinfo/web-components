@@ -97,24 +97,6 @@ export class LisLinkoutElement extends LitElement {
     return this;
   }
 
-  /**
-   * The query string for the linkout service.
-   * Reflect is true so that the attribute will trigger
-   * when set with JS
-   *
-   * @attribute
-   */
-  @property({type: String, reflect: true})
-  queryString: string = '';
-
-  /**
-   * The service to use from the linkout service. default: gene_linkouts
-   *
-   * @attribute
-   */
-  @property({type: String})
-  service: string = 'gene_linkouts';
-
   // the linkout callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
