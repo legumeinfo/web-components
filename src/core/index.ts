@@ -13,3 +13,4 @@ export * from './lis-pagination-element';
 export * from './lis-simple-table-element';
 export * from './lis-loading-element';
 export * from './lis-modal-element';
+export * from './lis-histogram-element';
