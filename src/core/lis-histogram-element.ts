@@ -11,7 +11,7 @@ export type HistogramData = {
 
 @customElement('lis-histogram-element')
 export class LisHistogramElement extends LitElement {
-  // bind to the tree container div element in the template
+  // bind to the histogram container div element in the template
   private _histogramContainerRef: Ref<HTMLDivElement> = createRef();
 
   // a controller that allows element resize events to be observed
@@ -25,7 +25,7 @@ export class LisHistogramElement extends LitElement {
 
   @property()
   set data(data: HistogramData[]) {
-    this._data = data; // parse data if needed here
+    this._data = data; // parse data if needed here before setting it
   }
 
   /*static override styles = css`
@@ -119,14 +119,5 @@ export class LisHistogramElement extends LitElement {
 
     // Add the y-axis
     svgContainer.append('g').call(d3.axisLeft(y));
-
-    /*const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-        const stack = d3.stack()
-            .keys(theHistogram[0].labels);
-
-        const series = stack(theHistogram.map(d => d.counts));
-
-        const tooltip = d3.select(this._histogramContainerRef.value).select('.tooltip');*/
   }
 }
