@@ -119,5 +119,22 @@ export class LisHistogramElement extends LitElement {
 
     // Add the y-axis
     svgContainer.append('g').call(d3.axisLeft(y));
+
+    // Add the x-axis label
+    svgContainer
+      .append('text')
+      .attr('transform', 'translate(' + 500 / 2 + ' ,' + (500 + 40) + ')')
+      .style('text-anchor', 'middle')
+      .text('Name');
+
+    // Add the y-axis label
+    svgContainer
+      .append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 0 - 50)
+      .attr('x', 0 - 500 / 2)
+      .attr('dy', '1em')
+      .style('text-anchor', 'middle')
+      .text('Count');
   }
 }
