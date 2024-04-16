@@ -84,8 +84,8 @@ export class LisHistogramElement extends LitElement {
     const svgContainer = d3
       .select(this._histogramContainerRef.value)
       .append('svg')
-      .attr('width', 500)
-      .attr('height', 500);
+      .attr('width', 600)
+      .attr('height', 600);
 
     const x = d3
       .scaleBand()
