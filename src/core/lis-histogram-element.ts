@@ -68,7 +68,6 @@ export class LisHistogramElement extends LitElement {
   override render() {
     this.renderHistogram(this._data);
     return html`<div
-      style="overflow: hidden;"
       ${ref(this._histogramContainerRef)}
       ${ref(this.histogramContainerReady)}
     ></div>`;
@@ -115,8 +114,8 @@ export class LisHistogramElement extends LitElement {
     svgContainer
       .append('text')
       .attr('transform', 'translate(' + 500 / 2 + ' ,' + (500 + 40) + ')')
-      .style('fill', 'black')
       .style('text-anchor', 'middle')
+      .style('fill', 'black')
       .text('Name');
 
     // Add the y-axis label
@@ -126,8 +125,8 @@ export class LisHistogramElement extends LitElement {
       .attr('y', 0 - 50)
       .attr('x', 0 - 500 / 2)
       .attr('dy', '1em')
-      .style('fill', 'black')
       .style('text-anchor', 'middle')
+      .style('fill', 'black')
       .text('Count');
 
     // Add the x-axis
