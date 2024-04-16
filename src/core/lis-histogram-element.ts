@@ -111,15 +111,6 @@ export class LisHistogramElement extends LitElement {
       .attr('height', (d) => 500 - y(d.count))
       .attr('fill', 'steelblue');
 
-    // Add the x-axis
-    svgContainer
-      .append('g')
-      .attr('transform', 'translate(0,' + 500 + ')')
-      .call(d3.axisBottom(x));
-
-    // Add the y-axis
-    svgContainer.append('g').call(d3.axisLeft(y));
-
     // Add the x-axis label
     svgContainer
       .append('text')
@@ -136,5 +127,14 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .text('Count');
+
+    // Add the x-axis
+    svgContainer
+      .append('g')
+      .attr('transform', 'translate(0,' + 500 + ')')
+      .call(d3.axisBottom(x));
+
+    // Add the y-axis
+    svgContainer.append('g').call(d3.axisLeft(y));
   }
 }
