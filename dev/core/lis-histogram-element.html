@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>LIS Web-Components - &lt;lis-modal-element&gt;</title>
+  <!-- CSS framework -->
+  <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+  <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
+  <!-- web components polyfills -->
+  <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+  <script src="../../node_modules/lit/polyfill-support.js"></script>
+  <!-- web components -->
+  <script type="module" src="../../dist/web-components.min.js"></script>
+</head>
+
+<body>
+
+  <div class="uk-container">
+    <h1>&lt;lis-histogram-element&gt;</h1>
+    <p>
+      The <code>&lt;lis-histogram-element&gt;</code> the <code>&lt;lis-simple-table-element&gt;</code> web component.
+      See the source code and documentation for details.
+    </p>
+    <hr>
+      <lis-simple-table-element id="table"></lis-simple-table-element>
+  </div>
+
+  <!--Set all attributes/properties via JavaScript for lis-simple-table-element-->
+  <script type="text/javascript">
+    // get the simple table element
+   window.onload = (event) => {
+    const tableElement = document.getElementById('table');
+    // set the element's properties
+    tableElement.caption = 'My cheesy table';
+    tableElement.dataAttributes = ['cheese', 'region', 'raing'];
+    tableElement.header = {cheese: 'Cheese', region: 'Region', rating: 'Rating'};
+    tableElement.data = [
+      {cheese: 'Brie', region: 'France', rating: 7},
+      {cheese: 'Burrata', region: 'Italy', rating: 8},
+      {cheese: 'Feta', region: 'Greece', rating: 7},
+      {cheese: 'Gouda', region: 'Netherlands', rating: 9},
+      {cheese: 'Cheddar', region: 'America', raing: 6},
+      {cheese: 'Goat', region: 'America', raing: 2}
+    ];
+   }
+  </script>
+
+</body>
+
+</html>
