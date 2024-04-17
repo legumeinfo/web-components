@@ -146,7 +146,9 @@ export class LisHistogramElement extends LitElement {
       .attr('y', (d) => y(d.count))
       .attr('width', x.bandwidth())
       .attr('height', (d) => height - y(d.count))
-      .attr('fill', 'steelblue');
+      .attr('fill', 'steelblue')
+      .append('title') // append a title element to each rectangle
+      .text((d) => `${this._xlabel}: ${d.name}, ${this._ylabel}: ${d.count}`); // set the text of the title
 
     // Add the x-axis label
     svgContainer
