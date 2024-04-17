@@ -23,9 +23,25 @@ export class LisHistogramElement extends LitElement {
   @state()
   private _data: HistogramData[] = [];
 
+  @state()
+  private _xlabel: string = 'X-axis';
+
+  @state()
+  private _ylabel: string = 'Y-axis';
+
   @property()
   set data(data: HistogramData[]) {
     this._data = data; // parse data if needed here before setting it
+  }
+
+  @property()
+  set xlabel(xlabel: string) {
+    this._xlabel = xlabel; // format axis label if needed here before setting it
+  }
+
+  @property()
+  set ylabel(ylabel: string) {
+    this._ylabel = ylabel; // format axis label if needed here before setting it
   }
 
   /*static override styles = css`
@@ -125,7 +141,7 @@ export class LisHistogramElement extends LitElement {
       )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text('Name');
+      .text(this._xlabel || 'X-axis');
 
     // Add the y-axis label
     svgContainer
@@ -136,7 +152,7 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text('Count');
+      .text(this._ylabel || 'Y-axis');
 
     // Add the x-axis
     svgContainer
