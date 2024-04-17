@@ -119,7 +119,10 @@ export class LisHistogramElement extends LitElement {
     // Add the x-axis label
     svgContainer
       .append('text')
-      .attr('transform', 'translate(' + 500 / 2 + ' ,' + (500 + 40) + ')')
+      .attr(
+        'transform',
+        'translate(' + width / 2 + ' ,' + (height + padding) + ')',
+      )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
       .text('Name');
@@ -128,8 +131,8 @@ export class LisHistogramElement extends LitElement {
     svgContainer
       .append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 50)
-      .attr('x', 500 / 2)
+      .attr('y', 0 - padding)
+      .attr('x', 0 - height / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
