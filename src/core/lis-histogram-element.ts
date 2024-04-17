@@ -81,22 +81,28 @@ export class LisHistogramElement extends LitElement {
     this._histogramContainerRef.value.innerHTML = '';
     //const histogramContainer = d3.select(this._histogramContainerRef.value);
 
+    const padding = 50; // padding around the SVG
+    const width = 500 - 2 * padding; // adjust width
+    const height = 500 - 2 * padding; // adjust height
+
     const svgContainer = d3
       .select(this._histogramContainerRef.value)
       .append('svg')
-      .attr('width', 500)
-      .attr('height', 500);
+      .attr('width', width + 2 * padding)
+      .attr('height', height + 2 * padding)
+      .append('g')
+      .attr('transform', `translate(${padding}, ${padding})`);
 
     const x = d3
       .scaleBand()
       .domain(theHistogram.map((d) => d.name))
-      .range([0, 500])
+      .range([0, width])
       .padding(0.1);
 
     const y = d3
       .scaleLinear()
       .domain([0, d3.max(theHistogram, (d) => d.count) as number])
-      .range([500, 0]);
+      .range([height, 0]);
 
     // Create the bars
     svgContainer
@@ -122,8 +128,8 @@ export class LisHistogramElement extends LitElement {
     svgContainer
       .append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - 50)
-      .attr('x', 0 - 500 / 2)
+      .attr('y', 50)
+      .attr('x', 500 / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
