@@ -29,6 +29,12 @@ export class LisHistogramElement extends LitElement {
   @state()
   private _ylabel: string = 'Y-axis';
 
+  @state()
+  private _width: number = 500;
+
+  @state()
+  private _height: number = 500;
+
   @property()
   set data(data: HistogramData[]) {
     this._data = data; // parse data if needed here before setting it
@@ -42,6 +48,16 @@ export class LisHistogramElement extends LitElement {
   @property()
   set ylabel(ylabel: string) {
     this._ylabel = ylabel; // format axis label if needed here before setting it
+  }
+
+  @property()
+  set width(width: number) {
+    this._width = +width; // format number width
+  }
+
+  @property()
+  set height(height: number) {
+    this._height = +height; // format number height
   }
 
   /*static override styles = css`
@@ -98,8 +114,8 @@ export class LisHistogramElement extends LitElement {
     //const histogramContainer = d3.select(this._histogramContainerRef.value);
 
     const padding = 50; // padding around the SVG
-    const width = 500 - 2 * padding; // adjust width
-    const height = 500 - 2 * padding; // adjust height
+    const width = this._width - 2 * padding; // adjust width
+    const height = this._height - 2 * padding; // adjust height
 
     const svgContainer = d3
       .select(this._histogramContainerRef.value)
