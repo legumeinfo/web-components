@@ -113,7 +113,7 @@ export class LisHistogramElement extends LitElement {
       .attr('x', (d) => x(d.name) as number)
       .attr('y', (d) => y(d.count))
       .attr('width', x.bandwidth())
-      .attr('height', (d) => 500 - y(d.count))
+      .attr('height', (d) => height - y(d.count))
       .attr('fill', 'steelblue');
 
     // Add the x-axis label
@@ -138,7 +138,7 @@ export class LisHistogramElement extends LitElement {
     // Add the x-axis
     svgContainer
       .append('g')
-      .attr('transform', 'translate(0,' + 500 + ')')
+      .attr('transform', 'translate(0,' + height + ')')
       .call(d3.axisBottom(x));
 
     // Add the y-axis
