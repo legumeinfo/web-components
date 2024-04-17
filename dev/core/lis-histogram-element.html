@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>LIS Web-Components - &lt;lis-modal-element&gt;</title>
+  <title>LIS Web-Components - &lt;lis-histogram-element&gt;</title>
   <!-- CSS framework -->
   <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
   <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
@@ -12,12 +12,12 @@
   <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
   <script src="../../node_modules/lit/polyfill-support.js"></script>
   <!-- web components -->
-  <script type="module" src="../../dist/web-components.min.js"></script>
+  <script type="module" src="../../lib/index.js"></script>
 </head>
 
 <body>
 
-  <div class="uk-container">
+  <div class="uk-container" style="overflow: visible; text-align: center">
     <h1>&lt;lis-histogram-element&gt;</h1>
     <p>
       The <code>&lt;lis-histogram-element&gt;</code> the <code>&lt;lis-simple-table-element&gt;</code> web component.
@@ -25,6 +25,7 @@
     </p>
     <hr>
       <lis-simple-table-element id="table"></lis-simple-table-element>
+      <lis-histogram-element id="histogram"></lis-histogram-element>
   </div>
 
   <!--Set all attributes/properties via JavaScript for lis-simple-table-element-->
@@ -34,17 +35,22 @@
     const tableElement = document.getElementById('table');
     // set the element's properties
     tableElement.caption = 'My cheesy table';
-    tableElement.dataAttributes = ['cheese', 'region', 'raing'];
+    tableElement.dataAttributes = ['cheese', 'region', 'rating'];
     tableElement.header = {cheese: 'Cheese', region: 'Region', rating: 'Rating'};
     tableElement.data = [
       {cheese: 'Brie', region: 'France', rating: 7},
       {cheese: 'Burrata', region: 'Italy', rating: 8},
       {cheese: 'Feta', region: 'Greece', rating: 7},
       {cheese: 'Gouda', region: 'Netherlands', rating: 9},
-      {cheese: 'Cheddar', region: 'America', raing: 6},
-      {cheese: 'Goat', region: 'America', raing: 2}
+      {cheese: 'Cheddar', region: 'America', rating: 6},
+      {cheese: 'Goat', region: 'America', rating: 2}
     ];
-   }
+    
+    const histoElement = document.getElementById('histogram');
+    histoElement.xlabel = 'Cheese';
+    histoElement.ylabel = 'Rating';
+    histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
+   } 
   </script>
 
 </body>
