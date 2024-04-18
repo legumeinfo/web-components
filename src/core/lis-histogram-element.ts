@@ -60,6 +60,8 @@ export class LisHistogramElement extends LitElement {
     this._height = +height; // format number height
   }
 
+  @property()
+  orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
   /*static override styles = css`
         :host {
             display: block;
@@ -134,7 +136,7 @@ export class LisHistogramElement extends LitElement {
     const y = d3
       .scaleLinear()
       .domain([0, d3.max(theHistogram, (d) => d.count) as number])
-      .range([height, 0]);
+      .range(this.orientation === 'vertical' ? [0, height] : [height, 0]);
 
     // Create the bars
     svgContainer
@@ -142,10 +144,18 @@ export class LisHistogramElement extends LitElement {
       .data(theHistogram)
       .enter()
       .append('rect')
-      .attr('x', (d) => x(d.name) as number)
-      .attr('y', (d) => y(d.count))
-      .attr('width', x.bandwidth())
-      .attr('height', (d) => height - y(d.count))
+      .attr('x', (d) =>
+        this.orientation === 'vertical' ? 0 : (x(d.name) as number),
+      )
+      .attr('y', (d) =>
+        this.orientation === 'vertical' ? (x(d.name) as number) : y(d.count),
+      )
+      .attr('width', (d) =>
+        this.orientation === 'vertical' ? y(d.count) : x.bandwidth(),
+      )
+      .attr('height', (d) =>
+        this.orientation === 'vertical' ? x.bandwidth() : height - y(d.count),
+      )
       .attr('fill', 'steelblue')
       .append('title') // append a title element to each rectangle
       .text((d) => `${this._xlabel}: ${d.name}, ${this._ylabel}: ${d.count}`); // set the text of the title
@@ -155,11 +165,11 @@ export class LisHistogramElement extends LitElement {
       .append('text')
       .attr(
         'transform',
-        'translate(' + width / 2 + ' ,' + (height + padding) + ')',
+        'translate(' + width / 2 + ' ,' + (height + padding - 5) + ')',
       )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this._xlabel || 'X-axis');
+      .text(this.orientation === 'vertical' ? this._ylabel : this._xlabel);
 
     // Add the y-axis label
     svgContainer
@@ -170,15 +180,32 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this._ylabel || 'Y-axis');
+      .text(this.orientation === 'vertical' ? this._xlabel : this._ylabel);
 
     // Add the x-axis
     svgContainer
       .append('g')
-      .attr('transform', 'translate(0,' + height + ')')
-      .call(d3.axisBottom(x));
+      .attr(
+        'transform',
+        this.orientation === 'vertical'
+          ? 'translate(0,0)'
+          : `translate(0,${height})`,
+      )
+      .call(
+        this.orientation === 'vertical' ? d3.axisLeft(x) : d3.axisBottom(x),
+      );
 
     // Add the y-axis
-    svgContainer.append('g').call(d3.axisLeft(y));
+    svgContainer
+      .append('g')
+      .attr(
+        'transform',
+        this.orientation === 'vertical'
+          ? `translate(0,${height})`
+          : 'translate(0,0)',
+      )
+      .call(
+        this.orientation === 'vertical' ? d3.axisBottom(y) : d3.axisLeft(y),
+      );
   }
 }

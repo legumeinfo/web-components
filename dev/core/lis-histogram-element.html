@@ -51,6 +51,7 @@
     histoElement.height = 500;
     histoElement.xlabel = 'Cheese';
     histoElement.ylabel = 'Rating';
+    histoElement.orientation = 'vertical';
     histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
    } 
   </script>
