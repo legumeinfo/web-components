@@ -4,6 +4,65 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {LisResizeObserverController} from '../controllers';
 import * as d3 from 'd3';
 
+/**
+ * @htmlElement `<lis-histogram-element>` is a custom web component for creating histograms using D3.js.
+ *
+ * @example
+ * Attributes:
+ * - {@link data | `data`}: An array of objects where each object represents a bar in the histogram. Each object should have a `name` and `count` property.
+ * - {@link xlabel | `xlabel`}: The label for the x-axis.
+ * - {@link ylabel | `ylabel`}: The label for the y-axis.
+ * - {@link width | `width`}: The width of the histogram in pixels.
+ * - {@link height | `height`}: The height of the histogram in pixels.
+ * - {@link orientation | `orientation`}: The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
+ *
+ * Example using JavaScript and HTML driven using `<lis-simple-table-element>`:
+ *
+ * ```html
+ * <lis-simple-table-element id="table"></lis-simple-table-element>
+ * <lis-histogram-element id="histogram"></lis-histogram-element>
+ *
+ * <script type="text/javascript">
+ *     // get the simple table element
+ *    window.onload = (event) => {
+ *     const tableElement = document.getElementById('table');
+ *     // set the element's properties
+ *     tableElement.caption = 'My cheesy table';
+ *     tableElement.dataAttributes = ['cheese', 'region', 'rating'];
+ *     tableElement.header = {cheese: 'Cheese', region: 'Region', rating: 'Rating'};
+ *     tableElement.data = [
+ *       {cheese: 'Brie', region: 'France', rating: 7},
+ *       {cheese: 'Burrata', region: 'Italy', rating: 8},
+ *       {cheese: 'Feta', region: 'Greece', rating: 7},
+ *       {cheese: 'Gouda', region: 'Netherlands', rating: 9},
+ *       {cheese: 'Cheddar', region: 'America', rating: 6},
+ *       {cheese: 'Goat', region: 'America', rating: 2}
+ *     ];
+ *
+ *     const histoElement = document.getElementById('histogram');
+ *     histoElement.width = 500;
+ *     histoElement.height = 500;
+ *     histoElement.xlabel = 'Cheese';
+ *     histoElement.ylabel = 'Rating';
+ *     histoElement.orientation = 'vertical';
+ *     histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
+ *    }
+ *   </script>
+ * ```
+ *
+ * Example using only html:
+ * ```html
+ * <lis-histogram-element
+ *   data='[{"name": "A", "count": 10}, {"name": "B", "count": 20}]'
+ *   xlabel='Category'
+ *   ylabel='Count'
+ *   width='500'
+ *   height='500'
+ *   orientation='vertical'>
+ * </lis-histogram-element>
+ * ```
+ */
+
 export type HistogramData = {
   name: string;
   count: number;
@@ -35,31 +94,69 @@ export class LisHistogramElement extends LitElement {
   @state()
   private _height: number = 500;
 
+  /**
+   * The data to display in the histogram. Only attributes defined in the
+   * {@link dataAttributes | `dataAttributes`} property will be parsed from the
+   * objects.
+   *
+   * @attribute
+   * @link HistogramData
+   */
   @property()
   set data(data: HistogramData[]) {
     this._data = data; // parse data if needed here before setting it
   }
 
+  /**
+   * The label for the x-axis.
+   *
+   * @attribute
+   * @link _xlabel
+   */
   @property()
   set xlabel(xlabel: string) {
     this._xlabel = xlabel; // format axis label if needed here before setting it
   }
 
+  /**
+   * The label for the y-axis.
+   *
+   * @attribute
+   * @link _ylabel
+   */
   @property()
   set ylabel(ylabel: string) {
     this._ylabel = ylabel; // format axis label if needed here before setting it
   }
 
+  /**
+   * The width of the histogram in pixels.
+   *
+   * @attribute
+   * @link _width
+   */
   @property()
   set width(width: number) {
     this._width = +width; // format number width
   }
 
+  /**
+   * The height of the histogram in pixels.
+   *
+   * @attribute
+   * @link _height
+   */
   @property()
   set height(height: number) {
     this._height = +height; // format number height
   }
 
+  /**
+   * The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
+   *
+   * @attribute
+   * @link orientation
+   */
   @property()
   orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
 
