@@ -114,8 +114,9 @@ export class LisHistogramElement extends LitElement {
     if (!this._histogramContainerRef.value) return;
     this._histogramContainerRef.value.innerHTML = '';
     //const histogramContainer = d3.select(this._histogramContainerRef.value);
-
-    const padding = 50; // padding around the SVG
+    const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;
+    if (!maxLabelLength) return;
+    const padding = 9 * maxLabelLength; // padding around the SVG
     const width = this._width - 2 * padding; // adjust width
     const height = this._height - 2 * padding; // adjust height
 
@@ -175,7 +176,7 @@ export class LisHistogramElement extends LitElement {
     svgContainer
       .append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - padding)
+      .attr('y', 0 - padding - 5)
       .attr('x', 0 - height / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
