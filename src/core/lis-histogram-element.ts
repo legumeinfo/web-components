@@ -62,25 +62,6 @@ export class LisHistogramElement extends LitElement {
 
   @property()
   orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
-  /*static override styles = css`
-        :host {
-            display: block;
-            padding: 16px;
-        }
-        .tooltip {
-            position: absolute;
-            text-align: center;
-            width: 60px;
-            height: 28px;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
-            pointer-events: none;
-            opacity: 0;
-        }
-    `;*/
 
   private resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
@@ -113,7 +94,6 @@ export class LisHistogramElement extends LitElement {
   renderHistogram(theHistogram: HistogramData[]) {
     if (!this._histogramContainerRef.value) return;
     this._histogramContainerRef.value.innerHTML = '';
-    //const histogramContainer = d3.select(this._histogramContainerRef.value);
     const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;
     if (!maxLabelLength) return;
     const padding = 9 * maxLabelLength; // padding around the SVG
