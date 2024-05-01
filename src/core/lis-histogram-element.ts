@@ -2,6 +2,7 @@ import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {LisResizeObserverController} from '../controllers';
+import {HistogramDataModel} from '../models';
 import * as d3 from 'd3';
 
 /**
@@ -62,12 +63,6 @@ import * as d3 from 'd3';
  * </lis-histogram-element>
  * ```
  */
-
-export type HistogramData = {
-  name: string;
-  count: number;
-};
-
 @customElement('lis-histogram-element')
 export class LisHistogramElement extends LitElement {
   // bind to the histogram container div element in the template
@@ -80,7 +75,7 @@ export class LisHistogramElement extends LitElement {
   );
 
   @state()
-  private _data: HistogramData[] = [];
+  private _data: HistogramDataModel[] = [];
 
   @state()
   private _xlabel: string = 'X-axis';
@@ -95,15 +90,12 @@ export class LisHistogramElement extends LitElement {
   private _height: number = 500;
 
   /**
-   * The data to display in the histogram. Only attributes defined in the
-   * {@link dataAttributes | `dataAttributes`} property will be parsed from the
-   * objects.
+   * The data to display in the histogram.
    *
    * @attribute
-   * @link HistogramData
    */
   @property()
-  set data(data: HistogramData[]) {
+  set data(data: HistogramDataModel[]) {
     this._data = data; // parse data if needed here before setting it
   }
 
@@ -111,7 +103,6 @@ export class LisHistogramElement extends LitElement {
    * The label for the x-axis.
    *
    * @attribute
-   * @link _xlabel
    */
   @property()
   set xlabel(xlabel: string) {
@@ -122,7 +113,6 @@ export class LisHistogramElement extends LitElement {
    * The label for the y-axis.
    *
    * @attribute
-   * @link _ylabel
    */
   @property()
   set ylabel(ylabel: string) {
@@ -133,7 +123,6 @@ export class LisHistogramElement extends LitElement {
    * The width of the histogram in pixels.
    *
    * @attribute
-   * @link _width
    */
   @property()
   set width(width: number) {
@@ -144,7 +133,6 @@ export class LisHistogramElement extends LitElement {
    * The height of the histogram in pixels.
    *
    * @attribute
-   * @link _height
    */
   @property()
   set height(height: number) {
@@ -155,7 +143,6 @@ export class LisHistogramElement extends LitElement {
    * The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
    *
    * @attribute
-   * @link orientation
    */
   @property()
   orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
@@ -188,7 +175,7 @@ export class LisHistogramElement extends LitElement {
     return this;
   }
 
-  renderHistogram(theHistogram: HistogramData[]) {
+  renderHistogram(theHistogram: HistogramDataModel[]) {
     if (!this._histogramContainerRef.value) return;
     this._histogramContainerRef.value.innerHTML = '';
     const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;

@@ -6,3 +6,4 @@
  */
 export * from './lis-alert-modifier-model';
 export * from './lis-string-object-model';
+export * from './lis-histogram-data-model';
