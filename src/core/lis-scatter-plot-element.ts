@@ -195,6 +195,17 @@ export class LisScatterPlotElement extends LitElement {
       .domain([0, d3.max(data, (d) => d[1]) as number])
       .range([height, 0]);
 
+    // add the scatter plot points
+    svgContainer
+      .selectAll('circle')
+      .data(data)
+      .enter()
+      .append('circle')
+      .attr('cx', (d) => x(d[0]))
+      .attr('cy', (d) => y(d[1]))
+      .attr('r', 5)
+      .style('fill', 'steelblue');
+
     // Add the x-axis
     svgContainer
       .append('g')
