@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-gene-search-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./services-dscensor.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container uk-margin-bottom">
+      <h1>&lt;dscensor-element&gt;</h1>
+      <p>
+        The <code>&lt;dscensor-element&gt;</code> is developmental and serves to eventually replace the existing multiQC view.
+      </p>
+      <hr>
+    </div>
+
+    <div class="uk-container uk-container-expand">
+      <div class="uk-container uk-container-expand">
+      <form id="dscensor-form">
+        <label for="genera">Genera:</label>
+        <select id="genera" name="genera">
+        </select>
+        <input type="submit" value="Submit">
+      </form>
+      </div>
+      <lis-simple-table-element id="dscensor-table"></lis-simple-table-element>
+      <lis-histogram-element id="dscensor-histogram"></lis-histogram-element>
+    </div>
+
+    <!-- set the search function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+      // get the simple table element
+      window.onload = (event) => {
+        const form = document.getElementById('dscensor-form');
+        form.addEventListener('submit', (event) => dscensorSubmit(event));
+
+	const dropdown = document.getElementById('genera');
+
+	const genera = dscensorQuery(getGenus);
+	  genera.then((g) => { g.forEach((genera) => {
+            const option = document.createElement('option');
+            option.value = genera;
+            option.text = genera;
+            dropdown.appendChild(option);
+          });
+	});
+      }
+
+      function dscensorSubmit(event){
+        const genera = document.getElementById('genera');
+        const query = 'genomes?genus=' + genera.options[genera.selectedIndex].value;
+	const customUrl = uri + query;
+        const data = dscensorFormQuery(event, customUrl);
+        data.then((ds) => {
+          const formatted = ds.map(d => (flatten(d)));
+          console.log(formatted);
+          const dataAttributes = Object.keys(formatted[0]);
+
+		let index = dataAttributes.indexOf('url');
+                if (index > -1) { // only splice array when item is found
+                  dataAttributes.splice(index, 1); // 2nd parameter means remove one item only
+                }
+		index = dataAttributes.indexOf('derived_from');
+                if (index > -1) { // only splice array when item is found
+                  dataAttributes.splice(index, 1); // 2nd parameter means remove one item only
+                }
+
+          const labels = {}
+                dataAttributes.map((d) => labels[[d]] = d);
+          console.log(dataAttributes, labels);
+          const tableElement = document.getElementById('dscensor-table');
+          // set the element's properties
+          tableElement.caption = 'DSCensor Test';
+          tableElement.dataAttributes = dataAttributes;
+          tableElement.header = labels;
+          tableElement.data = formatted;
+          const histoElement = document.getElementById('dscensor-histogram');
+          histoElement.width = 1000;
+          histoElement.height = 1000;
+          histoElement.ylabel = 'Complete BUSCOs';
+          histoElement.xlabel = 'Genome';
+          histoElement.data = tableElement.data.map((d) => ({"name": d.filename, "count": d.complete_buscos}));
+       });
+      }
+    </script>
+
+  </body>
+
+</html>

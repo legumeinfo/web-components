@@ -248,7 +248,7 @@ export class LisHistogramElement extends LitElement {
       .text(this.orientation === 'vertical' ? this._xlabel : this._ylabel);
 
     // Add the x-axis
-    svgContainer
+    const xAxis = svgContainer
       .append('g')
       .attr(
         'transform',
@@ -259,6 +259,12 @@ export class LisHistogramElement extends LitElement {
       .call(
         this.orientation === 'vertical' ? d3.axisLeft(x) : d3.axisBottom(x),
       );
+
+    // Rotate the x-axis labels
+    xAxis
+      .selectAll('text')
+      .attr('transform', 'rotate(-45)')
+      .style('text-anchor', 'end');
 
     // Add the y-axis
     svgContainer
