@@ -1,5 +1,5 @@
-import {LitElement, html} from 'lit';
-import {customElement, property, state} from 'lit/decorators.js';
+import {LitElement, html, css} from 'lit';
+import {customElement, property} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {HistogramDataModel} from '../models';
 import * as d3 from 'd3';
