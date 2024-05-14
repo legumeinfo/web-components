@@ -71,6 +71,7 @@
     "@web/test-runner": "^0.18.0",
     "@web/test-runner-playwright": "^0.11.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
+    "@types/d3": "^7.4.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "husky": "^8.0.0",
@@ -84,9 +85,10 @@
     "typescript": "^5.3.3",
     "uikit": "^3.17.11"
   },
+  "peerDependencies": {
+    "d3": "^7.9.0"
+  },
   "dependencies": {
-    "@types/d3": "^7.4.3",
-    "d3": "^7.9.0",
     "lit": "^3.1.1"
   }
 }

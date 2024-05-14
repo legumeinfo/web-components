@@ -236,11 +236,14 @@ export class LisHistogramElement extends LitElement {
       .style('fill', 'black')
       .text(this.orientation === 'vertical' ? this._ylabel : this._xlabel);
 
+    // Calculate dynamic padding based on the length of the y-axis label
+    const dynamicPadding = Math.max(this._ylabel.length * 6, padding); // assuming 6px per character
+
     // Add the y-axis label
     svgContainer
       .append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - padding - 5)
+      .attr('y', 0 - dynamicPadding - 5)
       .attr('x', 0 - height / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
