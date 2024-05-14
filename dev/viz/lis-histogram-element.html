@@ -16,13 +16,12 @@
 </head>
 
 <body>
-  <div class="uk-container" style="overflow: visible;">
+  <div class="uk-container">
     <h1>&lt;lis-histogram-element&gt;</h1>
     <p>
       The <code>&lt;lis-histogram-element&gt;</code> provides a generic component for rendering a histogram using <a href="https://d3js.org/">D3.js</a>.
-
-      <br><br>
-
+    </p>
+    <p>
       In the example below, the 'Rating' and 'Cheese' columns from the <code>&lt;lis-simple-table-element&gt;</code> are used
       to generate the histogram.
     </p>
@@ -48,13 +47,14 @@
       {cheese: 'Goat', region: 'America', rating: 2}
     ];
     
-    const histoElement = document.getElementById('histogram');
-    histoElement.width = 500;
-    histoElement.height = 500;
-    histoElement.xlabel = 'Cheese';
-    histoElement.ylabel = 'Rating';
-    histoElement.orientation = 'vertical';
-    histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
+    const histogramData = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
+    const histogramElement = document.getElementById('histogram');
+    histogramElement.width = 500;
+    histogramElement.height = 500;
+    histogramElement.xlabel = 'Cheese';
+    histogramElement.ylabel = 'Rating';
+    histogramElement.orientation = 'vertical';
+    histogramElement.data = histogramData;
    } 
   </script>
 
