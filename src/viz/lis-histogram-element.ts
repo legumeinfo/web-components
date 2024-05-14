@@ -1,12 +1,13 @@
 import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
-import {LisResizeObserverController} from '../controllers';
 import {HistogramDataModel} from '../models';
 import * as d3 from 'd3';
 
 /**
- * @htmlElement `<lis-histogram-element>` is a custom web component for creating histograms using D3.js.
+ * @htmlElement `<lis-histogram-element>`
+ *
+ * is a custom web component for creating histograms using D3.js.
  *
  * @example
  * Attributes:
@@ -65,29 +66,18 @@ import * as d3 from 'd3';
  */
 @customElement('lis-histogram-element')
 export class LisHistogramElement extends LitElement {
-  // bind to the histogram container div element in the template
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
+
+  /** @ignore */
+  // disable Shadow DOM to inherit global styles
+  override createRenderRoot() {
+    return this;
+  }
+
   private _histogramContainerRef: Ref<HTMLDivElement> = createRef();
-
-  // a controller that allows element resize events to be observed
-  protected resizeObserverController = new LisResizeObserverController(
-    this,
-    this.resize,
-  );
-
-  @state()
-  private _data: HistogramDataModel[] = [];
-
-  @state()
-  private _xlabel: string = 'X-axis';
-
-  @state()
-  private _ylabel: string = 'Y-axis';
-
-  @state()
-  private _width: number = 500;
-
-  @state()
-  private _height: number = 500;
 
   /**
    * The data to display in the histogram.
@@ -95,84 +85,53 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property()
-  set data(data: HistogramDataModel[]) {
-    this._data = data; // parse data if needed here before setting it
-  }
+  data: HistogramDataModel[] = [];
 
   /**
    * The label for the x-axis.
    *
    * @attribute
    */
-  @property()
-  set xlabel(xlabel: string) {
-    this._xlabel = xlabel; // format axis label if needed here before setting it
-  }
+  @property({type: String})
+  xlabel: string = 'Name';
 
   /**
    * The label for the y-axis.
    *
    * @attribute
    */
-  @property()
-  set ylabel(ylabel: string) {
-    this._ylabel = ylabel; // format axis label if needed here before setting it
-  }
+  @property({type: String})
+  ylabel: string = 'Count';
 
   /**
    * The width of the histogram in pixels.
    *
    * @attribute
    */
-  @property()
-  set width(width: number) {
-    this._width = +width; // format number width
-  }
+  @property({type: Number})
+  width: number = 500;
 
   /**
    * The height of the histogram in pixels.
    *
    * @attribute
    */
-  @property()
-  set height(height: number) {
-    this._height = +height; // format number height
-  }
+  @property({type: Number})
+  height: number = 500;
 
   /**
-   * The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
+   * The orientation of the histogram. Can be either 'horizontal' or 'vertical'.
    *
    * @attribute
    */
-  @property()
-  orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
+  @property({type: String})
+  orientation: 'horizontal' | 'vertical' = 'horizontal';
 
-  private resize(entries: ResizeObserverEntry[]) {
-    entries.forEach((entry: ResizeObserverEntry) => {
-      if (
-        entry.target == this._histogramContainerRef.value &&
-        entry.contentBoxSize
-      ) {
-        this.requestUpdate();
-      }
-    });
-  }
-
-  private histogramContainerReady() {
-    if (this._histogramContainerRef.value) {
-      this.resizeObserverController.observe(this._histogramContainerRef.value);
-    }
-  }
-
+  /** @ignore */
+  // used by Lit to draw the template
   override render() {
-    this.renderHistogram(this._data);
-    return html`<div
-      ${ref(this._histogramContainerRef)}
-      ${ref(this.histogramContainerReady)}
-    ></div>`;
-  }
-  override createRenderRoot() {
-    return this;
+    this.renderHistogram(this.data);
+    return html`<div ${ref(this._histogramContainerRef)}></div>`;
   }
 
   renderHistogram(theHistogram: HistogramDataModel[]) {
@@ -181,8 +140,8 @@ export class LisHistogramElement extends LitElement {
     const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;
     if (!maxLabelLength) return;
     const padding = 9 * maxLabelLength; // padding around the SVG
-    const width = this._width - 2 * padding; // adjust width
-    const height = this._height - 2 * padding; // adjust height
+    const width = this.width - 2 * padding; // adjust width
+    const height = this.height - 2 * padding; // adjust height
 
     const svgContainer = d3
       .select(this._histogramContainerRef.value)
@@ -223,7 +182,7 @@ export class LisHistogramElement extends LitElement {
       )
       .attr('fill', 'steelblue')
       .append('title') // append a title element to each rectangle
-      .text((d) => `${this._xlabel}: ${d.name}, ${this._ylabel}: ${d.count}`); // set the text of the title
+      .text((d) => `${this.xlabel}: ${d.name}, ${this.ylabel}: ${d.count}`); // set the text of the title
 
     // Add the x-axis label
     svgContainer
@@ -234,10 +193,10 @@ export class LisHistogramElement extends LitElement {
       )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this._ylabel : this._xlabel);
+      .text(this.orientation === 'vertical' ? this.ylabel : this.xlabel);
 
     // Calculate dynamic padding based on the length of the y-axis label
-    const dynamicPadding = Math.max(this._ylabel.length * 6, padding); // assuming 6px per character
+    const dynamicPadding = Math.max(this.ylabel.length * 6, padding); // assuming 6px per character
 
     // Add the y-axis label
     svgContainer
@@ -248,7 +207,7 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this._xlabel : this._ylabel);
+      .text(this.orientation === 'vertical' ? this.xlabel : this.ylabel);
 
     // Add the x-axis
     svgContainer
@@ -275,5 +234,11 @@ export class LisHistogramElement extends LitElement {
       .call(
         this.orientation === 'vertical' ? d3.axisBottom(y) : d3.axisLeft(y),
       );
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lis-histogram-element': LisHistogramElement;
   }
 }
