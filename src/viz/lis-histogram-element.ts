@@ -12,7 +12,7 @@ export type HistogramDataModel = {
  * @htmlElement `<lis-histogram-element>`
  *
  * A custom web component for creating histograms using D3.js.
- * 
+ *
  * The following attributes/properties can be set using HTML or JavaScript:
  * - {@link data | `data`}
  * - {@link xlabel | `xlabel`}
@@ -23,7 +23,7 @@ export type HistogramDataModel = {
  *
  * @example
  * Example using only HTML:
- * 
+ *
  * ```html
  * <lis-histogram-element
  *   data='[{"name": "A", "count": 10}, {"name": "B", "count": 20}]'
@@ -33,8 +33,8 @@ export type HistogramDataModel = {
  *   height='500'>
  * </lis-histogram-element>
  * ```
- * 
- * @example 
+ *
+ * @example
  * Example using JavaScript and HTML that sets data using values from a `<lis-simple-table-element>`:
  *
  * ```html
@@ -59,13 +59,13 @@ export type HistogramDataModel = {
  *     ];
  *
  *     const histogramData = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
-       const histogramElement = document.getElementById('histogram');
-       histogramElement.width = 500;
-       histogramElement.height = 500;
-       histogramElement.xlabel = 'Cheese';
-       histogramElement.ylabel = 'Rating';
-       histogramElement.orientation = 'vertical';
-       histogramElement.data = histogramData;
+ *     const histogramElement = document.getElementById('histogram');
+ *     histogramElement.width = 500;
+ *     histogramElement.height = 500;
+ *     histogramElement.xlabel = 'Cheese';
+ *     histogramElement.ylabel = 'Rating';
+ *     histogramElement.orientation = 'vertical';
+ *     histogramElement.data = histogramData;
  *    }
  *   </script>
  * ```
