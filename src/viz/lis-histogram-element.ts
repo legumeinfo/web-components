@@ -15,8 +15,8 @@ export type HistogramDataModel = {
  *
  * The following attributes/properties can be set using HTML or JavaScript:
  * - {@link data | `data`}
- * - {@link xlabel | `xlabel`}
- * - {@link ylabel | `ylabel`}
+ * - {@link nameLabel | `nameLabel`}
+ * - {@link countLabel | `countLabel`}
  * - {@link width | `width`}
  * - {@link height | `height`}
  * - {@link orientation | `orientation`}
