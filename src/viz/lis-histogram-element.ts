@@ -27,8 +27,8 @@ export type HistogramDataModel = {
  * ```html
  * <lis-histogram-element
  *   data='[{"name": "A", "count": 10}, {"name": "B", "count": 20}]'
- *   xlabel='Category'
- *   ylabel='Count'
+ *   nameLabel="Name"
+ *   countLabel="Count"
  *   width='500'
  *   height='500'>
  * </lis-histogram-element>
@@ -62,8 +62,8 @@ export type HistogramDataModel = {
  *     const histogramElement = document.getElementById('histogram');
  *     histogramElement.width = 500;
  *     histogramElement.height = 500;
- *     histogramElement.xlabel = 'Cheese';
- *     histogramElement.ylabel = 'Rating';
+ *     histogramElement.nameLabel = 'Cheese';
+ *     histogramElement.countLabel = 'Rating';
  *     histogramElement.orientation = 'vertical';
  *     histogramElement.data = histogramData;
  *    }
@@ -100,7 +100,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  xlabel: string = 'Name';
+  nameLabel: string = 'Name';
 
   /**
    * The label for the y-axis.
@@ -108,7 +108,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  ylabel: string = 'Count';
+  countLabel: string = 'Count';
 
   /**
    * The width of the histogram in pixels.
@@ -189,7 +189,9 @@ export class LisHistogramElement extends LitElement {
       )
       .attr('fill', 'steelblue')
       .append('title') // append a title element to each rectangle
-      .text((d) => `${this.xlabel}: ${d.name}, ${this.ylabel}: ${d.count}`); // set the text of the title
+      .text(
+        (d) => `${this.nameLabel}: ${d.name}, ${this.countLabel}: ${d.count}`,
+      ); // set the text of the title
 
     // Add the x-axis label
     svgContainer
@@ -200,10 +202,10 @@ export class LisHistogramElement extends LitElement {
       )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this.ylabel : this.xlabel);
+      .text(this.orientation === 'vertical' ? this.countLabel : this.nameLabel);
 
     // Calculate dynamic padding based on the length of the y-axis label
-    const dynamicPadding = Math.max(this.ylabel.length * 6, padding); // assuming 6px per character
+    const dynamicPadding = Math.max(this.countLabel.length * 6, padding); // assuming 6px per character
 
     // Add the y-axis label
     svgContainer
@@ -214,7 +216,7 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this.xlabel : this.ylabel);
+      .text(this.orientation === 'vertical' ? this.nameLabel : this.countLabel);
 
     // Add the x-axis
     svgContainer
