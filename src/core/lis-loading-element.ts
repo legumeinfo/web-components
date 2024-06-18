@@ -111,6 +111,11 @@ export class LisLoadingElement extends LitElement {
     this.state = 'message';
   }
 
+  public error(content: string) {
+    this._alertRef.value?.warning(content);
+    this.state = 'message';
+  }
+
   /** @ignore */
   // used by Lit to draw the template
   override render() {
