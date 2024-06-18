@@ -42,6 +42,7 @@ export type PaginatedSearchResults<SearchResult> = {
   hasNext?: boolean;
   numResults?: number;
   numPages?: number;
+  errors?: string[];
   results: SearchResult[];
 };
 
@@ -582,13 +583,16 @@ export const LisPaginatedSearchMixin =
         // reset the initial page
         this._searchPage = 1;
         // destruct the paginated search result
-        const {pageSize, hasNext, numResults, numPages, results} = {
+        const {pageSize, hasNext, numResults, numPages, results, errors} = {
           // provide a default value for hasNext based on if there's any results
           hasNext: Boolean(paginatedResults.results.length),
           ...paginatedResults,
         };
         // update the loading element accordingly
-        if (results.length) {
+        if (errors && errors.length) {
+          const message = errors.join('<br/>');
+          this._loadingRef.value?.error(message);
+        } else if (results.length) {
           this._loadingRef.value?.success();
         } else {
           this._loadingRef.value?.noResults();
