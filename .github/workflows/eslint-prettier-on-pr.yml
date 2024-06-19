@@ -1,0 +1,29 @@
+# workflow to enforce style and linting on PR
+name: eslint-prettier
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  format-and-lint:
+    runs-on: ubuntu-latest
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
+      contents: write
+      
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      # Setup npm environment to run tests
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run lint:eslint-config-prettier
+      - run: npm run format
+      - run: npm run lint
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply prettier formatting changes and check with eslint

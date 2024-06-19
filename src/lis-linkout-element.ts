@@ -5,7 +5,6 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement, LisSimpleTableElement} from './core';
 
-
 /**
  * A single result of a linkout performed by the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class.
@@ -15,7 +14,6 @@ export type LinkoutResult = {
   text: string;
 };
 
-
 /**
  * The type of object the {@link LisLinkoutElement | `LisLinkoutElement`} expects back
  * from the linkout function.
@@ -24,7 +22,6 @@ export type LinkoutResults = {
   results: LinkoutResult[];
 };
 
-
 /**
  * Optional parameters that may be given to the linkout function. The
  * {@link !AbortSignal | `AbortSignal`} instance will emit if a linkout is performed
@@ -32,7 +29,6 @@ export type LinkoutResults = {
  * requests if the linkout API supports it.
  */
 export type LinkoutOptions = {abortSignal?: AbortSignal};
-
 
 /**
  * The signature of the function of the
@@ -48,16 +44,16 @@ export type LinkoutOptions = {abortSignal?: AbortSignal};
  * @returns A {@link !Promise | `Promise`} that resolves to a
  * {@link LinkoutResults | `LinkoutResults`} object.
  */
-export type LinkoutFunction<LinkoutData> =
-  (linkoutData: LinkoutData, options: LinkoutOptions) =>
-    Promise<LinkoutResults>;
-
+export type LinkoutFunction<LinkoutData> = (
+  linkoutData: LinkoutData,
+  options: LinkoutOptions,
+) => Promise<LinkoutResults>;
 
 /**
  * @htmlElement `<lis-linkout-element>`
  *
  * A Web Component that provides an interface for performing linkout queries against an
- * a linkout service. 
+ * a linkout service.
  * The returned links are displayed in a table.
  *
  * @example
@@ -87,7 +83,6 @@ export type LinkoutFunction<LinkoutData> =
  */
 @customElement('lis-linkout-element')
 export class LisLinkoutElement extends LitElement {
-
   // a controller that allows in-flight linkouts to be cancelled
   protected cancelPromiseController = new LisCancelPromiseController(this);
 
@@ -102,29 +97,11 @@ export class LisLinkoutElement extends LitElement {
     return this;
   }
 
-  /**
-   * The query string for the linkout service.
-   * Reflect is true so that the attribute will trigger
-   * when set with JS
-   *
-   * @attribute
-   */
-  @property({type: String, reflect: true})
-  queryString: string = '';
-
-  /**
-   * The service to use from the linkout service. default: gene_linkouts
-   *
-   * @attribute
-   */
-  @property({type: String})
-  service: string = 'gene_linkouts';
-
   // the linkout callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  linkoutFunction: LinkoutFunction<unknown> =
-    () => Promise.reject(new Error('No linkout function provided'));
+  linkoutFunction: LinkoutFunction<unknown> = () =>
+    Promise.reject(new Error('No linkout function provided'));
 
   // bind to the table element in the template
   @query('lis-simple-table-element')
@@ -147,17 +124,16 @@ export class LisLinkoutElement extends LitElement {
     this.cancelPromiseController.cancel();
     const options = {abortSignal: this.cancelPromiseController.abortSignal};
     const linkoutPromise = this.linkoutFunction(data, options);
-    this.cancelPromiseController.wrapPromise(linkoutPromise)
-      .then(
-        (results: LinkoutResults) => this._linkoutSuccess(results),
-        (error: Error) => {
-          // do nothing if the request was aborted
-          if ((error as any).type !== 'abort') {
-            this._loadingRef.value?.failure();
-            throw error;
-          }
-        },
-      );
+    this.cancelPromiseController.wrapPromise(linkoutPromise).then(
+      (results: LinkoutResults) => this._linkoutSuccess(results),
+      (error: Error | Event) => {
+        // do nothing if the request was aborted
+        if (!(error instanceof Event && error.type === 'abort')) {
+          this._loadingRef.value?.failure();
+          throw error;
+        }
+      },
+    );
   }
 
   /** @ignore */
@@ -181,10 +157,9 @@ export class LisLinkoutElement extends LitElement {
   /** @ignore */
   // used by Lit to draw the template
   override render() {
-
     // compute table parts
-    const dataAttributes = ['linkout']
-    const header = {'linkout': 'Linkouts'};
+    const dataAttributes = ['linkout'];
+    const header = {linkout: 'Linkouts'};
 
     // draw the table
     return html`
@@ -193,13 +168,13 @@ export class LisLinkoutElement extends LitElement {
         <lis-simple-table-element
           caption=""
           .dataAttributes=${dataAttributes}
-          .header=${header}>
+          .header=${header}
+        >
         </lis-simple-table-element>
       </div>
     `;
   }
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

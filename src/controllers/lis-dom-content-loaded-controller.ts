@@ -1,13 +1,11 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-
 /**
  * A controller that allows components to subsribe to the
  * {@link !DOMContentLoaded | `DOMContentLoaded`} event in a manner that
  * triggers changes in the component's template when the event occurs.
  */
 export class LisDomContentLoadedController implements ReactiveController {
-
   /** @ignore */
   host: ReactiveControllerHost;
 
@@ -23,12 +21,18 @@ export class LisDomContentLoadedController implements ReactiveController {
 
   /** @ignore */
   hostConnected() {
-    document.addEventListener('DOMContentLoaded', this._contentLoaded.bind(this));
+    document.addEventListener(
+      'DOMContentLoaded',
+      this._contentLoaded.bind(this),
+    );
   }
 
   /** @ignore */
   hostDisconnected() {
-    document.removeEventListener('DOMContentLoaded', this._contentLoaded.bind(this));
+    document.removeEventListener(
+      'DOMContentLoaded',
+      this._contentLoaded.bind(this),
+    );
   }
 
   /**
@@ -48,13 +52,11 @@ export class LisDomContentLoadedController implements ReactiveController {
     // redraw the host
     this.host.requestUpdate();
     // wait for the redraw to complete in case any listeners rely on state from the template
-    this.host.updateComplete
-      .then(() => {
-        // call each listener
-        this._listeners.forEach((listener) => {
-          listener(event);
-        });
+    this.host.updateComplete.then(() => {
+      // call each listener
+      this._listeners.forEach((listener) => {
+        listener(event);
       });
+    });
   }
-
 }

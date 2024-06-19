@@ -1,8 +1,7 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-
 
 /**
  * The data that will be passed to the search function by the
@@ -10,20 +9,18 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * search is performed.
  */
 export type TraitSearchData = {
-    query: string;
+  query: string;
 };
-
 
 /**
  * A single result of a trait search performed by the
  * {@link LisTraitSearchElement | `LisTraitSearchElement`} class.
  */
 export type TraitSearchResult = {
-    identifier: string;
-    name: string;
-    description: string;
+  identifier: string;
+  name: string;
+  description: string;
 };
-
 
 /**
  * The signature of the function the
@@ -41,9 +38,11 @@ export type TraitSearchResult = {
  * {@link !Array | `Array`} of {@link TraitSearchResult | `TraitSearchResult`}
  * objects.
  */
-export type TraitSearchFunction =
-    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<TraitSearchResult>>;
-
+export type TraitSearchFunction = (
+  query: string,
+  page: number,
+  options: PaginatedSearchOptions,
+) => Promise<Array<TraitSearchResult>>;
 
 /**
  * @htmlElement `<lis-trait-search-element>`
@@ -60,7 +59,7 @@ export type TraitSearchFunction =
  * - **query:** The text in the query field of the search form.
  * - **page:** What page of results is loaded.
  *
- * @example 
+ * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
  * must be set on a `<lis-trait-search-element>` tag's instance of the
@@ -82,7 +81,7 @@ export type TraitSearchFunction =
  * </script>
  * ```
  *
- * @example 
+ * @example
  * The {@link LisTraitSearchElement | `LisTraitSearchElement`} class inherits the
  * {@link resultAttributes | `resultAttributes`} and
  * {@link tableHeader | `tableHeader`} properties from
@@ -110,62 +109,89 @@ export type TraitSearchFunction =
  *   };
  * </script>
  * ```
+ *
+ * @example
+ * The {@link traitExample | `traitExample`} property can be used to set the
+ * example text in the search form. For example:
+ *
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-trait-search-element traitExample="flower"></lis-trait-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-trait-search-element id="trait-search"></lis-trait-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the trait search element
+ *   const searchElement = document.getElementById('trait-search');
+ *   // set the element's traitExample property
+ *   searchElement.traitExample = 'flower';
+ * </script>
+ * ```
  */
 @customElement('lis-trait-search-element')
-export class LisTraitSearchElement extends
-LisPaginatedSearchMixin(LitElement)<TraitSearchData, TraitSearchResult>() {
+export class LisTraitSearchElement extends LisPaginatedSearchMixin(LitElement)<
+  TraitSearchData,
+  TraitSearchResult
+>() {
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
 
-    /** @ignore */
-    // used by Lit to style the Shadow DOM
-    // not necessary but exclusion breaks TypeDoc
-    static override styles = css``;
+  /**
+   * An optional property to set the example text for the Trait name input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  traitExample?: string;
 
-    constructor() {
-        super();
-        // configure query string parameters
-        this.requiredQueryStringParams = [['query']];
-        // configure results table
-        this.resultAttributes = [
-            'name',
-            'identifier',
-            'description'
-        ];
-        this.tableHeader = {
-            name: 'Name',
-            identifier: 'Identifier',
-            description: 'Description'
-        };
-    }
+  constructor() {
+    super();
+    // configure query string parameters
+    this.requiredQueryStringParams = [['query']];
+    // configure results table
+    this.resultAttributes = ['name', 'identifier', 'description'];
+    this.tableHeader = {
+      name: 'Name',
+      identifier: 'Identifier',
+      description: 'Description',
+    };
+  }
 
-    /** @ignore */
-    // used by LisPaginatedSearchMixin to draw the template
-    override renderForm() {
-        return html`
-<form>
-<fieldset class="uk-fieldset">
-<legend class="uk-legend">Trait name search (e.g. flower)</legend>
-<div class="uk-margin">
-<input
-name="query"
-class="uk-input"
-type="text"
-placeholder="Input"
-aria-label="Input"
-.value=${this.queryStringController.getParameter('query')}>
-</div>
-<div class="uk-margin">
-<button type="submit" class="uk-button uk-button-primary">Search</button>
-</div>
-</fieldset>
-</form>
-`;
-    }
-
+  /** @ignore */
+  // used by LisPaginatedSearchMixin to draw the template
+  override renderForm() {
+    return html`
+      <form>
+        <fieldset class="uk-fieldset">
+          <legend class="uk-legend">Trait name search</legend>
+          <div class="uk-margin">
+            <input
+              name="query"
+              class="uk-input"
+              type="text"
+              aria-label="Input"
+              .value=${this.queryStringController.getParameter('query')}
+            />
+            <lis-form-input-example-element
+              .text=${this.traitExample}
+            ></lis-form-input-example-element>
+          </div>
+          <div class="uk-margin">
+            <button type="submit" class="uk-button uk-button-primary">
+              Search
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    `;
+  }
 }
 
-
 declare global {
-    interface HTMLElementTagNameMap {
-        'lis-trait-search-element': LisTraitSearchElement;
-    }
+  interface HTMLElementTagNameMap {
+    'lis-trait-search-element': LisTraitSearchElement;
+  }
 }

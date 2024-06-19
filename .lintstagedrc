@@ -1,0 +1,3 @@
+{
+  "*.ts": ["eslint-config-prettier", "prettier --write", "prettier --check", "eslint"],
+}

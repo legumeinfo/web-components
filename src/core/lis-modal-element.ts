@@ -5,7 +5,6 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {LisSlotController} from '../controllers';
 
-
 /**
  * @htmlElement `<lis-modal-element>`
  *
@@ -42,14 +41,14 @@ import {LisSlotController} from '../controllers';
  * for more information.
  *
  * ```html
- * <lis-modal-element 
- *   modalId="modal-test" 
+ * <lis-modal-element
+ *   modalId="modal-test"
  *   heading="Cheesy Table Modal">
  *     <lis-simple-table-element
  *       id="table">
  *     </lis-simple-table-element>
  * </lis-modal-element>
- * 
+ *
  * <script type="text/javascript">
  *  // get the simple table element after page loads.
  *  window.onload = (event) => {
@@ -71,7 +70,6 @@ import {LisSlotController} from '../controllers';
  */
 @customElement('lis-modal-element')
 export class LisModalElement extends LitElement {
-
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -100,7 +98,7 @@ export class LisModalElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  modalId: string = "lis-modal";
+  modalId: string = 'lis-modal';
 
   /**
    * The text or HTML to populate uk-modal-header
@@ -108,7 +106,7 @@ export class LisModalElement extends LitElement {
    * @attribute
    */
   @property({type: String})
-  heading: string = "";
+  heading: string = '';
 
   /** @ignore */
   // returns the modal heading portion of the component
@@ -125,19 +123,23 @@ export class LisModalElement extends LitElement {
     const heading = this._getHeading();
     // draw the modal
     return html`
-    <div id="${this.modalId}" uk-modal>
-      <div class="uk-modal-dialog">
-        <button class="uk-modal-close-default" type="button" uk-close></button>
-        ${heading}
-        <div class="uk-modal-body" uk-overflow-auto>
-          <slot ${ref(this.defaultSlotRef)}></slot>
-        <div>
+      <div id="${this.modalId}" uk-modal>
+        <div class="uk-modal-dialog">
+          <button
+            class="uk-modal-close-default"
+            type="button"
+            uk-close
+          ></button>
+          ${heading}
+          <div class="uk-modal-body" uk-overflow-auto>
+            <slot ${ref(this.defaultSlotRef)}></slot>
+            <div></div>
+          </div>
+        </div>
       </div>
-    </div>
     `;
   }
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

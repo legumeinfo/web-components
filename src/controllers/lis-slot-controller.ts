@@ -1,7 +1,6 @@
 import {LitElement, ReactiveController, ReactiveControllerHost} from 'lit';
 import {Ref} from 'lit/directives/ref.js';
 
-
 /**
  * A controller that allows components to use the `<slot>` tag when their Shadow DOM
  * is disabled.
@@ -60,7 +59,6 @@ import {Ref} from 'lit/directives/ref.js';
  * ```
  */
 export class LisSlotController implements ReactiveController {
-
   /** @ignore */
   host: LitElement & ReactiveControllerHost;
 
@@ -71,7 +69,10 @@ export class LisSlotController implements ReactiveController {
    * @param host - The controller that's using the controller.
    * @param ...slotRefs - References to the elements the controller should load data for.
    */
-  constructor(host: LitElement & ReactiveControllerHost, ...slotRefs: Ref<HTMLSlotElement>[]) {
+  constructor(
+    host: LitElement & ReactiveControllerHost,
+    ...slotRefs: Ref<HTMLSlotElement>[]
+  ) {
     (this.host = host).addController(this);
     this._slotRefs = slotRefs;
   }
@@ -92,28 +93,28 @@ export class LisSlotController implements ReactiveController {
       // get the slot's name
       const name: string | null = ref.value.getAttribute('name');
       // make a list of elements that belong in the slot
-      const slotChildren =
-        this._children
-          // only keep elements for this specific slot
-          .filter((element) => element.getAttribute('slot') === name)
-          // unpack template children
-          .map((element) => {
-            if (element instanceof HTMLTemplateElement) {
-              return Array.from(element.children);
-            }
-            return element;
-          })
-          // flatten into an array of elements only
-          .flat();
+      const slotChildren = this._children
+        // only keep elements for this specific slot
+        .filter((element) => element.getAttribute('slot') === name)
+        // unpack template children
+        .map((element) => {
+          if (element instanceof HTMLTemplateElement) {
+            return Array.from(element.children);
+          }
+          return element;
+        })
+        // flatten into an array of elements only
+        .flat();
       // put the children in the slot
       if (slotChildren.length > 0) {
         // children only need to be moved once; trying again will throw an error
         try {
           //ref.value.assign(...slotChildren);  // renders via Shadow DOM
-          ref.value.replaceChildren(...slotChildren);  // fakes Shadow DOM by moving children
-        } catch(error) { }
+          ref.value.replaceChildren(...slotChildren); // fakes Shadow DOM by moving children
+        } catch (error) {
+          /* no-op */
+        }
       }
     });
   }
-
 }

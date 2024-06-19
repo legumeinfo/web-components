@@ -1,8 +1,7 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-
 
 /**
  * The data that will be passed to the search function by the
@@ -10,24 +9,22 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type QTLSearchData = {
-    query: string;
+  query: string;
 };
-
 
 /**
  * A single result of a QTL search performed by the
  * {@link LisQTLSearchElement | `LisQTLSearchElement`} class.
  */
 export type QTLSearchResult = {
-    trait_name: string;
-    identifier: string;
-    linkageGroup_geneticMap_identifier: string;
-    linkageGroup_identifier: string;
-    start: number;
-    end: number;
-    markerNames: string;
+  trait_name: string;
+  identifier: string;
+  linkageGroup_geneticMap_identifier: string;
+  linkageGroup_identifier: string;
+  start: number;
+  end: number;
+  markerNames: string;
 };
-
 
 /**
  * The signature of the function the
@@ -45,9 +42,11 @@ export type QTLSearchResult = {
  * {@link !Array | `Array`} of {@link QTLSearchResult | `QTLSearchResult`}
  * objects.
  */
-export type QTLSearchFunction =
-    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<QTLSearchResult>>;
-
+export type QTLSearchFunction = (
+  query: string,
+  page: number,
+  options: PaginatedSearchOptions,
+) => Promise<Array<QTLSearchResult>>;
 
 /**
  * @htmlElement `<lis-qtl-search-element>`
@@ -64,7 +63,7 @@ export type QTLSearchFunction =
  * - **query:** The text in the query field of the search form.
  * - **page:** What page of results is loaded.
  *
- * @example 
+ * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
  * must be set on a `<lis-qtl-search-element>` tag's instance of the
@@ -86,7 +85,7 @@ export type QTLSearchFunction =
  * </script>
  * ```
  *
- * @example 
+ * @example
  * The {@link LisQTLSearchElement | `LisQTLSearchElement`} class inherits the
  * {@link resultAttributes | `resultAttributes`} and
  * {@link tableHeader | `tableHeader`} properties from
@@ -113,70 +112,100 @@ export type QTLSearchFunction =
  *   };
  * </script>
  * ```
+ *
+ * @example
+ * The {@link traitExample | `traitExample`} property can be used to set the
+ * example text in the search form. For example:
+ *
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-qtl-search-element traitExample="flower"></lis-qtl-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-qtl-search-element id="qtl-search"></lis-qtl-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the qtl search element
+ *   const searchElement = document.getElementById('qtl-search');
+ *   // set the element's traitExample property
+ *   searchElement.traitExample = 'flower';
+ * </script>
  */
 @customElement('lis-qtl-search-element')
-export class LisQTLSearchElement extends
-LisPaginatedSearchMixin(LitElement)<QTLSearchData, QTLSearchResult>() {
+export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
+  QTLSearchData,
+  QTLSearchResult
+>() {
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
 
-    /** @ignore */
-    // used by Lit to style the Shadow DOM
-    // not necessary but exclusion breaks TypeDoc
-    static override styles = css``;
+  /**
+   * An optional property to set the example text for the QTL trait name search field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  traitExample?: string;
 
-    constructor() {
-        super();
-        // configure query string parameters
-        this.requiredQueryStringParams = [['query']];
-        // configure results table
-        this.resultAttributes = [
-            'trait_name',
-            'identifier',
-            'linkageGroup_geneticMap_identifier',
-            'linkageGroup_identifier',
-            'start',
-            'end',
-            'markerNames'
-        ];
-        this.tableHeader = {
-            'trait_name': 'Trait',
-            'identifier': 'QTL',
-            'linkageGroup_geneticMap_identifier': 'Genetic Map',
-            'linkageGroup_identifier': 'Linkage Group',
-            'start': 'Start',
-            'end': 'End',
-            'markerNames': 'Markers'
-        };
-    }
+  constructor() {
+    super();
+    // configure query string parameters
+    this.requiredQueryStringParams = [['query']];
+    // configure results table
+    this.resultAttributes = [
+      'trait_name',
+      'identifier',
+      'linkageGroup_geneticMap_identifier',
+      'linkageGroup_identifier',
+      'start',
+      'end',
+      'markerNames',
+    ];
+    this.tableHeader = {
+      trait_name: 'Trait',
+      identifier: 'QTL',
+      linkageGroup_geneticMap_identifier: 'Genetic Map',
+      linkageGroup_identifier: 'Linkage Group',
+      start: 'Start',
+      end: 'End',
+      markerNames: 'Markers',
+    };
+  }
 
-    /** @ignore */
-    // used by LisPaginatedSearchMixin to draw the template
-    override renderForm() {
-        return html`
-<form>
-<fieldset class="uk-fieldset">
-<legend class="uk-legend">QTL trait name search (e.g. flower)</legend>
-<div class="uk-margin">
-<input
-name="query"
-class="uk-input"
-type="text"
-placeholder="Input"
-aria-label="Input"
-.value=${this.queryStringController.getParameter('query')}>
-</div>
-<div class="uk-margin">
-<button type="submit" class="uk-button uk-button-primary">Search</button>
-</div>
-</fieldset>
-</form>
-`;
-    }
-
+  /** @ignore */
+  // used by LisPaginatedSearchMixin to draw the template
+  override renderForm() {
+    return html`
+      <form>
+        <fieldset class="uk-fieldset">
+          <legend class="uk-legend">QTL trait name search</legend>
+          <div class="uk-margin">
+            <input
+              name="query"
+              class="uk-input"
+              type="text"
+              aria-label="Input"
+              .value=${this.queryStringController.getParameter('query')}
+            />
+            <lis-form-input-example-element
+              .text=${this.traitExample}
+            ></lis-form-input-example-element>
+          </div>
+          <div class="uk-margin">
+            <button type="submit" class="uk-button uk-button-primary">
+              Search
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    `;
+  }
 }
 
-
 declare global {
-    interface HTMLElementTagNameMap {
-        'lis-qtl-search-element': LisQTLSearchElement;
-    }
+  interface HTMLElementTagNameMap {
+    'lis-qtl-search-element': LisQTLSearchElement;
+  }
 }

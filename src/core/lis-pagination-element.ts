@@ -1,7 +1,6 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-
 /**
  * @htmlElement `<lis-pagination-element>`
  *
@@ -73,8 +72,8 @@ import {customElement, property} from 'lit/decorators.js';
  * @example
  * An optional {@link scrollTarget | `scrollTarget`} property can be given an
  * `HTMLElement` via JavaScript. If set, every time a pagination event occurs, the
-*  viewport will be scrolled so that the element given to the property is visible. For
-*  example:
+ *  viewport will be scrolled so that the element given to the property is visible. For
+ *  example:
  * ```html
  * <!-- an element to use as a scroll target -->
  * <p id="paragraph">Some import text</p>
@@ -95,7 +94,6 @@ import {customElement, property} from 'lit/decorators.js';
  */
 @customElement('lis-pagination-element')
 export class LisPaginationElement extends LitElement {
-
   /**
    * Fired when the page changes. Dispatches a
    * {@link !CustomEvent | `CustomEvent`} containing the new value of the
@@ -148,7 +146,7 @@ export class LisPaginationElement extends LitElement {
    * @attribute
    */
   @property({type: HTMLElement, attribute: false})
-  scrollTarget: HTMLElement|null = null;
+  scrollTarget: HTMLElement | null = null;
 
   /**
    * Programmatically go to the previous page.
@@ -199,7 +197,7 @@ export class LisPaginationElement extends LitElement {
   // scrolls the view to the scrollTarget element
   private _scrollToTarget() {
     if (this.scrollTarget != null) {
-      this.scrollTarget.scrollIntoView({behavior: "smooth"});
+      this.scrollTarget.scrollIntoView({behavior: 'smooth'});
     }
   }
 
@@ -209,7 +207,7 @@ export class LisPaginationElement extends LitElement {
     const options = {
       detail: {page: this.page},
       bubbles: true,
-      composed: true
+      composed: true,
     };
     const event = new CustomEvent('pageChange', options);
     this.dispatchEvent(event);
@@ -228,7 +226,8 @@ export class LisPaginationElement extends LitElement {
     if (!this.numPages) {
       return html`Page ${this.page.toLocaleString()}`;
     }
-    return html`Page ${this.page.toLocaleString()} of ${this.numPages.toLocaleString()}`;
+    return html`Page ${this.page.toLocaleString()} of
+    ${this.numPages.toLocaleString()}`;
   }
 
   /** @ignore */
@@ -243,22 +242,28 @@ export class LisPaginationElement extends LitElement {
   /** @ignore */
   // the template
   override render() {
-
     const previousClass = this._renderPreviousClass();
     const pageInfo = this._pageInfo();
     const nextClass = this._renderNextClass();
 
     return html`
       <ul class="uk-pagination">
-          <li class="${previousClass}"><a href="" @click=${this.previous}><span class="uk-margin-small-right" uk-pagination-previous></span> Previous</a></li>
-          <li class="uk-active"><span>${pageInfo}</span></li>
-          <li class="uk-margin-auto-left ${nextClass}"><a href="" @click=${this.next}>Next <span class="uk-margin-small-left" uk-pagination-next></span></a></li>
+        <li class="${previousClass}">
+          <a href="" @click=${this.previous}
+            ><span class="uk-margin-small-right" uk-pagination-previous></span>
+            Previous</a
+          >
+        </li>
+        <li class="uk-active"><span>${pageInfo}</span></li>
+        <li class="uk-margin-auto-left ${nextClass}">
+          <a href="" @click=${this.next}
+            >Next <span class="uk-margin-small-left" uk-pagination-next></span
+          ></a>
+        </li>
       </ul>
     `;
   }
-
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

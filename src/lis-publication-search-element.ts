@@ -1,8 +1,7 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-
 
 /**
  * The data that will be passed to the search function by the
@@ -10,23 +9,21 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type PublicationSearchData = {
-    query: string;
+  query: string;
 };
-
 
 /**
  * A single result of a Publication search performed by the
  * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class.
  */
 export type PublicationSearchResult = {
-    year: number;
-    title: string;
-    journal: string;
-    firstAuthor: string;
-    doi: string;
-    pubMedId: string;
+  year: number;
+  title: string;
+  journal: string;
+  firstAuthor: string;
+  doi: string;
+  pubMedId: string;
 };
-
 
 /**
  * The signature of the function the
@@ -44,9 +41,11 @@ export type PublicationSearchResult = {
  * {@link !Array | `Array`} of {@link PublicationSearchResult | `PublicationSearchResult`}
  * objects.
  */
-export type PublicationSearchFunction =
-    (query: string, page: number, options: PaginatedSearchOptions) => Promise<Array<PublicationSearchResult>>;
-
+export type PublicationSearchFunction = (
+  query: string,
+  page: number,
+  options: PaginatedSearchOptions,
+) => Promise<Array<PublicationSearchResult>>;
 
 /**
  * @htmlElement `<lis-publication-search-element>`
@@ -63,7 +62,7 @@ export type PublicationSearchFunction =
  * - **query:** The text in the query field of the search form.
  * - **page:** What page of results is loaded.
  *
- * @example 
+ * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
  * JavaScript. This means the {@link searchFunction | `searchFunction`} property
  * must be set on a `<lis-publication-search-element>` tag's instance of the
@@ -85,7 +84,7 @@ export type PublicationSearchFunction =
  * </script>
  * ```
  *
- * @example 
+ * @example
  * The {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class inherits the
  * {@link resultAttributes | `resultAttributes`} and
  * {@link tableHeader | `tableHeader`} properties from
@@ -112,68 +111,97 @@ export type PublicationSearchFunction =
  *   };
  * </script>
  * ```
+ *
+ * @example
+ * The {@link titleExample | `titleExample`} property can be used to set the
+ * example text in the search form. For example:
+ * ```html
+ * <!-- set the example text via HTML -->
+ * <lis-publication-search-element titleExample="expression"></lis-publication-search-element>
+ *
+ * <!-- set the example text via JavaScript -->
+ * <lis-publication-search-element id="publication-search"></lis-publication-search-element>
+ *
+ * <script type="text/javascript">
+ *   // get the publication search element
+ *   const searchElement = document.getElementById('publication-search');
+ *   // set the element's titleExample property
+ *   searchElement.titleExample = 'expression';
+ * </script>
+ * ```
  */
 @customElement('lis-publication-search-element')
-export class LisPublicationSearchElement extends
-LisPaginatedSearchMixin(LitElement)<PublicationSearchData, PublicationSearchResult>() {
+export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
+  LitElement,
+)<PublicationSearchData, PublicationSearchResult>() {
+  /** @ignore */
+  // used by Lit to style the Shadow DOM
+  // not necessary but exclusion breaks TypeDoc
+  static override styles = css``;
 
-    /** @ignore */
-    // used by Lit to style the Shadow DOM
-    // not necessary but exclusion breaks TypeDoc
-    static override styles = css``;
+  /**
+   * An optional property to set the example text for the search field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  titleExample?: string;
 
-    constructor() {
-        super();
-        // configure query string parameters
-        this.requiredQueryStringParams = [['query']];
-        // configure results table
-        this.resultAttributes = [
-            'year',
-            'title',
-            'journal',
-            'firstAuthor',
-            'doi',
-            'pubMedId'
-        ];
-        this.tableHeader = {
-            'year': 'Year',
-            'title': 'Title',
-            'journal': 'Journal',
-            'firstAuthor': 'First Author',
-            'doi': 'DOI',
-            'pubMedId': 'PubMed'
-        };
-    }
+  constructor() {
+    super();
+    // configure query string parameters
+    this.requiredQueryStringParams = [['query']];
+    // configure results table
+    this.resultAttributes = [
+      'year',
+      'title',
+      'journal',
+      'firstAuthor',
+      'doi',
+      'pubMedId',
+    ];
+    this.tableHeader = {
+      year: 'Year',
+      title: 'Title',
+      journal: 'Journal',
+      firstAuthor: 'First Author',
+      doi: 'DOI',
+      pubMedId: 'PubMed',
+    };
+  }
 
-    /** @ignore */
-    // used by LisPaginatedSearchMixin to draw the template
-    override renderForm() {
-        return html`
-<form>
-<fieldset class="uk-fieldset">
-<legend class="uk-legend">Publication title search (e.g. expression)</legend>
-<div class="uk-margin">
-<input
-name="query"
-class="uk-input"
-type="text"
-placeholder="Input"
-aria-label="Input"
-.value=${this.queryStringController.getParameter('query')}>
-</div>
-<div class="uk-margin">
-<button type="submit" class="uk-button uk-button-primary">Search</button>
-</div>
-</fieldset>
-</form>
-`;
-    }
-
+  /** @ignore */
+  // used by LisPaginatedSearchMixin to draw the template
+  override renderForm() {
+    return html`
+      <form>
+        <fieldset class="uk-fieldset">
+          <legend class="uk-legend">Publication title search</legend>
+          <div class="uk-margin">
+            <input
+              name="query"
+              class="uk-input"
+              type="text"
+              aria-label="Input"
+              .value=${this.queryStringController.getParameter('query')}
+            />
+            <lis-form-input-example-element
+              .text=${this.titleExample}
+            ></lis-form-input-example-element>
+          </div>
+          <div class="uk-margin">
+            <button type="submit" class="uk-button uk-button-primary">
+              Search
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    `;
+  }
 }
 
-
 declare global {
-    interface HTMLElementTagNameMap {
-        'lis-publication-search-element': LisPublicationSearchElement;
-    }
+  interface HTMLElementTagNameMap {
+    'lis-publication-search-element': LisPublicationSearchElement;
+  }
 }
