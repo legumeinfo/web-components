@@ -1,6 +1,5 @@
 import {ReactiveController, ReactiveControllerHost} from 'lit';
 
-
 /**
  * The signature of the callback function required when initializing the controller.
  *
@@ -9,14 +8,12 @@ import {ReactiveController, ReactiveControllerHost} from 'lit';
  */
 export type CallbackFunction = (entries: ResizeObserverEntry[]) => void;
 
-
 /**
  * A controller that wraps the {@link !ResizeObserver | `ResizeObserver`}, allowing
  * components to subscribe to the events in a manner that triggers changes in the
  * component's template when the event occurs.
  */
 export class LisResizeObserverController implements ReactiveController {
-
   /** @ignore */
   host: ReactiveControllerHost;
 
@@ -55,5 +52,4 @@ export class LisResizeObserverController implements ReactiveController {
   unobserve(element: HTMLElement): void {
     this._resizeObserver.unobserve(element);
   }
-
 }
