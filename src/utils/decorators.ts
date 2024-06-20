@@ -7,19 +7,16 @@
  * @param target - The global variable to have its value substituted.
  * @param source - The global variable to use as the target's substitute.
  */
-export function tempGlobalSubstitution<T>(
-  target: keyof Document,
-  source: keyof Document,
-) {
+export function globalSubstitution<T>(target: string, source: string) {
   return (_: T, __: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
     descriptor.value = function (...args: any[]) {
-      const defaultGlobal: any = (document as any)[target];
-      if ((document as any)[source] !== undefined) {
-        (document as any)[target] = (document as any)[source];
+      const defaultGlobal: any = (window as any)[target];
+      if ((window as any)[source] !== undefined) {
+        (window as any)[target] = (window as any)[source];
       }
       const result = originalMethod.apply(this, args);
-      (document as any)[target] = defaultGlobal;
+      (window as any)[target] = defaultGlobal;
       return result;
     };
     return descriptor;
