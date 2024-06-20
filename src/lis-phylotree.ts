@@ -3,6 +3,7 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisResizeObserverController} from './controllers';
+import {globalSubstitution} from './utils/decorators';
 
 declare const tnt: any;
 //declare const d3: any;
@@ -87,6 +88,7 @@ export class LisPhylotree extends LitElement {
     return this;
   }
 
+  @globalSubstitution('d3', 'd3v3')
   makeTree(theData: string | Phylotree) {
     if (this._treeContainerRef.value) {
       this._treeContainerRef.value.innerHTML = '';
@@ -115,7 +117,6 @@ export class LisPhylotree extends LitElement {
               return node.data().color;
             }),
         )
-
         .label(tnt.tree.label.text().height(height));
 
       const vis = tnt().tree(tree);
