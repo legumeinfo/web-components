@@ -4,7 +4,7 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {globalSubstitution} from '../utils/decorators';
 import {HistogramDataModel} from '../models';
 
-declare const d3: any;
+declare const d3v7: any;
 //import * as d3 from 'd3';
 
 /**
