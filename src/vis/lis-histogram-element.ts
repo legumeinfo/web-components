@@ -1,7 +1,6 @@
 import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
-import {LisResizeObserverController} from '../controllers';
 import {HistogramDataModel} from '../models';
 import * as d3 from 'd3';
 
@@ -11,8 +10,8 @@ import * as d3 from 'd3';
  * @example
  * Attributes:
  * - {@link data | `data`}: An array of objects where each object represents a bar in the histogram. Each object should have a `name` and `count` property.
- * - {@link xlabel | `xlabel`}: The label for the x-axis.
- * - {@link ylabel | `ylabel`}: The label for the y-axis.
+ * - {@link nameLabel | `nameLabel`}: The label for the x-axis.
+ * - {@link countsLabel | `countsLabel`}: The label for the y-axis.
  * - {@link width | `width`}: The width of the histogram in pixels.
  * - {@link height | `height`}: The height of the histogram in pixels.
  * - {@link orientation | `orientation`}: The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
@@ -43,8 +42,8 @@ import * as d3 from 'd3';
  *     const histoElement = document.getElementById('histogram');
  *     histoElement.width = 500;
  *     histoElement.height = 500;
- *     histoElement.xlabel = 'Cheese';
- *     histoElement.ylabel = 'Rating';
+ *     histoElement.nameLabel = 'Cheese';
+ *     histoElement.countsLabel = 'Rating';
  *     histoElement.orientation = 'vertical';
  *     histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
  *    }
@@ -55,8 +54,8 @@ import * as d3 from 'd3';
  * ```html
  * <lis-histogram-element
  *   data='[{"name": "A", "count": 10}, {"name": "B", "count": 20}]'
- *   xlabel='Category'
- *   ylabel='Count'
+ *   nameLabel='Category'
+ *   countsLabel='Count'
  *   width='500'
  *   height='500'
  *   orientation='vertical'>
@@ -68,26 +67,8 @@ export class LisHistogramElement extends LitElement {
   // bind to the histogram container div element in the template
   private _histogramContainerRef: Ref<HTMLDivElement> = createRef();
 
-  // a controller that allows element resize events to be observed
-  protected resizeObserverController = new LisResizeObserverController(
-    this,
-    this.resize,
-  );
-
   @state()
   private _data: HistogramDataModel[] = [];
-
-  @state()
-  private _xlabel: string = 'X-axis';
-
-  @state()
-  private _ylabel: string = 'Y-axis';
-
-  @state()
-  private _width: number = 500;
-
-  @state()
-  private _height: number = 500;
 
   /**
    * The data to display in the histogram.
@@ -105,9 +86,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property()
-  set xlabel(xlabel: string) {
-    this._xlabel = xlabel; // format axis label if needed here before setting it
-  }
+  nameLabel: string = 'X-axis';
 
   /**
    * The label for the y-axis.
@@ -115,9 +94,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property()
-  set ylabel(ylabel: string) {
-    this._ylabel = ylabel; // format axis label if needed here before setting it
-  }
+  countsLabel: string = 'Y-axis';
 
   /**
    * The width of the histogram in pixels.
@@ -125,9 +102,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property()
-  set width(width: number) {
-    this._width = +width; // format number width
-  }
+  width: number = 500;
 
   /**
    * The height of the histogram in pixels.
@@ -135,9 +110,7 @@ export class LisHistogramElement extends LitElement {
    * @attribute
    */
   @property()
-  set height(height: number) {
-    this._height = +height; // format number height
-  }
+  height: number = 500;
 
   /**
    * The orientation of the histogram. Can be either 'horizontal' or 'vertical'. Default is 'horizontal'.
@@ -147,21 +120,8 @@ export class LisHistogramElement extends LitElement {
   @property()
   orientation: 'horizontal' | 'vertical' = 'horizontal'; // default orientation
 
-  private resize(entries: ResizeObserverEntry[]) {
-    entries.forEach((entry: ResizeObserverEntry) => {
-      if (
-        entry.target == this._histogramContainerRef.value &&
-        entry.contentBoxSize
-      ) {
-        this.requestUpdate();
-      }
-    });
-  }
-
   private histogramContainerReady() {
-    if (this._histogramContainerRef.value) {
-      this.resizeObserverController.observe(this._histogramContainerRef.value);
-    }
+    return this._histogramContainerRef.value;
   }
 
   override render() {
@@ -181,8 +141,8 @@ export class LisHistogramElement extends LitElement {
     const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;
     if (!maxLabelLength) return;
     const padding = 9 * maxLabelLength; // padding around the SVG
-    const width = this._width - 2 * padding; // adjust width
-    const height = this._height - 2 * padding; // adjust height
+    const width = this.width - 2 * padding; // adjust width
+    const height = this.height - 2 * padding; // adjust height
 
     const svgContainer = d3
       .select(this._histogramContainerRef.value)
@@ -223,7 +183,9 @@ export class LisHistogramElement extends LitElement {
       )
       .attr('fill', 'steelblue')
       .append('title') // append a title element to each rectangle
-      .text((d) => `${this._xlabel}: ${d.name}, ${this._ylabel}: ${d.count}`); // set the text of the title
+      .text(
+        (d) => `${this.nameLabel}: ${d.name}, ${this.countsLabel}: ${d.count}`,
+      ); // set the text of the title
 
     // Add the x-axis label
     svgContainer
@@ -234,7 +196,9 @@ export class LisHistogramElement extends LitElement {
       )
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this._ylabel : this._xlabel);
+      .text(
+        this.orientation === 'vertical' ? this.countsLabel : this.nameLabel,
+      );
 
     // Add the y-axis label
     svgContainer
@@ -245,7 +209,9 @@ export class LisHistogramElement extends LitElement {
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
       .style('fill', 'black')
-      .text(this.orientation === 'vertical' ? this._xlabel : this._ylabel);
+      .text(
+        this.orientation === 'vertical' ? this.nameLabel : this.countsLabel,
+      );
 
     // Add the x-axis
     svgContainer

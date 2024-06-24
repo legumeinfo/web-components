@@ -8,6 +8,7 @@
  * @module user components
  */
 export * from './core';
+export * from './vis';
 export * from './lis-gene-search-element';
 export * from './lis-trait-search-element';
 export * from './lis-qtl-search-element';

@@ -51,8 +51,8 @@
     const histoElement = document.getElementById('histogram');
     histoElement.width = 500;
     histoElement.height = 500;
-    histoElement.xlabel = 'Cheese';
-    histoElement.ylabel = 'Rating';
+    histoElement.nameLabel = 'Cheese';
+    histoElement.countsLabel = 'Rating';
     histoElement.orientation = 'vertical';
     histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
    } 
@@ -61,3 +61,4 @@
 </body>
 
 </html>
+
