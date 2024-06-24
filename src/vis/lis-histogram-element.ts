@@ -1,8 +1,9 @@
 import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
+import {globalSubstitution} from './utils/decorators';
 import {HistogramDataModel} from '../models';
-import * as d3 from 'd3';
+//import * as d3 from 'd3';
 
 /**
  * @htmlElement `<lis-histogram-element>` is a custom web component for creating histograms using D3.js.
@@ -135,6 +136,7 @@ export class LisHistogramElement extends LitElement {
     return this;
   }
 
+  @globalSubstitution('d3', 'd3v7')
   renderHistogram(theHistogram: HistogramDataModel[]) {
     if (!this._histogramContainerRef.value) return;
     this._histogramContainerRef.value.innerHTML = '';
