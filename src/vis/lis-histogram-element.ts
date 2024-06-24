@@ -2,9 +2,14 @@ import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {globalSubstitution} from '../utils/decorators';
-import {HistogramDataModel} from '../models';
+//import {HistogramDataModel} from '../models';
 
 declare const d3: any;
+
+export type HistogramDataModel = {
+  name: string;
+  count: number;
+};
 //import * as d3 from 'd3';
 
 /**
