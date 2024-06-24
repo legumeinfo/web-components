@@ -1,8 +1,10 @@
 import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
-import {globalSubstitution} from './utils/decorators';
+import {globalSubstitution} from '../utils/decorators';
 import {HistogramDataModel} from '../models';
+
+declare const d3: any;
 //import * as d3 from 'd3';
 
 /**
@@ -46,7 +48,7 @@ import {HistogramDataModel} from '../models';
  *     histoElement.nameLabel = 'Cheese';
  *     histoElement.countsLabel = 'Rating';
  *     histoElement.orientation = 'vertical';
- *     histoElement.data = tableElement.data.map((d) => ({"name": d.cheese, "count": d.rating}));
+ *     histoElement.data = tableElement.data.map((d: any) => ({"name": d.cheese, "count": d.rating}));
  *    }
  *   </script>
  * ```
@@ -140,7 +142,10 @@ export class LisHistogramElement extends LitElement {
   renderHistogram(theHistogram: HistogramDataModel[]) {
     if (!this._histogramContainerRef.value) return;
     this._histogramContainerRef.value.innerHTML = '';
-    const maxLabelLength = d3.max(theHistogram, (d) => d.name.length) as number;
+    const maxLabelLength = d3.max(
+      theHistogram,
+      (d: any) => d.name.length,
+    ) as number;
     if (!maxLabelLength) return;
     const padding = 9 * maxLabelLength; // padding around the SVG
     const width = this.width - 2 * padding; // adjust width
@@ -156,13 +161,13 @@ export class LisHistogramElement extends LitElement {
 
     const x = d3
       .scaleBand()
-      .domain(theHistogram.map((d) => d.name))
+      .domain(theHistogram.map((d: any) => d.name))
       .range([0, width])
       .padding(0.1);
 
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(theHistogram, (d) => d.count) as number])
+      .domain([0, d3.max(theHistogram, (d: any) => d.count) as number])
       .range(this.orientation === 'vertical' ? [0, height] : [height, 0]);
 
     // Create the bars
@@ -171,22 +176,23 @@ export class LisHistogramElement extends LitElement {
       .data(theHistogram)
       .enter()
       .append('rect')
-      .attr('x', (d) =>
+      .attr('x', (d: any) =>
         this.orientation === 'vertical' ? 0 : (x(d.name) as number),
       )
-      .attr('y', (d) =>
+      .attr('y', (d: any) =>
         this.orientation === 'vertical' ? (x(d.name) as number) : y(d.count),
       )
-      .attr('width', (d) =>
+      .attr('width', (d: any) =>
         this.orientation === 'vertical' ? y(d.count) : x.bandwidth(),
       )
-      .attr('height', (d) =>
+      .attr('height', (d: any) =>
         this.orientation === 'vertical' ? x.bandwidth() : height - y(d.count),
       )
       .attr('fill', 'steelblue')
       .append('title') // append a title element to each rectangle
       .text(
-        (d) => `${this.nameLabel}: ${d.name}, ${this.countsLabel}: ${d.count}`,
+        (d: any) =>
+          `${this.nameLabel}: ${d.name}, ${this.countsLabel}: ${d.count}`,
       ); // set the text of the title
 
     // Add the x-axis label
