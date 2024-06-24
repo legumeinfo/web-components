@@ -12,6 +12,7 @@ export * from './vis';
 export * from './lis-gene-search-element';
 export * from './lis-trait-search-element';
 export * from './lis-qtl-search-element';
+export * from './lis-phylotree';
 export * from './lis-publication-search-element';
 export * from './lis-linkout-element';
 export * from './lis-trait-association-search-element';
