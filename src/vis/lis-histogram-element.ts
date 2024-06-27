@@ -18,7 +18,7 @@ export type HistogramDataModel = {
  * The following attributes/properties can be set using HTML or JavaScript:
  * - {@link data | `data`}
  * - {@link nameLabel | `nameLabel`}
- * - {@link countLabel | `countLabel`}
+ * - {@link countsLabel | `countsLabel`}
  * - {@link width | `width`}
  * - {@link height | `height`}
  * - {@link orientation | `orientation`}
@@ -30,7 +30,7 @@ export type HistogramDataModel = {
  * <lis-histogram-element
  *   data='[{"name": "A", "count": 10}, {"name": "B", "count": 20}]'
  *   nameLabel="Name"
- *   countLabel="Count"
+ *   countsLabel="Count"
  *   width='500'
  *   height='500'>
  * </lis-histogram-element>
@@ -65,7 +65,7 @@ export type HistogramDataModel = {
  *     histogramElement.width = 500;
  *     histogramElement.height = 500;
  *     histogramElement.nameLabel = 'Cheese';
- *     histogramElement.countLabel = 'Rating';
+ *     histogramElement.countsLabel = 'Rating';
  *     histogramElement.orientation = 'vertical';
  *     histogramElement.data = histogramData;
  *    }

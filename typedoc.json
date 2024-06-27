@@ -2,6 +2,7 @@
     "$schema": "https://typedoc.org/schema.json",
     "entryPoints": [
       "./src/core/index.ts",
+      "./src/vis/index.ts",
       "./src/index.ts",
       "./src/controllers/index.ts",
       "./src/mixins/index.ts",
