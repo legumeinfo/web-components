@@ -63,7 +63,8 @@
     `;
       
       // the search function given to the LIS gene search Web Component
-      function getTraits(searchData, page, {abortSignal}) {
+      function getTraits(searchData, {abortSignal}) {
+          const page = searchData['page'];
           const name = searchData['query'];
           const variables = {name, page, pageSize: 10};
           // returns a Promise that resolves to an array of Trait objects the trait search
