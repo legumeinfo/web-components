@@ -45,6 +45,7 @@ export type GeneFormDataFunction = (
  * performed.
  */
 export type GeneSearchData = {
+  page: number;
   genus: string;
   species: string;
   strain: string;
@@ -75,7 +76,6 @@ export type GeneSearchResult = {
  * performing a gene search.
  *
  * @param searchData An object containing a value of each field in the submitted form.
- * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  * @param options Optional parameters that aren't required to perform a gene
  * search but may be useful.
@@ -85,15 +85,7 @@ export type GeneSearchResult = {
  * objects.
  */
 export type GeneSearchFunction = (
-  searchData: {
-    genus: string;
-    species: string;
-    strain: string;
-    identifier: string;
-    description: string;
-    family: string;
-  },
-  page: number,
+  searchData: GeneSearchData,
   options: PaginatedSearchOptions,
 ) => Promise<Array<GeneSearchResult>>;
 
@@ -128,7 +120,7 @@ export type GeneSearchFunction = (
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // a site-specific function that sends a request to a gene search API
- *   function getGenes(searchData, page, {abortSignal}) {
+ *   function getGenes(searchData, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
  *   // get the gene search element

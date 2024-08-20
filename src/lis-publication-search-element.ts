@@ -9,6 +9,7 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type PublicationSearchData = {
+  page: number;
   query: string;
 };
 
@@ -32,7 +33,6 @@ export type PublicationSearchResult = {
  *
  * @param query The search term in the input element when the search form was
  * submitted.
- * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  * @param options Optional parameters that aren't required to perform a Publication
  * search but may be useful.
@@ -42,8 +42,7 @@ export type PublicationSearchResult = {
  * objects.
  */
 export type PublicationSearchFunction = (
-  query: string,
-  page: number,
+  searchData: PublicationSearchData,
   options: PaginatedSearchOptions,
 ) => Promise<Array<PublicationSearchResult>>;
 
@@ -74,7 +73,7 @@ export type PublicationSearchFunction = (
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // a site-specific function that sends a request to a Publication search API
- *   function getPublications(searchText, page, {abortSignal}) {
+ *   function getPublications(searchData, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
  *   // get the Publication search element
