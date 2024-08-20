@@ -122,7 +122,8 @@
       `;
       
       // the search function given to the LIS gene search Web Component
-      function getGenes(searchData, page, {abortSignal}) {
+      function getGenes(searchData, {abortSignal}) {
+        const page = searchData['page'];
         const genus = searchData['genus'];
         const species = searchData['species'];
         const strain = searchData['strain'];

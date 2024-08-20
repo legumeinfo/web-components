@@ -74,7 +74,8 @@
      `;
       
       // the search function given to the LIS qtl search Web Component
-      function getQTLs(searchData, page, {abortSignal}) {
+      function getQTLs(searchData, {abortSignal}) {
+          const page = searchData['page'];
           const traitName = searchData['query'];
           const variables = {traitName, page, pageSize: 10};
           // returns a Promise that resolves to an array of QTL objects the qtl search

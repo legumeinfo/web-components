@@ -9,6 +9,7 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * performed.
  */
 export type QTLSearchData = {
+  page: number;
   query: string;
 };
 
@@ -33,7 +34,6 @@ export type QTLSearchResult = {
  *
  * @param query The search term in the input element when the search form was
  * submitted.
- * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  * @param options Optional parameters that aren't required to perform a QTL
  * search but may be useful.
@@ -43,8 +43,7 @@ export type QTLSearchResult = {
  * objects.
  */
 export type QTLSearchFunction = (
-  query: string,
-  page: number,
+  searchData: QTLSearchData,
   options: PaginatedSearchOptions,
 ) => Promise<Array<QTLSearchResult>>;
 
@@ -75,7 +74,7 @@ export type QTLSearchFunction = (
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // a site-specific function that sends a request to a QTL search API
- *   function getQTLs(searchText, page, {abortSignal}) {
+ *   function getQTLs(searchData, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
  *   // get the QTL search element
