@@ -34,6 +34,7 @@ type Constructor<T = {}, Params extends any[] = any[]> = new (
  * search results object.
  */
 export type SearchResults<SearchResult> = {
+  errors?: string[];
   results: SearchResult[];
 };
 
@@ -571,9 +572,15 @@ export const LisSearchMixin =
       }
 
       // updates the table and loading element with the search result data
-      protected _searchSuccess({results}: SearchResults<SearchResult>): void {
+      protected _searchSuccess({
+        results,
+        errors,
+      }: SearchResults<SearchResult>): void {
         // update the loading element accordingly
-        if (results.length) {
+        if (errors && errors.length) {
+          const message = errors.join('<br/>');
+          this._loadingRef.value?.error(message);
+        } else if (results.length) {
           this._loadingRef.value?.success();
         } else {
           this._loadingRef.value?.noResults();

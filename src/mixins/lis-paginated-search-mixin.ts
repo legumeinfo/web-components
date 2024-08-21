@@ -48,7 +48,6 @@ export type PaginatedSearchResults<SearchResult> = {
   hasNext?: boolean;
   numResults?: number;
   numPages?: number;
-  errors?: string[];
 } & SearchResults<SearchResult>;
 
 /**
