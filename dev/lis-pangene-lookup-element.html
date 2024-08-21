@@ -157,13 +157,19 @@
       `;
       
       // the search function given to the LIS gene search Web Component
-      function getPangenes(lookupData, {abortSignal}) {
+      function getPangenes(lookupData, {abortSignal}, limit = 100) {
         const genus = lookupData['genus'];
         const species = lookupData['species'];
         const strain = lookupData['strain'];
         const assembly = lookupData['assembly'];
         const annotation = lookupData['annotation'];
         const identifiers = lookupData['genes'].trim().split(/\s+/);
+
+        if (identifiers.length > limit) {
+          const errors = [`More than ${limit} identifiers provided`];
+          return Promise.resolve({results: [], errors});
+        }
+
         const variables = {
           identifiers,
           genus,
