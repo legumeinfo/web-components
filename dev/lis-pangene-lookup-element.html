@@ -22,12 +22,12 @@
     <div class="uk-container uk-margin-bottom">
       <h1>&lt;lis-pangene-lookup-element&gt;</h1>
       <p>
-        The <code>&lt;lis-pangene-lookup-element&gt;</code> provides a form for performing pangene lookups and displays the results in a paginated view.
+        The <code>&lt;lis-pangene-lookup-element&gt;</code> provides a form for performing pangene lookups and displays the results.
         The lookup is performed using an external function provided to the component when it is added to the page.
-        In this example, the component performs a lookup for legume genes using the LIS GraphQL API query <code>genes</code>.
+        In this example, the component performs a lookup for legume genes using the LIS GraphQL API query <code>panGenes</code>.
         The form's genus, species, strain, assembly, and annotation selectors are also populated from this API.
         See the source code for details.
-        Note that the form's input and page values are kept up to date in the URL query string parameters.
+        Note that the form's input values are kept up to date in the URL query string parameters.
         This allows users to share specific pages from a lookup via the URL and for the lookup history to be navigated via the Web browser's forward and back buttons.
         If the query string parameters are present when the component loads then a lookup will be automatically performed with the query string parameter values.
       </p>
@@ -128,17 +128,28 @@
           });
       }
 
-      // pangene lookup query for the LIS GraphQL API
-      const pangenesQuery = `
-      query PangenesQuery($identifier: ID!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String) {
-        gene(identifier: $identifier) {
+      // pangene set lookup query for the LIS GraphQL API
+      const pangenesetsQuery = `
+      query PangenesetsQuery($identifiers: [ID!]!) {
+        getGenes(identifiers: $identifiers) {
           results {
             identifier
             panGeneSets {
-              identifier,
-              genes(genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation) {
-                identifier
-              }
+              identifier
+            }
+          }
+        }
+      }
+      `;
+
+      // pangene lookup query for the LIS GraphQL API
+      const pangenesQuery = `
+      query PangenesQuery($identifiers: [ID!]!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String) {
+        panGenes(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation) {
+          results {
+            identifier
+            panGeneSets {
+              identifier
             }
           }
         }
@@ -146,14 +157,15 @@
       `;
       
       // the search function given to the LIS gene search Web Component
-      function getPangenes(lookupData, page, {abortSignal}) {
+      function getPangenes(lookupData, {abortSignal}) {
         const genus = lookupData['genus'];
         const species = lookupData['species'];
         const strain = lookupData['strain'];
         const assembly = lookupData['assembly'];
         const annotation = lookupData['annotation'];
-        const genes = lookupData['genes'].trim().split(/\s+/);
+        const identifiers = lookupData['genes'].trim().split(/\s+/);
         const variables = {
+          identifiers,
           genus,
           species,
           strain,
@@ -161,41 +173,64 @@
           annotation,
         };
 
-        // shim the results for the Web Component
-        return Promise.all(genes.map((identifier) => {
-          return graphqlQuery(uri, pangenesQuery, {identifier, ...variables}, abortSignal)
-            .then(({data, errors: errorObjects = []}) => {
-              const errors = errorObjects.map((error) => error.message);
-              if (data.gene == null) {
-                return {results: [], errors};
-              }
-              const {identifier: input, panGeneSets} = data.gene.results;
-              // flatten results
-              const results = panGeneSets.map(({identifier: panGeneSet, genes}) => {
-                return genes.map(({identifier: target}) => {
-                  return {input, panGeneSet, target};
-                }).filter(({input, panGeneSet, target}) => input != target);
-              }).flat();
-              if (!results.length) {
-                results.push({input, panGeneSet: null, target: null});
-                errors.push(`No results found for '${identifier}'`);
-              }
-              return {results, errors};
+        // run the queries
+        const pangenesetQuery = graphqlQuery(uri, pangenesetsQuery, {identifiers}, abortSignal);
+        const pangeneQuery = graphqlQuery(uri, pangenesQuery, variables, abortSignal);
+
+        // shim the results for the Web Componentreturn
+        return Promise.all([pangenesetQuery, pangeneQuery])
+            .then(([
+                {data: {getGenes: {results: setResults}}},
+                {data: {panGenes: {results: geneResults}}},
+            ]) => {
+                // check that a gene was found for each query identifier
+                const queryGenes = setResults.map(({identifier}) => identifier);
+                const errors = identifiers.reduce((accumulator, identifier) => {
+                    if (queryGenes.indexOf(identifier) === -1) {
+                        accumulator.push(`No gene found for '${identifier}'`);
+                    }
+                    return accumulator;
+                }, []);
+                // create a mapping from pangene sets to query gene identifiers
+                const setIdentifiers = new Map();
+                setResults.forEach((
+                    {
+                        identifier,
+                        panGeneSets,
+                    }
+                ) => {
+                    // assume each gene only has one pangene set
+                    const {identifier: setIdentifier} = panGeneSets[0];
+                    // we're assuming a one-to-one mapping
+                    if (setIdentifiers.has(setIdentifier)) {
+                        errors.push(`Multiple query genes provided for pangene set '${setIdentifier}'; results for only the last such query gene will be returned`);
+                    }
+                    setIdentifiers.set(setIdentifier, identifier);
+                });
+                // map result genes to their query genes
+                const results = geneResults.map(({identifier, panGeneSets}) => {
+                    // assume each gene only has one pangene set
+                    const {identifier: setIdentifier} = panGeneSets[0];
+                    return {
+                        input: setIdentifiers.get(setIdentifier),
+                        panGeneSet: setIdentifier,
+                        target: identifier,
+                    };
+                });
+                // add the genes that were not matched
+                const queryGenesSet = new Set(queryGenes);
+                const matchedGenesSet = new Set(results.map(({input}) => input));
+                const unmatchedGenesSet = queryGenesSet.difference(matchedGenesSet);
+                unmatchedGenesSet.forEach((identifier) => {
+                    const i = queryGenes.indexOf(identifier);
+                    const {panGeneSets} = setResults[i];
+                    // assume each gene only has one pangene set
+                    const {identifier: setIdentifier} = panGeneSets[0];
+                    results.push({input: identifier, panGeneSet: setIdentifier});
+                });
+                // construct the expected search results object
+                return {results, errors};
             });
-        }))
-        .then((resultArrays) => {
-          const results = resultArrays.map(({results}) => results).flat();
-          const errors = resultArrays.map(({errors}) => errors).flat();
-          // construct the expected paginated results object
-          return {
-              hasNext: false,
-              numResults: results.length,
-              pageSize: results.length,
-              numPages: 1,
-              results,
-              errors,
-            };
-        });
       }
 
       // bind component properties
