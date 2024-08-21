@@ -5,7 +5,7 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {LisSearchMixin, SearchOptions} from './mixins';
 
 /**
  * The data used to construct the lookup form in the
@@ -67,7 +67,7 @@ export type PangeneLookupData = {
  */
 export type PangeneLookupResult = {
   input: string;
-  panGeneSets: string;
+  panGeneSet: string;
   target: string;
 };
 
@@ -98,7 +98,7 @@ export type PangeneSearchFunction = (
     family: string;
   },
   page: number,
-  options: PaginatedSearchOptions,
+  options: SearchOptions,
 ) => Promise<Array<PangeneLookupResult>>;
 
 /**
@@ -108,7 +108,7 @@ export type PangeneSearchFunction = (
  * displaying results in a view table. Note that the component saves its state to the
  * URL query string parameters and a lookup will be automatically performed if the
  * parameters are present when the componnent is loaded. The component uses the
- * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See the
+ * {@link mixins!LisSearchMixin | `LisSearchMixin`} mixin. See the
  * mixin docs for further details.
  *
  * @queryStringParameters
@@ -218,9 +218,10 @@ export type PangeneSearchFunction = (
  * ```
  */
 @customElement('lis-pangene-lookup-element')
-export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
-  LitElement,
-)<PangeneLookupData, PangeneLookupResult>() {
+export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
+  PangeneLookupData,
+  PangeneLookupResult
+>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -820,7 +821,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   }
 
   /** @ignore */
-  // used by LisPaginatedSearchMixin to draw the lookup form part of template
+  // used by LisSearchMixin to draw the lookup form part of template
   override renderForm() {
     // render the form's selectors
     const genusSelector = this._renderGenusSelector();
