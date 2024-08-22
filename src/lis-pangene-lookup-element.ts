@@ -332,6 +332,9 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
     super();
     // configure query string parameters
     this.requiredQueryStringParams = [
+      ['genes', 'genus'],
+      ['genes', 'genus', 'species'],
+      ['genes', 'genus', 'species', 'strain'],
       ['genes', 'genus', 'species', 'strain', 'assembly'],
       ['genes', 'genus', 'species', 'strain', 'assembly', 'annotation'],
     ];
@@ -571,7 +574,7 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
         .selectedIndex=${live(this.selectedGenus)}
         @change="${this._selectGenus}"
       >
-        <option value="">-- select one --</option>
+        <option value="">-- any --</option>
         ${options}
       </select>
     `;
@@ -607,13 +610,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
           : '';
       return html`
         <select
-          required
           class="uk-select uk-form-small"
           disabled
           .selectedIndex=${live(this.selectedSpecies)}
           @change="${this._selectSpecies}"
         >
-          <option value="">-- select one --</option>
+          <option value="">-- any --</option>
           ${options}
         </select>
         <input type="hidden" name="species" value="${value}" />
@@ -621,13 +623,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
     }
     return html`
       <select
-        required
         class="uk-select uk-form-small"
         name="species"
         .selectedIndex=${live(this.selectedSpecies)}
         @change="${this._selectSpecies}"
       >
-        <option value="">-- select one --</option>
+        <option value="">-- any --</option>
         ${options}
       </select>
     `;
@@ -664,13 +665,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
           : '';
       return html`
         <select
-          required
           class="uk-select uk-form-small"
           disabled
           .selectedIndex=${live(this.selectedStrain)}
           @change="${this._selectStrain}"
         >
-          <option value="">-- select one --</option>
+          <option value="">-- any --</option>
           ${options}
         </select>
         <input type="hidden" name="strain" value="${value}" />
@@ -678,13 +678,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
     }
     return html`
       <select
-        required
         class="uk-select uk-form-small"
         name="strain"
         .selectedIndex=${live(this.selectedStrain)}
         @change="${this._selectStrain}"
       >
-        <option value="">-- select one --</option>
+        <option value="">-- any --</option>
         ${options}
       </select>
     `;
@@ -726,13 +725,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
           : '';
       return html`
         <select
-          required
           class="uk-select uk-form-small"
           disabled
           .selectedIndex=${live(this.selectedAssembly)}
           @change="${this._selectAssembly}"
         >
-          <option value="">-- select one --</option>
+          <option value="">-- any --</option>
           ${options}
         </select>
         <input type="hidden" name="assembly" value="${value}" />
@@ -740,13 +738,12 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
     }
     return html`
       <select
-        required
         class="uk-select uk-form-small"
         name="assembly"
         .selectedIndex=${live(this.selectedAssembly)}
         @change="${this._selectAssembly}"
       >
-        <option value="">-- select one --</option>
+        <option value="">-- any --</option>
         ${options}
       </select>
     `;
