@@ -856,6 +856,9 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
               ></lis-form-input-example-element>
             </div>
           </div>
+          <label class="uk-form-label"
+            >Constraints target pangenes must satisfy</label
+          >
           <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
