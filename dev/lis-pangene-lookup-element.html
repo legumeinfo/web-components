@@ -144,13 +144,19 @@
 
       // pangene lookup query for the LIS GraphQL API
       const pangenesQuery = `
-      query PangenesQuery($identifiers: [ID!]!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String) {
-        panGenes(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation) {
+      query PangenesQuery($identifiers: [ID!]!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String, $page: Int, $pageSize: Int) {
+        panGenes(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation, page: $page, pageSize: $pageSize) {
           results {
             identifier
             panGeneSets {
               identifier
             }
+          }
+          pageInfo {
+            hasNextPage
+            numResults
+            pageSize
+            pageCount
           }
         }
       }
@@ -158,6 +164,7 @@
       
       // the search function given to the LIS gene search Web Component
       function getPangenes(lookupData, {abortSignal}, limit = 100) {
+        const page = lookupData['page'];
         const genus = lookupData['genus'];
         const species = lookupData['species'];
         const strain = lookupData['strain'];
@@ -177,6 +184,8 @@
           strain,
           assembly,
           annotation,
+          page,
+          pageSize: 10,
         };
 
         // run the queries
@@ -187,7 +196,7 @@
         return Promise.all([pangenesetQuery, pangeneQuery])
             .then(([
                 {data: {getGenes: {results: setResults}}},
-                {data: {panGenes: {results: geneResults}}},
+                {data: {panGenes: {results: geneResults, pageInfo}}},
             ]) => {
                 // check that a gene was found for each query identifier
                 const queryGenes = setResults.map(({identifier}) => identifier);
@@ -234,8 +243,11 @@
                     const {identifier: setIdentifier} = panGeneSets[0];
                     results.push({input: identifier, panGeneSet: setIdentifier});
                 });
+                // extract the page info
+                const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+                  = pageInfo;
                 // construct the expected search results object
-                return {results, errors};
+                return {results, errors, hasNext, numResults, pageSize, numPages, results};
             });
       }
 
