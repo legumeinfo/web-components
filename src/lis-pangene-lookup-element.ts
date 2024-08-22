@@ -840,6 +840,23 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
             ${ref(this._formLoadingRef)}
           ></lis-loading-element>
           <div class="uk-margin uk-grid-small" uk-grid>
+            <div class="uk-width-1-1@s">
+              <label class="uk-form-label" for="identifier"
+                >Gene Identifiers</label
+              >
+              <textarea
+                required
+                class="uk-textarea"
+                rows="5"
+                name="genes"
+                .value=${this.queryStringController.getParameter('genes')}
+              ></textarea>
+              <lis-form-input-example-element
+                .text=${this.genesExample}
+              ></lis-form-input-example-element>
+            </div>
+          </div>
+          <div class="uk-margin uk-grid-small" uk-grid>
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="genus">Genus</label>
               ${genusSelector}
@@ -861,23 +878,6 @@ export class LisPangeneLookupElement extends LisSearchMixin(LitElement)<
             <div class="uk-width-1-3@s">
               <label class="uk-form-label" for="annotation">Annotation</label>
               ${annotationSelector}
-            </div>
-          </div>
-          <div class="uk-margin uk-grid-small" uk-grid>
-            <div class="uk-width-1-1@s">
-              <label class="uk-form-label" for="identifier"
-                >Gene Identifiers</label
-              >
-              <textarea
-                required
-                class="uk-textarea"
-                rows="5"
-                name="genes"
-                .value=${this.queryStringController.getParameter('genes')}
-              ></textarea>
-              <lis-form-input-example-element
-                .text=${this.genesExample}
-              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin">
