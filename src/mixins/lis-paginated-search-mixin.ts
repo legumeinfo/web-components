@@ -585,11 +585,8 @@ export const LisPaginatedSearchMixin =
 
       // called when a search term is submitted
       protected override _updateData(e: CustomEvent): void {
-        e.preventDefault();
-        e.stopPropagation(); // we'll emit our own event
-        this._searchData = this.formToObject(e.detail.data);
         this._paginator.page = this._searchPage;
-        this._search();
+        super._updateData(e);
       }
 
       // returns a string describing the results found by the search
