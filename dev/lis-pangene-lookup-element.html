@@ -145,10 +145,15 @@
       // pangene lookup query for the LIS GraphQL API
       const pangenesQuery = `
       query PangenesQuery($identifiers: [ID!]!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String, $page: Int, $pageSize: Int) {
-        panGenes(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation, page: $page, pageSize: $pageSize) {
+        panGenePairs(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation, page: $page, pageSize: $pageSize) {
           results {
-            identifier
-            panGeneSets {
+            query {
+              identifier
+            }
+            panGeneSet {
+              identifier
+            }
+            result {
               identifier
             }
           }
@@ -196,7 +201,7 @@
         return Promise.all([pangenesetQuery, pangeneQuery])
             .then(([
                 {data: {getGenes: {results: setResults}}},
-                {data: {panGenes: {results: geneResults, pageInfo}}},
+                {data: {panGenePairs: {results: geneResults, pageInfo}}},
             ]) => {
                 // check that a gene was found for each query identifier
                 const queryGenes = setResults.map(({identifier}) => identifier);
@@ -206,43 +211,14 @@
                     }
                     return accumulator;
                 }, []);
-                // create a mapping from pangene sets to query gene identifiers
-                const setIdentifiers = new Map();
-                setResults.forEach((
-                    {
-                        identifier,
-                        panGeneSets,
-                    }
-                ) => {
-                    // assume each gene only has one pangene set
-                    const {identifier: setIdentifier} = panGeneSets[0];
-                    // we're assuming a one-to-one mapping
-                    if (setIdentifiers.has(setIdentifier)) {
-                        errors.push(`Multiple query genes provided for pangene set '${setIdentifier}'; results for only the last such query gene will be returned`);
-                    }
-                    setIdentifiers.set(setIdentifier, identifier);
-                });
-                // map result genes to their query genes
-                const results = geneResults.map(({identifier, panGeneSets}) => {
-                    // assume each gene only has one pangene set
-                    const {identifier: setIdentifier} = panGeneSets[0];
-                    return {
-                        input: setIdentifiers.get(setIdentifier),
-                        panGeneSet: setIdentifier,
-                        target: identifier,
-                    };
-                });
-                // add the genes that were not matched
-                const queryGenesSet = new Set(queryGenes);
-                const matchedGenesSet = new Set(results.map(({input}) => input));
-                const unmatchedGenesSet = queryGenesSet.difference(matchedGenesSet);
-                unmatchedGenesSet.forEach((identifier) => {
-                    const i = queryGenes.indexOf(identifier);
-                    const {panGeneSets} = setResults[i];
-                    // assume each gene only has one pangene set
-                    const {identifier: setIdentifier} = panGeneSets[0];
-                    results.push({input: identifier, panGeneSet: setIdentifier});
-                });
+                // convert the result genes into the expected format
+                const results = geneResults.map(({
+                    query: {identifier: input},
+                    panGeneSet: {identifier: panGeneSet},
+                    result: {identifier: target},
+                }) => {
+                    return {input, panGeneSet, target};
+                })
                 // extract the page info
                 const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
                   = pageInfo;
