@@ -166,33 +166,8 @@
         }
       }
       `;
-      
-      // the search function given to the LIS gene search Web Component
-      function getPangenes(lookupData, {abortSignal}, limit = 100) {
-        const page = lookupData['page'];
-        const genus = lookupData['genus'];
-        const species = lookupData['species'];
-        const strain = lookupData['strain'];
-        const assembly = lookupData['assembly'];
-        const annotation = lookupData['annotation'];
-        const identifiers = lookupData['genes'].trim().split(/\s+/);
 
-        if (identifiers.length > limit) {
-          const errors = [`More than ${limit} identifiers provided`];
-          return Promise.resolve({results: [], errors});
-        }
-
-        const variables = {
-          identifiers,
-          genus,
-          species,
-          strain,
-          assembly,
-          annotation,
-          page,
-          pageSize: 10,
-        };
-
+      function makePangenesRequest(identifiers, variables, {abortSignal}, limit = 100) {
         // run the queries
         const pangenesetQuery = graphqlQuery(uri, pangenesetsQuery, {identifiers}, abortSignal);
         const pangeneQuery = graphqlQuery(uri, pangenesQuery, variables, abortSignal);
@@ -227,10 +202,84 @@
             });
       }
 
+      // the search function given to the LIS gene search Web Component
+      function getPangenes(lookupData, options) {
+        const page = lookupData['page'];
+        const genus = lookupData['genus'];
+        const species = lookupData['species'];
+        const strain = lookupData['strain'];
+        const assembly = lookupData['assembly'];
+        const annotation = lookupData['annotation'];
+        const identifiers = lookupData['genes'].trim().split(/\s+/);
+
+        const variables = {
+          identifiers,
+          genus,
+          species,
+          strain,
+          assembly,
+          annotation,
+          page,
+          pageSize: 10,
+        };
+
+        return makePangenesRequest(identifiers, variables, options);
+      }
+
+      function downloadFile(filename, content) {
+        // create the file
+        const file = new File(["\ufeff"+content], filename, {type: "text/plain:charset=UTF-8"});
+        // create a ObjectURL for downloading the file
+        const url = window.URL.createObjectURL(file);
+        // create a hidden link and set the href to the file URL
+        const link = document.createElement("a");
+        link.style = "display: none";
+        link.href = url;
+        link.download = file.name;
+        // "click" the hidden link
+        link.click();
+        // clean up
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+
+      // the search function given to the LIS gene search Web Component
+      function downloadPangenes(lookupData, options) {
+        const genus = lookupData['genus'];
+        const species = lookupData['species'];
+        const strain = lookupData['strain'];
+        const assembly = lookupData['assembly'];
+        const annotation = lookupData['annotation'];
+        const identifiers = lookupData['genes'].trim().split(/\s+/);
+
+        const variables = {
+          identifiers,
+          genus,
+          species,
+          strain,
+          assembly,
+          annotation,
+        };
+
+        const request = makePangenesRequest(identifiers, variables, options);
+
+        request.then(({results}) => {
+          const filename = 'pangenes.tsv';
+          const tsvContent =
+            "input\tpanGeneSet\ttarget\n" +
+            results.map(({input, panGeneSet, target}) => `${input}\t${panGeneSet}\t${target}`)
+              .join('\n');
+          downloadFile(filename, tsvContent);
+        });
+
+        return request;
+      }
+
       // bind component properties
       const pangeneLookupElement = document.getElementById('pangene-lookup');
       pangeneLookupElement.formDataFunction = getFormData;
       pangeneLookupElement.searchFunction = getPangenes;
+      pangeneLookupElement.downloadFunction = downloadPangenes;
 
     </script>
 
