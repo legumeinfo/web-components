@@ -13,6 +13,8 @@ import {
   LisPaginationElement,
 } from '../core';
 import {
+  DownloadFunction,
+  DownloadResults,
   //LisSearchElementInterface,
   LisSearchMixin,
   SearchFunction,
@@ -99,7 +101,9 @@ export type PaginatedSearchFunction<
  * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin.
  *
  * @typeParam SearchData - The type of data that will be given to
- * {@link LisPaginatedSearchElementInterface.searchFunction | `searchFunction`}.
+ * {@link LisPaginatedSearchElementInterface.searchFunction | `searchFunction`}
+ * and the
+ * {@link LisPaginatedSearchElementInterface.downloadFunction | `downloadFunction`}..
  * @typeParam SearchResult - The type that is expected to be in the results
  * array of the {@link PaginatedSearchResults | `PaginatedSearchResults`}
  * instance resolved by the {@link !Promise | `Promise`} returned by the
@@ -122,6 +126,8 @@ export declare class LisPaginatedSearchElementInterface<
   > = PaginatedSearchFunction<SearchData, SearchResult>,
   SearchResultsType extends
     PaginatedSearchResults<SearchResult> = PaginatedSearchResults<SearchResult>,
+  DownloadFunctionType extends
+    DownloadFunction<SearchData> = DownloadFunction<SearchData>,
 > {
   /**
    * Components that use the
@@ -131,6 +137,14 @@ export declare class LisPaginatedSearchElementInterface<
    * component's submitted search form.
    */
   searchFunction: SearchFunctionType;
+
+  /**
+   * Components that use the {@link LisSearchMixin | `LisSearchMixin`} mixin will
+   * inherit this property. It stores an external function that can optionally be provided
+   * by users of the component that loads a file to download using the data from the
+   * component's submitted search form.
+   */
+  downloadFunction?: DownloadFunctionType;
 
   /**
    * Components that use the
@@ -219,7 +233,8 @@ export declare class LisPaginatedSearchElementInterface<
    * it cancels. The underlying {@link !AbortSignal | `AbortSignal`} is also
    * available for more low-level access. This is the value of the `abortSignal`
    * attribute of the {@link PaginatedSearchOptions | `PaginatedSearchOptions`}
-   * object passed to the component's {@link SearchFunction | `SearchFunction`}.
+   * object passed to the component's {@link SearchFunction | `SearchFunction`}
+   * and {@link DownloadFunction | `DownloadFunction`}.
    */
   protected cancelPromiseController: LisCancelPromiseController;
 
@@ -315,16 +330,22 @@ export declare class LisPaginatedSearchElementInterface<
   protected _queryStringSubmit(): void;
 
   /** @internal */
-  protected _search(): void;
+  protected _search(searchData: SearchData | undefined): void;
 
   /** @internal */
   protected _searchSuccess(searchResults: SearchResultsType): void;
 
   /** @internal */
+  protected _download(formData: SearchData): void;
+
+  /** @internal */
+  protected _downloadSuccess(downloadResults: DownloadResults): void;
+
+  /** @internal */
   protected _resetComponent(): void;
 
   /** @internal */
-  protected _updateData(e: CustomEvent): void;
+  protected _formSubmitted(e: CustomEvent): void;
 
   /** @internal */
   protected _getResultsInfo(searchResults: SearchResultsType): string;
@@ -340,7 +361,9 @@ export declare class LisPaginatedSearchElementInterface<
  * @typeParam T - The class to use as the super class of the generated mixin
  * class. Should be an instance of the `LitElement` class or a descendant of it.
  * @typeParam SearchData - The type of data that will be given to
- * {@link LisPaginatedSearchElementInterface.searchFunction | `searchFunction`}.
+ * {@link LisPaginatedSearchElementInterface.searchFunction | `searchFunction`}
+ * and
+ * {@link LisPaginatedSearchElementInterface.downloadFunction | `downloadFunction`}.
  * @typeParam SearchResult - The type that is expected to be in the results
  * array of the {@link PaginatedSearchResults | `PaginatedSearchResults`}
  * instance resolved by the {@link !Promise | `Promise`} returned by the
@@ -470,12 +493,15 @@ export const LisPaginatedSearchMixin =
     > = PaginatedSearchFunction<SearchData, SearchResult>,
     SearchResultsType extends
       PaginatedSearchResults<SearchResult> = PaginatedSearchResults<SearchResult>,
+    DownloadFunctionType extends
+      DownloadFunction<SearchData> = DownloadFunction<SearchData>,
   >() => {
     const SuperClassSearchMixin = LisSearchMixin(superClass)<
       SearchData,
       SearchResult,
       SearchFunctionType,
-      SearchResultsType
+      SearchResultsType,
+      DownloadFunctionType
     >();
 
     // the mixin class
@@ -522,32 +548,16 @@ export const LisPaginatedSearchMixin =
       private _changePage(e: CustomEvent): void {
         e.preventDefault();
         e.stopPropagation(); // we'll emit our own event
-        this._search();
+        this._search(this._searchData);
       }
 
       // performs a search via an external function
-      protected override _search(): void {
-        if (this._searchData !== undefined) {
+      protected override _search(searchData: SearchData | undefined): void {
+        this._paginator.page = this._searchPage;
+        if (searchData !== undefined) {
           const page = this._paginator.page;
-          this._loadingRef.value?.loading();
-          const searchData = {...this._searchData, page};
-          this.queryStringController.setParameters(searchData);
-          this.cancelPromiseController.cancel();
-          const options = {
-            abortSignal: this.cancelPromiseController.abortSignal,
-          };
-          const searchPromise = this.searchFunction(searchData, options);
-          this.cancelPromiseController.wrapPromise(searchPromise).then(
-            (results: PaginatedSearchResults<SearchResult>) =>
-              this._searchSuccess(results),
-            (error: Error | Event) => {
-              // do nothing if the request was aborted
-              if (!(error instanceof Event && error.type === 'abort')) {
-                this._loadingRef.value?.failure();
-                throw error;
-              }
-            },
-          );
+          const paginatedSearchData = {...searchData, page};
+          super._search(paginatedSearchData);
         }
       }
 
@@ -584,9 +594,9 @@ export const LisPaginatedSearchMixin =
       }
 
       // called when a search term is submitted
-      protected override _updateData(e: CustomEvent): void {
+      protected override _formSubmitted(e: CustomEvent): void {
         this._paginator.page = this._searchPage;
-        super._updateData(e);
+        super._formSubmitted(e);
       }
 
       // returns a string describing the results found by the search
