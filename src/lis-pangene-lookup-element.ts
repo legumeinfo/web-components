@@ -574,7 +574,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
         .selectedIndex=${live(this.selectedGenus)}
         @change="${this._selectGenus}"
       >
-        <option value="">-- any --</option>
+        <option value="">-- select one --</option>
         ${options}
       </select>
     `;
@@ -830,6 +830,19 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
     const strainSelector = this._renderStrainSelector();
     const assemblySelector = this._renderAssemblySelector();
     const annotationSelector = this._renderAnnotationSelector();
+    // render the optional download button
+    let downloadButton = html``;
+    if (this.downloadFunction !== undefined) {
+      downloadButton = html`
+        <button
+          type="submit"
+          value="download"
+          class="uk-button uk-button-default"
+        >
+          Download
+        </button>
+      `;
+    }
 
     // render the form
     return html`
@@ -887,6 +900,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
             <button type="submit" class="uk-button uk-button-primary">
               Lookup
             </button>
+            ${downloadButton}
           </div>
         </fieldset>
       </form>
