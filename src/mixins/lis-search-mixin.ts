@@ -730,10 +730,10 @@ export const LisSearchMixin =
       protected _formSubmitted(e: CustomEvent): void {
         e.preventDefault();
         e.stopPropagation(); // we'll emit our own event
-        const formData = this.formToObject(e.detail.data);
+        const eventSubmitter = e.detail.formEvent.submitter;
+        const formData = this.formToObject(e.detail.formData);
         if (
-          // @ts-expect-error explicitOriginalTarget properties
-          e.explicitOriginalTarget.value === 'download' &&
+          eventSubmitter.value === 'download' &&
           this.downloadFunction !== undefined
         ) {
           this._download(formData);
