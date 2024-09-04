@@ -94,10 +94,10 @@ export class LisFormWrapperElement extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     // parse the values from the form
-    const data = new FormData(e.target as HTMLFormElement);
+    const formData = new FormData(e.target as HTMLFormElement);
     // dispatch a custom event
     const options = {
-      detail: {data},
+      detail: {formData, formEvent: e},
       bubbles: true,
       composed: true,
     };
