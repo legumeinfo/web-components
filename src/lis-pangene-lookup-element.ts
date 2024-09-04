@@ -353,7 +353,10 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
         this.searchFunction,
       );
     }
-    if (changedProperties.has('downloadFunction')) {
+    if (
+      changedProperties.has('downloadFunction') &&
+      this.downloadFunction !== undefined
+    ) {
       // @ts-expect-error incompatible types
       this.downloadFunction = this._splitGenesFunctionWrapper(
         this.downloadFunction,
