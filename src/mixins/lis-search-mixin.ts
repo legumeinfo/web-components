@@ -731,8 +731,8 @@ export const LisSearchMixin =
         e.preventDefault();
         e.stopPropagation(); // we'll emit our own event
         const formData = this.formToObject(e.detail.data);
-        // @ts-expect-error explicitOriginalTarget properties
         if (
+          // @ts-expect-error explicitOriginalTarget properties
           e.explicitOriginalTarget.value === 'download' &&
           this.downloadFunction !== undefined
         ) {
