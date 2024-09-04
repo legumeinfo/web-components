@@ -1,11 +1,16 @@
-import {LitElement, css, html} from 'lit';
+import {LitElement, PropertyValues, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {live} from 'lit/directives/live.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
-import {LisPaginatedSearchMixin, SearchOptions} from './mixins';
+import {
+  DownloadFunction,
+  LisPaginatedSearchMixin,
+  PaginatedSearchData,
+  SearchOptions,
+} from './mixins';
 
 /**
  * The data used to construct the lookup form in the
@@ -51,16 +56,13 @@ export type PangeneFormDataFunction = (
  * performed.
  */
 export type PangeneLookupData = {
-  page: number;
   genus: string;
   species: string;
   strain: string;
   assembly: string;
   annotation: string;
-  name: string;
-  identifier: string;
-  description: string;
-};
+  genes: string[];
+} & PaginatedSearchData;
 
 /**
  * A single result of a pangene lookup performed by the
@@ -88,19 +90,11 @@ export type PangeneLookupResult = {
  * objects.
  */
 export type PangeneSearchFunction = (
-  searchData: {
-    genus: string;
-    species: string;
-    strain: string;
-    assembly: string;
-    annotation: string;
-    identifier: string;
-    description: string;
-    family: string;
-  },
-  page: number,
+  searchData: PangeneLookupData,
   options: SearchOptions,
 ) => Promise<Array<PangeneLookupResult>>;
+
+export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
 
 /**
  * @htmlElement `<lis-pangene-lookup-element>`
@@ -300,6 +294,23 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   @property({type: String})
   genesExample?: string;
 
+  /**
+   * What regular experssion should be used to parse the input gene identifiers.
+   *
+   * @attribute
+   */
+  @property({type: RegExp})
+  genesRegexp: RegExp = /\s+/;
+
+  /**
+   * The maximum number of input gene identifiers.
+   * Warning: setting this number too high can cause queries to hit web browsers' URL size limit.
+   *
+   * @attribute
+   */
+  @property({type: Number})
+  genesLimit: number = 100;
+
   // the selected index of the genus select element
   @state()
   private selectedGenus: number = 0;
@@ -324,6 +335,31 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   protected formDataCancelPromiseController = new LisCancelPromiseController(
     this,
   );
+
+  private _splitGenesFunctionWrapper(
+    fn: PangeneSearchFunction | PangeneDownloadFunction,
+  ) {
+    return (data: PangeneLookupData, options: SearchOptions) => {
+      // @ts-expect-error Property 'trim' does not exist on type 'string[]'
+      data['genes'] = data['genes'].trim().split(this.genesRegexp);
+      return fn(data, options);
+    };
+  }
+
+  override willUpdate(changedProperties: PropertyValues<this>) {
+    if (changedProperties.has('searchFunction')) {
+      // @ts-expect-error incompatible types
+      this.searchFunction = this._splitGenesFunctionWrapper(
+        this.searchFunction,
+      );
+    }
+    if (changedProperties.has('downloadFunction')) {
+      // @ts-expect-error incompatible types
+      this.downloadFunction = this._splitGenesFunctionWrapper(
+        this.downloadFunction,
+      );
+    }
+  }
 
   // bind to the loading element in the template
   private _formLoadingRef: Ref<LisLoadingElement> = createRef();
@@ -821,6 +857,26 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
     `;
   }
 
+  // called when the form is submitted to run custom field validation
+  private _validateForm(e: SubmitEvent) {
+    const formElement = e.target as HTMLFormElement;
+    if (formElement == null) return;
+    // check genes textarea validity
+    const genesElement = formElement.genes;
+    const identifiers = genesElement.value.trim().split(this.genesRegexp);
+    let genesValidity = '';
+    if (identifiers.length > this.genesLimit) {
+      genesValidity = `No more than ${this.genesLimit} gene identifiers allowed.`;
+    }
+    genesElement.setCustomValidity(genesValidity);
+    // check form validity; will catch standard and custom invalid fields
+    if (!formElement.checkValidity()) {
+      e.preventDefault();
+      e.stopPropagation();
+      formElement.reportValidity();
+    }
+  }
+
   /** @ignore */
   // used by LisPaginatedSearchMixin to draw the lookup form part of template
   override renderForm() {
@@ -846,7 +902,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
 
     // render the form
     return html`
-      <form class="uk-form-stacked">
+      <form class="uk-form-stacked" novalidate @submit="${this._validateForm}">
         <fieldset class="uk-fieldset">
           <legend class="uk-legend">Pangene Lookup</legend>
           <lis-loading-element
