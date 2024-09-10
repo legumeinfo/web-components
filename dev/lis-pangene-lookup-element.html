@@ -157,6 +157,11 @@
               identifier
             }
           }
+          resultsInfo {
+            identifierCounts {
+              identifier
+            }
+          }
           pageInfo {
             hasNextPage
             numResults
@@ -167,42 +172,46 @@
       }
       `;
 
-      function makePangenesRequest(identifiers, variables, {abortSignal}, limit = 100) {
+      // check that a gene was found for each query identifier
+      function resultsToErrors(identifiers, setResults, resultsInfo) {
+        const queryGenes = setResults.map(({identifier}) => identifier);
+        const identifiersMatched = resultsInfo.identifierCounts.map(({identifier}) => identifier);
+        const errors = identifiers.reduce((accumulator, identifier) => {
+            if (queryGenes.indexOf(identifier) === -1) {
+                accumulator.invalid.push(identifier);
+                accumulator.errors.push(`"${identifier}" is not a valid gene identifier`);
+            } else if (identifiersMatched.indexOf(identifier) === -1) {
+                accumulator.unmatched.push(identifier);
+                accumulator.errors.push(`No matches found for identifier "${identifier}"`);
+            }
+            return accumulator;
+        }, {invalid: [], unmatched: [], errors: []});
+        return errors;
+      }
+
+      // converts GraphQL results into what the component expects
+      function shimResults(geneResults) {
+        const results = geneResults.map(({
+            query: {identifier: input},
+            panGeneSet: {identifier: panGeneSet},
+            result: {identifier: target},
+        }) => {
+            return {input, panGeneSet, target};
+        })
+        return results;
+      }
+
+      // makes the GraphQL requests necessary for the component
+      function makePangenesRequests(identifiers, variables, {abortSignal}, limit = 100) {
         // run the queries
         const pangenesetQuery = graphqlQuery(uri, pangenesetsQuery, {identifiers}, abortSignal);
         const pangeneQuery = graphqlQuery(uri, pangenesQuery, variables, abortSignal);
 
-        // shim the results for the Web Componentreturn
-        return Promise.all([pangenesetQuery, pangeneQuery])
-            .then(([
-                {data: {getGenes: {results: setResults}}},
-                {data: {panGenePairs: {results: geneResults, pageInfo}}},
-            ]) => {
-                // check that a gene was found for each query identifier
-                const queryGenes = setResults.map(({identifier}) => identifier);
-                const errors = identifiers.reduce((accumulator, identifier) => {
-                    if (queryGenes.indexOf(identifier) === -1) {
-                        accumulator.push(`No gene found for '${identifier}'`);
-                    }
-                    return accumulator;
-                }, []);
-                // convert the result genes into the expected format
-                const results = geneResults.map(({
-                    query: {identifier: input},
-                    panGeneSet: {identifier: panGeneSet},
-                    result: {identifier: target},
-                }) => {
-                    return {input, panGeneSet, target};
-                })
-                // extract the page info
-                const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
-                  = pageInfo;
-                // construct the expected search results object
-                return {results, errors, hasNext, numResults, pageSize, numPages, results};
-            });
+        // shim the results for the Web Component
+        return Promise.all([pangenesetQuery, pangeneQuery]);
       }
 
-      // the search function given to the LIS gene search Web Component
+      // the search function given to the LIS pangene lookup Web Component
       function getPangenes(lookupData, options) {
         const page = lookupData['page'];
         const genus = lookupData['genus'];
@@ -223,7 +232,31 @@
           pageSize: 10,
         };
 
-        return makePangenesRequest(identifiers, variables, options);
+        // makes the GraphQL requests and process the results
+        return makePangenesRequests(identifiers, variables, options)
+          .then(([
+              {data: {getGenes: {results: setResults}}},
+              {data: {panGenePairs: {results: geneResults, resultsInfo, pageInfo}}},
+          ]) => {
+            // convert the result genes into the expected format
+            const results = shimResults(geneResults);
+            // check that a gene was found for each query identifier
+            const {invalid, unmatched, errors} =
+              resultsToErrors(identifiers, setResults, resultsInfo);
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = pageInfo;
+            // construct the expected search results object
+            return {
+              results,
+              errors,
+              hasNext,
+              numResults,
+              pageSize,
+              numPages,
+              results,
+            };
+          });
       }
 
       function downloadFile(filename, content) {
@@ -243,7 +276,7 @@
         window.URL.revokeObjectURL(url);
       }
 
-      // the search function given to the LIS gene search Web Component
+      // the download function given to the LIS pangene lookup Web Component
       function downloadPangenes(lookupData, options) {
         const genus = lookupData['genus'];
         const species = lookupData['species'];
@@ -261,8 +294,52 @@
           annotation,
         };
 
-        const request = makePangenesRequest(identifiers, variables, options);
+        // makes the GraphQL requests and process the results
+        const request = makePangenesRequests(identifiers, variables, options)
+          .then(([
+              {data: {getGenes: {results: setResults}}},
+              {data: {panGenePairs: {results: geneResults, resultsInfo, pageInfo}}},
+          ]) => {
+            // convert the result genes into the expected format
+            const results = shimResults(geneResults);
+            // check that a gene was found for each query identifier
+            const {invalid, unmatched, errors} =
+              resultsToErrors(identifiers, setResults, resultsInfo);
+            // add unmatched genes to the results
+            setResults.forEach(({identifier, panGeneSets}) => {
+              if (unmatched.indexOf(identifier) > -1) {
+                const {identifier: panGeneIdentifier} = panGeneSets[0];
+                results.push({
+                  input: identifier,
+                  panGeneSet: panGeneIdentifier,
+                  target: '',
+                });
+              }
+            });
+            // add invalid genes to the results
+            invalid.forEach((identifier) => {
+              results.push({
+                input: identifier,
+                panGeneSet: '',
+                target: '',
+              });
+            });
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = pageInfo;
+            // construct the expected search results object
+            return {
+              results,
+              errors,
+              hasNext,
+              numResults,
+              pageSize,
+              numPages,
+              results,
+            };
+          });
 
+        // convert the results into a file and download it
         request.then(({results}) => {
           const filename = 'pangenes.tsv';
           const tsvContent =
@@ -272,6 +349,7 @@
           downloadFile(filename, tsvContent);
         });
 
+        // send the results to the component so it can react
         return request;
       }
 
