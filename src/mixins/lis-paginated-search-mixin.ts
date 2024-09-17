@@ -553,7 +553,6 @@ export const LisPaginatedSearchMixin =
 
       // performs a search via an external function
       protected override _search(searchData: SearchData | undefined): void {
-        this._paginator.page = this._searchPage;
         if (searchData !== undefined) {
           const page = this._paginator.page;
           const paginatedSearchData = {...searchData, page};
