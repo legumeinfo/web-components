@@ -193,9 +193,17 @@
       function shimResults(geneResults) {
         const results = geneResults.map(({
             query: {identifier: input},
-            panGeneSet: {identifier: panGeneSet},
-            result: {identifier: target},
+            panGeneSet: set,
+            result,
         }) => {
+            let panGeneSet = "";
+            let target = "";
+            if (set != null) {
+              panGeneSet = set.identifier;
+              if (result != null) {
+                target = result.identifier;
+              }
+            }
             return {input, panGeneSet, target};
         })
         return results;
