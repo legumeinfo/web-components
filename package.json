@@ -82,7 +82,7 @@
     "rollup": "^4.9.6",
     "typedoc": "^0.25.7",
     "typescript": "^5.3.3",
-    "uikit": "^3.17.11"
+    "uikit": "^3.21.13"
   },
   "dependencies": {
     "lit": "^3.1.1"
