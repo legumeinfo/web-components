@@ -187,7 +187,7 @@
             } else if (setResults[i].panGeneSets.length === 0) {
                 accumulator.push(`"${identifier}" does not belong to a pangene set`);
             } else if (identifiersMatched.indexOf(identifier) === -1) {
-                accumulator.push(`No matches found for identifier "${identifier}"`);
+                accumulator.push(`No matching targets found in a pangene set for "${identifier}"`);
             }
             return accumulator;
         }, []);
