@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-pangene-lookup-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container uk-margin-bottom">
+      <h1>&lt;lis-pangene-lookup-element&gt;</h1>
+      <p>
+        The <code>&lt;lis-pangene-lookup-element&gt;</code> provides a form for performing pangene lookups and displays the results.
+        The lookup is performed using an external function provided to the component when it is added to the page.
+        In this example, the component performs a lookup for legume genes using the LIS GraphQL API query <code>panGenes</code>.
+        The form's genus, species, strain, assembly, and annotation selectors are also populated from this API.
+        See the source code for details.
+        Note that the form's input values are kept up to date in the URL query string parameters.
+        This allows users to share specific pages from a lookup via the URL and for the lookup history to be navigated via the Web browser's forward and back buttons.
+        If the query string parameters are present when the component loads then a lookup will be automatically performed with the query string parameter values.
+      </p>
+      <p>
+        Optionally, all lookups can be limited to a specific genus by setting the <code>genus</code> attribute/property.
+        This will cause the genus field of the lookup form to be automatically set and disabled so that users cannot change it.
+        Similarly, all lookups can be limited to a specific species/strain/assembly/annotation by setting the <code>species</code>/<code>strain</code>/<code>assembly</code>/<code>annotation</code> attribute/property.
+        You can try setting these properties in this example using the <code>pangeneLookupElement</code> variable in the Web console.
+      </p>
+      <p>
+        Example text for the Gene Identifiers form field can be provided by setting the <code>genesExample</code> attribute/property.
+      </p>
+      <hr>
+    </div>
+
+    <div class="uk-container uk-container-expand">
+      <!-- the custom pangene lookup element -->
+      <lis-pangene-lookup-element id="pangene-lookup" genesExample="glycy.G1267.gnm1.ann1.Gcy10g023815 glycy.G1267.gnm1.ann1.Gcy10g023812"></lis-pangene-lookup-element>
+    </div>
+
+    <!-- set the lookup function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // uses the LIS GraphQL API to get data used to construct the pangene lookup form
+      const formDataQuery = `
+      query FormDataQuery {
+        chromosomes {
+          results {
+            annotationVersion
+            assemblyVersion
+            strain {
+              organism {
+                genus
+                species
+              }
+              identifier
+            }
+          }
+        }
+      }
+      `;
+
+    function nextBin(bin, key, defaultValue) {
+      if (!(key in bin)) {
+        bin[key] = defaultValue;
+      }
+      return bin[key];
+    }
+
+    function getFormData({abortSignal}) {
+        return graphqlQuery(uri, formDataQuery, {}, abortSignal)
+          .then(({data}) => {
+            // bin the strains by genus then species
+            const binnedFormData = {};
+            data.chromosomes.results.forEach(({
+              annotationVersion,
+              assemblyVersion,
+              strain: {
+                organism: {
+                  genus,
+                  species,
+                },
+                identifier,
+              },
+            }) => {
+              let bin = binnedFormData;
+              bin = nextBin(bin, genus, {});
+              bin = nextBin(bin, species, {});
+              bin = nextBin(bin, identifier, {});
+              bin = nextBin(bin, assemblyVersion, []);
+              if (annotationVersion != null) {
+                bin.push(annotationVersion);
+              }
+            });
+            // collapse the bins into arrays of objects
+            const genuses =
+            Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+              const species =
+              Object.entries(binnedSpecies).map(([species, binnedStrains]) => {
+                const strains =
+                Object.entries(binnedStrains).map(([strain, binnedAssemblies]) => {
+                  const assemblies =
+                  Object.entries(binnedAssemblies).map(([assembly, annotations]) => {
+                    return {
+                      assembly,
+                      annotations: [...new Set(annotations)]
+                        .map((annotation) => {annotation}),
+                    };
+                  });
+                  return {strain, assemblies};
+                });
+                return {species, strains};
+              });
+              return {genus, species};
+            });
+            // return the expected form data object
+            return {genuses};
+          });
+      }
+
+      // pangene set lookup query for the LIS GraphQL API
+      const pangenesetsQuery = `
+      query PangenesetsQuery($identifiers: [ID!]!) {
+        getGenes(identifiers: $identifiers) {
+          results {
+            identifier
+            panGeneSets {
+              identifier
+            }
+          }
+        }
+      }
+      `;
+
+      // pangene lookup query for the LIS GraphQL API
+      const pangenesQuery = `
+      query PangenesQuery($identifiers: [ID!]!, $genus: String, $species: String, $strain: String, $assembly: String, $annotation: String, $page: Int, $pageSize: Int) {
+        panGenePairs(identifiers: $identifiers, genus: $genus, species: $species, strain: $strain, assembly: $assembly, annotation: $annotation, page: $page, pageSize: $pageSize) {
+          results {
+            query {
+              identifier
+            }
+            panGeneSet {
+              identifier
+            }
+            result {
+              identifier
+            }
+          }
+          resultsInfo {
+            identifierCounts {
+              identifier
+              count
+            }
+          }
+          pageInfo {
+            hasNextPage
+            numResults
+            pageSize
+            pageCount
+          }
+        }
+      }
+      `;
+
+      // check that a gene was found for each query identifier
+      function resultsToErrors(identifiers, setResults, resultsInfo) {
+        const queryGenes = setResults.map(({identifier}) => identifier);
+        const identifiersMatched =
+          resultsInfo.identifierCounts
+            .filter(({count}) => count > 0)
+            .map(({identifier}) => identifier);
+        const errors = identifiers.reduce((accumulator, identifier) => {
+            const i = queryGenes.indexOf(identifier);
+            if (i === -1) {
+                accumulator.push(`"${identifier}" is not a valid gene identifier`);
+            } else if (setResults[i].panGeneSets.length === 0) {
+                accumulator.push(`"${identifier}" does not belong to a pangene set`);
+            } else if (identifiersMatched.indexOf(identifier) === -1) {
+                accumulator.push(`No matching targets found in a pangene set for "${identifier}"`);
+            }
+            return accumulator;
+        }, []);
+        return errors;
+      }
+
+      // converts GraphQL results into what the component expects
+      function shimResults(geneResults) {
+        const results = geneResults.map(({
+            query: {identifier: input},
+            panGeneSet: set,
+            result,
+        }) => {
+            let panGeneSet = "";
+            let target = "";
+            if (set != null) {
+              panGeneSet = set.identifier;
+              if (result != null) {
+                target = result.identifier;
+              }
+            }
+            return {input, panGeneSet, target};
+        })
+        return results;
+      }
+
+      // makes the GraphQL requests necessary for the component
+      function makePangenesRequests(identifiers, variables, {abortSignal}, limit = 100) {
+        // run the queries
+        const pangenesetQuery = graphqlQuery(uri, pangenesetsQuery, {identifiers}, abortSignal);
+        const pangeneQuery = graphqlQuery(uri, pangenesQuery, variables, abortSignal);
+
+        // shim the results for the Web Component
+        return Promise.all([pangenesetQuery, pangeneQuery])
+          .then(([
+              {data: {getGenes: {results: setResults}}},
+              {data: {panGenePairs: {results: geneResults, resultsInfo, pageInfo}}},
+          ]) => {
+            // convert the result genes into the expected format
+            const results = shimResults(geneResults);
+            // check that a gene was found for each query identifier
+            const errors = resultsToErrors(identifiers, setResults, resultsInfo);
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = pageInfo;
+            // construct the expected search results object
+            return {
+              results,
+              errors,
+              hasNext,
+              numResults,
+              pageSize,
+              numPages,
+              results,
+            };
+          });
+      }
+
+      // the search function given to the LIS pangene lookup Web Component
+      function getPangenes(lookupData, options) {
+        const page = lookupData['page'];
+        const genus = lookupData['genus'];
+        const species = lookupData['species'];
+        const strain = lookupData['strain'];
+        const assembly = lookupData['assembly'];
+        const annotation = lookupData['annotation'];
+        const identifiers = lookupData['genes'];
+
+        const variables = {
+          identifiers,
+          genus,
+          species,
+          strain,
+          assembly,
+          annotation,
+          page,
+          pageSize: 10,
+        };
+
+        // makes the GraphQL requests and process the results
+        return makePangenesRequests(identifiers, variables, options);
+      }
+
+      function downloadFile(filename, content) {
+        // create the file
+        const file = new File(["\ufeff"+content], filename, {type: "text/plain:charset=UTF-8"});
+        // create a ObjectURL for downloading the file
+        const url = window.URL.createObjectURL(file);
+        // create a hidden link and set the href to the file URL
+        const link = document.createElement("a");
+        link.style = "display: none";
+        link.href = url;
+        link.download = file.name;
+        // "click" the hidden link
+        link.click();
+        // clean up
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+
+      // the download function given to the LIS pangene lookup Web Component
+      function downloadPangenes(lookupData, options) {
+        const genus = lookupData['genus'];
+        const species = lookupData['species'];
+        const strain = lookupData['strain'];
+        const assembly = lookupData['assembly'];
+        const annotation = lookupData['annotation'];
+        const identifiers = lookupData['genes'];
+
+        const variables = {
+          identifiers,
+          genus,
+          species,
+          strain,
+          assembly,
+          annotation,
+        };
+
+        // makes the GraphQL requests and process the results
+        const request = makePangenesRequests(identifiers, variables, options);
+
+        // convert the results into a file and download it
+        request.then(({results}) => {
+          const filename = 'pangenes.tsv';
+          const tsvContent =
+            "input\tpanGeneSet\ttarget\n" +
+            results.map(({input, panGeneSet, target}) => `${input}\t${panGeneSet}\t${target}`)
+              .join('\n');
+          downloadFile(filename, tsvContent);
+        });
+
+        // send the results to the component so it can react
+        return request;
+      }
+
+      // bind component properties
+      const pangeneLookupElement = document.getElementById('pangene-lookup');
+      pangeneLookupElement.formDataFunction = getFormData;
+      pangeneLookupElement.searchFunction = getPangenes;
+      pangeneLookupElement.downloadFunction = downloadPangenes;
+
+    </script>
+
+  </body>
+
+</html>
