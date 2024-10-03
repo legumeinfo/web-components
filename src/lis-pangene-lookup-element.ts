@@ -195,11 +195,11 @@ export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
  * ```
  *
  * @example
- * The {@link geneExample | `geneExample`} property can be used to set the example text for the
+ * The {@link genesExample | `genesExample`} property can be used to set the example text for the
  * gene identifiers input field. For example:
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-pangene-lookup-element genes="Glyma.13G357700 Glyma.13G357702"></lis-pangene-lookup-element>
+ * <lis-pangene-lookup-element genesExample="Glyma.13G357700 Glyma.13G357702"></lis-pangene-lookup-element>
  *
  * <!-- set the example text via JavaScript -->
  * <lis-pangene-lookup-element id="pangene-lookup"></lis-pangene-lookup-element>
