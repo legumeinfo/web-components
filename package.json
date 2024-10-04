@@ -4,7 +4,7 @@
   "description": "Web Components for the Legume Information System and other AgBio databases",
   "repository": {
     "type": "git",
-    "url": "https://github.com/legumeinfo/web-components"
+    "url": "git+https://github.com/legumeinfo/web-components.git"
   },
   "bugs": {
     "url": "https://github.com/legumeinfo/web-components/issues"
