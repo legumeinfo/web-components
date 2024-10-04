@@ -628,7 +628,7 @@ export const LisSearchMixin =
         this._loadingRef.value?.loading();
         this.queryStringController.setParameters({
           ...searchData,
-        } as Object);
+        } as object);
         this.cancelPromiseController.cancel();
         const options = {
           abortSignal: this.cancelPromiseController.abortSignal,

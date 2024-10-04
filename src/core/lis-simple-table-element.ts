@@ -5,6 +5,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {LisSlotController} from '../controllers';
 import {StringObjectModel} from '../models';
+import {hasOwnProperty} from '../utility';
 
 /**
  * @htmlElement `<lis-simple-table-element>`
@@ -148,7 +149,7 @@ export class LisSimpleTableElement extends LitElement {
    */
   // not an attribute because Arrays (i.e. Objects) don't trigger Lit change
   // detection
-  @property({type: Array<Object>, attribute: false})
+  @property({type: Array<object>, attribute: false})
   data: Array<StringObjectModel> = [];
 
   constructor() {
@@ -167,8 +168,8 @@ export class LisSimpleTableElement extends LitElement {
       cls ? `<${cellTag} class="${cls}">` : `<${cellTag}>`;
     const endTag = `</${cellTag}>`;
     const cells = this.dataAttributes.map((a) => {
-      const cls = classes.hasOwnProperty(a) ? classes[a] : '';
-      const data = o.hasOwnProperty(a) ? o[a] : '';
+      const cls = hasOwnProperty(classes, a) ? classes[a] : '';
+      const data = hasOwnProperty(o, a) ? o[a] : '';
       const cell = startTag(cls) + data + endTag;
       return cell;
     });
