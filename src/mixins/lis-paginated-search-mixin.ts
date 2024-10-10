@@ -594,7 +594,18 @@ export const LisPaginatedSearchMixin =
 
       // called when a search term is submitted
       protected override _formSubmitted(e: CustomEvent): void {
-        this._paginator.page = this._searchPage;
+        const eventSubmitter = e.detail.formEvent.submitter;
+        const formData = this.formToObject(e.detail.formData);
+        if (
+          eventSubmitter.value === 'download' &&
+          this.downloadFunction !== undefined
+        ) {
+          this._download(formData);
+        } else {
+          this._paginator.page = this._searchPage;
+          this._searchData = formData;
+          this._search(formData);
+        }
         super._formSubmitted(e);
       }
 
