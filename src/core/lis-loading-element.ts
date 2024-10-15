@@ -20,7 +20,6 @@ import {LisAlertElement} from './lis-alert-element.js';
  * <lis-loading-element id="loading"></lis-alert-element>
  *
  * <!-- interact with the element JavaScript -->
- * <lis-alert-element id="alert"></lis-alert-element>
  * <script type="text/javascript">
  *   // get the loading element
  *   const loadingElement = document.getElementById('loading');
