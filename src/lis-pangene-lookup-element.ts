@@ -900,6 +900,9 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
         >
           Download
         </button>
+        <lis-inline-loading-element
+          ${ref(this._downloadingRef)}
+        ></lis-inline-loading-element>
       `;
     }
 
