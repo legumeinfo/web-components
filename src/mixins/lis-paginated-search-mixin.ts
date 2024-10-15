@@ -324,6 +324,9 @@ export declare class LisPaginatedSearchElementInterface<
   /** @internal */
   protected _loadingRef: Ref<LisLoadingElement>;
 
+  /** @internal */
+  protected _downloadingRef: Ref<HTMLElement>;
+
   /** these methods should only be used/overridden by mixins */
 
   /** @internal */

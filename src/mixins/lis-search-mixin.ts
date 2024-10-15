@@ -7,7 +7,11 @@ import {
   LisDomContentLoadedController,
   LisQueryStringParametersController,
 } from '../controllers';
-import {LisFormWrapperElement, LisLoadingElement} from '../core';
+import {
+  LisFormWrapperElement,
+  LisInlineLoadingElement,
+  LisLoadingElement,
+} from '../core';
 import {StringObjectModel} from '../models';
 
 /**
@@ -311,6 +315,9 @@ export declare class LisSearchElementInterface<
   /** @internal */
   protected _loadingRef: Ref<LisLoadingElement>;
 
+  /** @internal */
+  protected _downloadingRef: Ref<LisInlineLoadingElement>;
+
   /** these methods should only be used/overridden by mixins */
 
   /** @internal */
@@ -573,6 +580,9 @@ export const LisSearchMixin =
       // bind to the loading element in the template
       protected _loadingRef: Ref<LisLoadingElement> = createRef();
 
+      // bind to a download element
+      private _downloadingRef: Ref<LisInlineLoadingElement> = createRef();
+
       ////////////////////
       // helper methods //
       ////////////////////
@@ -653,7 +663,8 @@ export const LisSearchMixin =
       // performs a search via an external function
       protected _download(formData: SearchData): void {
         if (this.downloadFunction !== undefined) {
-          this._loadingRef.value?.loading();
+          // show the downloading element
+          this._downloadingRef.value?.loading();
           this.cancelPromiseController.cancel();
           const options = {
             abortSignal: this.cancelPromiseController.abortSignal,
@@ -665,7 +676,7 @@ export const LisSearchMixin =
             (error: Error | Event) => {
               // do nothing if the request was aborted
               if (!(error instanceof Event && error.type === 'abort')) {
-                this._loadingRef.value?.failure();
+                this._downloadingRef.value?.failure();
                 throw error;
               }
             },
@@ -696,11 +707,10 @@ export const LisSearchMixin =
         // update the loading element accordingly
         if (errors && errors.length) {
           const message = errors.join('<br/>');
-          this._loadingRef.value?.error(message);
+          this._downloadingRef.value?.error(message);
         } else {
-          this._loadingRef.value?.success();
+          this._downloadingRef.value?.success();
         }
-        this.resultsInfo = 'Download successful';
       }
 
       //////////////////////////
