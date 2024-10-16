@@ -9,7 +9,7 @@ import {
   DownloadFunction,
   LisPaginatedSearchMixin,
   PaginatedSearchData,
-  SearchOptions,
+  PaginatedSearchOptions,
 } from './mixins';
 
 /**
@@ -91,7 +91,7 @@ export type PangeneLookupResult = {
  */
 export type PangeneSearchFunction = (
   searchData: PangeneLookupData,
-  options: SearchOptions,
+  options: PaginatedSearchOptions,
 ) => Promise<Array<PangeneLookupResult>>;
 
 export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
@@ -100,22 +100,9 @@ export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
  * @htmlElement `<lis-pangene-lookup-element>`
  *
  * A Web Component that provides an interface for looking up pangenes and
- * displaying results in a view table. Note that the component saves its state to the
- * URL query string parameters and a lookup will be automatically performed if the
- * parameters are present when the componnent is loaded. The component uses the
+ * displaying results in a view table. The component uses the
  * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See the
  * mixin docs for further details.
- *
- * @queryStringParameters
- * - **genus:** The selected genus in the lookup form.
- * - **species:** The selected species in the lookup form.
- * - **strain:** The selected strain in the lookup form.
- * - **assembly:** The selected assembly in the lookup form.
- * - **annotation:** The selected annotation in the lookup form.
- * - **identifier:** The identifier provided in the lookup form.
- * - **description:** The description provided in the lookup form.
- * - **family:** The gene family identifier provided in the lookup form.
- * - **page:** What page of results to load.
  *
  * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
@@ -168,12 +155,7 @@ export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
  * {@link assembly | `assembly`}, and {@link annotation | `annotation`} properties can be used to
  * limit all lookups to a specific genus, species, strain, assembly, and annotation. This will cause
  * the genus, species, strain, assembly, and annotation fields of the lookup form to be
- * automatically set and disabled so that users cannot change them. Additionally, these properties
- * cannot be overridden using the `genus`, `species`, `strain`, `assembly`, and `annotation`
- * querystring parameters. However, like the `genus`, `species`, `strain`, `assembly`, and
- * `annotation` querystring parameters, if the genus/species/strain/assembly/annotation set are not
- * present in the `formData` then the genus/species/strain/assembly/annotation form field will be
- * set to the default `any` value.
+ * automatically set and disabled so that users cannot change them.
  * For example:
  * ```html
  * <!-- restrict the genus via HTML -->
@@ -339,10 +321,11 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   private _splitGenesFunctionWrapper(
     fn: PangeneSearchFunction | PangeneDownloadFunction,
   ) {
-    return (data: PangeneLookupData, options: SearchOptions) => {
+    return (data: PangeneLookupData, options: PaginatedSearchOptions) => {
       // @ts-expect-error Property 'trim' does not exist on type 'string[]'
-      data['genes'] = data['genes'].trim().split(this.genesRegexp);
-      return fn(data, options);
+      const genes = data['genes'].trim().split(this.genesRegexp);
+      const modifiedData = {...data, genes};
+      return fn(modifiedData, options);
     };
   }
 
@@ -369,14 +352,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
 
   constructor() {
     super();
-    // configure query string parameters
-    this.requiredQueryStringParams = [
-      ['genes', 'genus'],
-      ['genes', 'genus', 'species'],
-      ['genes', 'genus', 'species', 'strain'],
-      ['genes', 'genus', 'species', 'strain', 'assembly'],
-      ['genes', 'genus', 'species', 'strain', 'assembly', 'annotation'],
-    ];
+    this.queryStringReflection = false;
     this.resultAttributes = ['input', 'panGeneSet', 'target'];
     this.tableHeader = {
       input: 'Input',
@@ -386,76 +362,6 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
     this.tableColumnClasses = {
       description: 'uk-table-expand',
     };
-  }
-
-  private _getDefaultGenus(): string {
-    return this.valueOrQuerystringParameter(this.genus, 'genus');
-  }
-
-  private _getDefaultSpecies(): string {
-    return this.valueOrQuerystringParameter(this.species, 'species');
-  }
-
-  private _getDefaultStrain(): string {
-    return this.valueOrQuerystringParameter(this.strain, 'strain');
-  }
-
-  private _getDefaultAssembly(): string {
-    return this.valueOrQuerystringParameter(this.assembly, 'assembly');
-  }
-
-  private _getDefaultAnnotation(): string {
-    return this.valueOrQuerystringParameter(this.annotation, 'annotation');
-  }
-
-  // called when the component is added to the DOM; attributes should have properties now
-  override connectedCallback() {
-    super.connectedCallback();
-    // initialize the form data with querystring parameters so a lookup can be performed
-    // before the actual form data is loaded
-    const formData: PangeneLookupFormData = {genuses: []};
-    const genus = this._getDefaultGenus();
-    if (genus) {
-      const genusData = {genus, species: []} as (typeof formData.genuses)[0];
-      formData.genuses.push(genusData);
-      const species = this._getDefaultSpecies();
-      if (species) {
-        const speciesData = {
-          species,
-          strains: [],
-        } as (typeof genusData.species)[0];
-        genusData.species.push(speciesData);
-        const strain = this._getDefaultStrain();
-        if (strain) {
-          const strainData = {
-            strain,
-            assemblies: [],
-          } as (typeof speciesData.strains)[0];
-          speciesData.strains.push(strainData);
-          const assembly = this._getDefaultAssembly();
-          if (assembly) {
-            const assemblyData = {
-              assembly,
-              annotations: [],
-            } as (typeof strainData.assemblies)[0];
-            strainData.assemblies.push(assemblyData);
-            const annotation = this._getDefaultAnnotation();
-            if (annotation) {
-              const annotationData = {
-                annotation,
-                annotations: [],
-              } as (typeof assemblyData.annotations)[0];
-              assemblyData.annotations.push(annotationData);
-            }
-          }
-        }
-      }
-    }
-    this.formData = formData;
-    // set the selector values before the DOM is updated when the querystring parameters change
-    this.queryStringController.addPreUpdateListener((_) => {
-      this._initializeSelections();
-    });
   }
 
   // called after every component update, e.g. when a property changes
@@ -505,69 +411,11 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
 
   // sets the selected indexes based on properties and querystring parameters
   private async _initializeSelections() {
-    const genus = this._getDefaultGenus();
-    if (genus) {
-      this.selectedGenus =
-        this.formData.genuses.map(({genus}) => genus).indexOf(genus) + 1;
-    } else {
-      this.selectedGenus = 0;
-    }
-
-    await this.updateComplete;
-
-    const species = this._getDefaultSpecies();
-    if (this.selectedGenus && species) {
-      this.selectedSpecies =
-        this.formData.genuses[this.selectedGenus - 1].species
-          .map(({species}) => species)
-          .indexOf(species) + 1;
-    } else {
-      this.selectedSpecies = 0;
-    }
-
-    await this.updateComplete;
-
-    const strain = this._getDefaultStrain();
-    if (this.selectedSpecies && strain) {
-      this.selectedStrain =
-        this.formData.genuses[this.selectedGenus - 1].species[
-          this.selectedSpecies - 1
-        ].strains
-          .map(({strain}) => strain)
-          .indexOf(strain) + 1;
-    } else {
-      this.selectedStrain = 0;
-    }
-
-    await this.updateComplete;
-
-    const assembly = this._getDefaultAssembly();
-    if (this.selectedStrain && assembly) {
-      this.selectedAssembly =
-        this.formData.genuses[this.selectedGenus - 1].species[
-          this.selectedSpecies - 1
-        ].strains[this.selectedStrain - 1].assemblies
-          .map(({assembly}) => assembly)
-          .indexOf(assembly) + 1;
-    } else {
-      this.selectedAssembly = 0;
-    }
-
-    await this.updateComplete;
-
-    const annotation = this._getDefaultAnnotation();
-    if (this.selectedAssembly && annotation) {
-      this.selectedAnnotation =
-        this.formData.genuses[this.selectedGenus - 1].species[
-          this.selectedSpecies - 1
-        ].strains[this.selectedStrain - 1].assemblies[
-          this.selectedAssembly - 1
-        ].annotations
-          .map(({annotation}) => annotation)
-          .indexOf(annotation) + 1;
-    } else {
-      this.selectedAnnotation = 0;
-    }
+    this.selectedGenus = 0;
+    this.selectedSpecies = 0;
+    this.selectedStrain = 0;
+    this.selectedAssembly = 0;
+    this.selectedAnnotation = 0;
   }
 
   // called when a genus is selected
@@ -900,6 +748,9 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
         >
           Download
         </button>
+        <lis-inline-loading-element
+          ${ref(this._downloadingRef)}
+        ></lis-inline-loading-element>
       `;
     }
 
@@ -921,7 +772,6 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
                 class="uk-textarea"
                 rows="5"
                 name="genes"
-                .value=${this.queryStringController.getParameter('genes')}
               ></textarea>
               <lis-form-input-example-element
                 .text=${this.genesExample}

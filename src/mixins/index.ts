@@ -8,4 +8,3 @@
  * @module mixins
  */
 export * from './lis-paginated-search-mixin';
-export * from './lis-search-mixin';
