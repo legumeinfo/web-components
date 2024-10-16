@@ -244,6 +244,13 @@ export declare class LisPaginatedSearchElementInterface<
   protected requiredQueryStringParams: string[][];
 
   /**
+   * The {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin will
+   * automatically reflect all form field values in the URL querystring parameters.
+   * Set this property to `false` to disable this behavior.
+   */
+  protected queryStringReflection: boolean;
+
+  /**
    * The results returned by the `searchFunction`.
    */
   public searchResults: SearchResult[];
@@ -465,10 +472,20 @@ export const LisPaginatedSearchMixin =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructor(...rest: any[]) {
         super(...rest);
-        // submit the form after the DOM is finished loading
-        this.domContentLoadedController.addListener(this._queryStringSubmit);
-        // submit the form whenever the query string parameters change
-        this.queryStringController.addListener(this._queryStringSubmit);
+      }
+
+      /////////////////////
+      // lifecycle hooks /
+      /////////////////////
+
+      override connectedCallback() {
+        super.connectedCallback();
+        if (this.queryStringReflection) {
+          // submit the form after the DOM is finished loading
+          this.domContentLoadedController.addListener(this._queryStringSubmit);
+          // submit the form whenever the query string parameters change
+          this.queryStringController.addListener(this._queryStringSubmit);
+        }
       }
 
       ////////////
@@ -510,6 +527,9 @@ export const LisPaginatedSearchMixin =
       // what form parts are required to submit a search
       @state()
       protected requiredQueryStringParams: string[][] = [];
+
+      @state()
+      protected queryStringReflection: boolean = true;
 
       // keep a copy of the search results for template generalization
       @state()
@@ -614,7 +634,7 @@ export const LisPaginatedSearchMixin =
           return;
         }
         this._loadingRef.value?.loading();
-        if (!this._queryStringSubmitted) {
+        if (!this._queryStringSubmitted && this.queryStringReflection) {
           this.queryStringController.setParameters(searchData);
         } else {
           this._queryStringSubmitted = false;
@@ -642,7 +662,6 @@ export const LisPaginatedSearchMixin =
         paginatedResults: PaginatedSearchResults<SearchResult>,
       ): void {
         // reset the initial page
-        //this._searchPage = 1;
         // destruct the paginated search result
         const {hasNext, numPages, results, errors} = {
           // provide a default value for hasNext based on if there's any results
@@ -742,7 +761,7 @@ export const LisPaginatedSearchMixin =
           this._download(formData);
         } else {
           // reset the paginator if this isn't a querystring search
-          if (!this._queryStringSubmitted) {
+          if (!this._queryStringSubmitted || !this.queryStringReflection) {
             this._paginator.page = 1;
           }
           // update the page before searching
@@ -836,7 +855,6 @@ export const LisPaginatedSearchMixin =
 
           <lis-pagination-element
             .scrollTarget=${this._formRef.value}
-            page=${this.queryStringController.getParameter('page', '1')}
             @pageChange=${this._changePage}
           >
           </lis-pagination-element>
