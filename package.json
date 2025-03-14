@@ -1,10 +1,10 @@
 {
   "name": "@legumeinfo/web-components",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "description": "Web Components for the Legume Information System and other AgBio databases",
   "repository": {
     "type": "git",
-    "url": "https://github.com/legumeinfo/web-components"
+    "url": "git+https://github.com/legumeinfo/web-components.git"
   },
   "bugs": {
     "url": "https://github.com/legumeinfo/web-components/issues"
@@ -44,7 +44,7 @@
     "bundle": "rollup -c rollup.config.js",
     "bundle:clean": "rimraf dist",
     "bundle:watch": "rollup -c -w",
-    "postinstall": "husky install",
+    "postinstall": "husky",
     "prepack": "pinst --disable",
     "postpack": "pinst --enable"
   },
@@ -60,31 +60,32 @@
   "author": "Legume Information System",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@eslint/js": "^9.13.0",
     "@open-wc/testing": "^4.0.0",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
-    "@typescript-eslint/parser": "^6.19.1",
-    "@web/dev-server": "^0.4.1",
-    "@web/dev-server-legacy": "^2.1.0",
-    "@web/test-runner": "^0.18.0",
+    "@types/eslint__js": "^8.42.3",
+    "@web/dev-server": "^0.4.6",
+    "@web/dev-server-legacy": "^2.1.1",
+    "@web/test-runner": "^0.19.0",
     "@web/test-runner-playwright": "^0.11.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "eslint": "^8.56.0",
+    "eslint": "^9.13.0",
     "eslint-config-prettier": "^9.1.0",
-    "husky": "^8.0.0",
-    "lint-staged": "^15.2.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
     "lit-analyzer": "^2.0.3",
     "pinst": "^3.0.0",
-    "prettier": "^3.2.4",
-    "rimraf": "^5.0.5",
-    "rollup": "^4.9.6",
-    "typedoc": "^0.25.7",
-    "typescript": "^5.3.3",
-    "uikit": "^3.17.11"
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.24.0",
+    "typedoc": "^0.26.10",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.11.0",
+    "uikit": "^3.21.13"
   },
   "dependencies": {
-    "lit": "^3.1.1"
+    "lit": "^3.2.1"
   }
 }

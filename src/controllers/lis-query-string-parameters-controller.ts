@@ -46,7 +46,7 @@ export class LisQueryStringParametersController implements ReactiveController {
     const params = new URLSearchParams(window.location.search);
     const value: string | null = params.get(name);
     if (value !== null) {
-      return value;
+      return decodeURIComponent(value);
     }
     return defaultValue;
   }
@@ -57,7 +57,7 @@ export class LisQueryStringParametersController implements ReactiveController {
    * @param parameters - An object mapping parameter names to the values to
    * assign them.
    */
-  setParameters(parameters: Object): void {
+  setParameters(parameters: object): void {
     // don't update the query string if there's nothing to update
     if (!this._differentValues(parameters)) {
       return;
@@ -66,7 +66,7 @@ export class LisQueryStringParametersController implements ReactiveController {
     const queryString =
       '?' +
       Object.entries(parameters)
-        .map(([key, value]) => `${key}=${value}`)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
         .join('&');
     history.pushState(parameters, '', queryString);
   }
@@ -95,10 +95,10 @@ export class LisQueryStringParametersController implements ReactiveController {
 
   /** @ignore */
   // determines if any of the given parameters have different values than the URL parameters
-  private _differentValues(parameters: Object): boolean {
+  private _differentValues(parameters: object): boolean {
     const params = new URLSearchParams(window.location.search);
     return Object.entries(parameters).some(
-      ([key, value]) => value.toString() !== params.get(key),
+      ([key, value]) => encodeURIComponent(value) !== params.get(key),
     );
   }
 

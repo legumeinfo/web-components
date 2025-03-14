@@ -141,7 +141,8 @@
       `;
 
       // search function
-      function getTraits(searchData, page,{abortSignal}) {
+      function getTraits(searchData,{abortSignal}) {
+        const page = searchData['page'];
         const genus = searchData['genus'];
         const species = searchData['species'];
         let studyType = searchData['type'];

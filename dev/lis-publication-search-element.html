@@ -67,7 +67,8 @@ query Query($title: String!, $page: Int, $pageSize: Int) {
 `;
       
       // the search function given to the LIS publication search Web Component
-      function getPublications(searchData, page, {abortSignal}) {
+      function getPublications(searchData, {abortSignal}) {
+          const page = searchData['page'];
           const title = searchData['query'];
           const variables = {title, page, pageSize: 10};
           // returns a Promise that resolves to an array of Publication objects the publication search

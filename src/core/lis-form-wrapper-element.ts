@@ -66,9 +66,14 @@ export class LisFormWrapperElement extends LitElement {
   private _forms!: HTMLFormElement[];
 
   /**
-   * Allows the wrapped form to be submitted programmatically.
+   * Allows the wrapped form to be submitted programmatically. If a submit
+   * element is present it will be used to submit the form.
+   *
+   * @param {string} [value=''] - An optional parameter that allows the desired
+   * submit button to be selected by value, e.g. when multiple submit buttons
+   * are present.
    */
-  submit() {
+  submit(value: string = '') {
     // throw an error if there's no form to submit
     if (!this._forms.length) {
       throw new Error('No form to submit');
@@ -76,8 +81,13 @@ export class LisFormWrapperElement extends LitElement {
     // only submit the first form
     const formElement = this._forms[0];
     // get the form's submit element
-    const submitElement: HTMLElement | null =
-      formElement.querySelector('[type="submit"]');
+    const selectors = ['[type="submit"]'];
+    if (value) {
+      selectors.push(`[value="${value}"]`);
+    }
+    const submitElement: HTMLElement | null = formElement.querySelector(
+      selectors.join(''),
+    );
     // use the element to submit the form if it exists
     if (submitElement !== null) {
       formElement.requestSubmit(submitElement);
@@ -94,10 +104,10 @@ export class LisFormWrapperElement extends LitElement {
     e.preventDefault();
     e.stopPropagation();
     // parse the values from the form
-    const data = new FormData(e.target as HTMLFormElement);
+    const formData = new FormData(e.target as HTMLFormElement);
     // dispatch a custom event
     const options = {
-      detail: {data},
+      detail: {formData, formEvent: e},
       bubbles: true,
       composed: true,
     };

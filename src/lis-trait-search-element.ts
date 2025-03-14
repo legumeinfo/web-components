@@ -9,6 +9,7 @@ import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
  * search is performed.
  */
 export type TraitSearchData = {
+  page: number;
   query: string;
 };
 
@@ -29,7 +30,6 @@ export type TraitSearchResult = {
  *
  * @param query The search term in the input element when the search form was
  * submitted.
- * @param page What page of results the search is for. Will always be 1 when a
  * new search is performed.
  * @param options Optional parameters that aren't required to perform a trait
  * search but may be useful.
@@ -39,8 +39,7 @@ export type TraitSearchResult = {
  * objects.
  */
 export type TraitSearchFunction = (
-  query: string,
-  page: number,
+  searchData: TraitSearchData,
   options: PaginatedSearchOptions,
 ) => Promise<Array<TraitSearchResult>>;
 
@@ -71,7 +70,7 @@ export type TraitSearchFunction = (
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // a site-specific function that sends a request to a trait search API
- *   function getTraits(searchText, page, {abortSignal}) {
+ *   function getTraits(searchData, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
  *   // get the trait search element

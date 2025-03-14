@@ -43,6 +43,7 @@ export type TraitAssociationFormDataFunction = (
  * is performed.
  */
 export type TraitAssociationSearchData = {
+  page: number;
   genus: string;
   species: string;
   type: string;
@@ -72,7 +73,6 @@ export type TraitAssociationSearchResult = {
  * performing a trait association search.
  *
  * @param searchData An object containing a value of each field in the submitted form.
- * @param page What page of results the search is for. Will always be 1 when a new search is performed.
  * @param options Optional parameters that aren't required to perform a trait association search
  * but may be useful.
  *
@@ -81,15 +81,7 @@ export type TraitAssociationSearchResult = {
  * objects.
  */
 export type TraitAssociationSearchFunction = (
-  searchData: {
-    genus: string;
-    species: string;
-    traits: string;
-    type: string;
-    pubId: string;
-    author: string;
-  },
-  page: number,
+  searchData: TraitAssociationSearchData,
   options: PaginatedSearchOptions,
 ) => Promise<Array<TraitAssociationSearchResult>>;
 
@@ -124,7 +116,7 @@ export type TraitAssociationSearchFunction = (
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // a site-specific function that sends a request to a trait association search API
- *   function getTraits(searchData, page, {abortSignal}) {
+ *   function getTraits(searchData, {abortSignal}) {
  *     // returns a Promise that resolves to a search result object
  *   }
  *   // get the trait association search element

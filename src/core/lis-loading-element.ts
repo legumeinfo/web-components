@@ -20,7 +20,6 @@ import {LisAlertElement} from './lis-alert-element.js';
  * <lis-loading-element id="loading"></lis-alert-element>
  *
  * <!-- interact with the element JavaScript -->
- * <lis-alert-element id="alert"></lis-alert-element>
  * <script type="text/javascript">
  *   // get the loading element
  *   const loadingElement = document.getElementById('loading');
@@ -108,6 +107,11 @@ export class LisLoadingElement extends LitElement {
   public failure() {
     const content = `Failed to load ${this.dataType}`;
     this._alertRef.value?.danger(content);
+    this.state = 'message';
+  }
+
+  public error(content: string) {
+    this._alertRef.value?.warning(content);
     this.state = 'message';
   }
 
