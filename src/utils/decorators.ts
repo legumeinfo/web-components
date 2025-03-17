@@ -11,13 +11,18 @@ export function globalSubstitution<T>(target: string, source: string) {
   return (_: T, __: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
     descriptor.value = function (...args: any[]) {
-      const defaultGlobal: any = (window as any)[target];
+      const defaultGlobal: unknown = (window as any)[target];
       if ((window as any)[source] !== undefined) {
         (window as any)[target] = (window as any)[source];
       }
-      const result = originalMethod.apply(this, args);
-      (window as any)[target] = defaultGlobal;
-      return result;
+      try {
+        const result = originalMethod.apply(this, args);
+        (window as any)[target] = defaultGlobal;
+        return result;
+      } catch (error) {
+        (window as any)[target] = defaultGlobal;
+        throw error;
+      }
     };
     return descriptor;
   };
