@@ -27,8 +27,8 @@ export type Phylotree = {
  */
 export type ColorFunction = (name: string) => string;
 
-@customElement('lis-phylotree')
-export class LisPhylotree extends LitElement {
+@customElement('lis-phylotree-element')
+export class LisPhylotreeElement extends LitElement {
   // bind to the tree container div element in the template
   private _treeContainerRef: Ref<HTMLDivElement> = createRef();
 
@@ -143,5 +143,11 @@ export class LisPhylotree extends LitElement {
     //         "font-size": "12px"
     //     })
     //     .text(scaleBar);
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lis-phylotree-element': LisPhylotreeElement;
   }
 }
