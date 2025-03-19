@@ -3,6 +3,7 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisResizeObserverController} from './controllers';
+import {circle} from './tnt/node-display';
 import {globalSubstitution} from './utils/decorators';
 
 declare const tnt: any;
@@ -27,6 +28,15 @@ export type Phylotree = {
  */
 export type ColorFunction = (name: string) => string;
 
+/**
+ * The signature of the function of the
+ * {@link LisPhylotreeElement | `LisPhylotreeElement`} class calls when a node in the
+ * phylotree has been clicked.
+ *
+ * @param node An instand of the TnT Tree Node class for the node that was clicked.
+ */
+export type ClickFunction = (node: unknown) => void;
+
 @customElement('lis-phylotree-element')
 export class LisPhylotreeElement extends LitElement {
   // bind to the tree container div element in the template
@@ -37,6 +47,9 @@ export class LisPhylotreeElement extends LitElement {
     this,
     this.resize,
   );
+
+  // HACK: this variable is used to prevent label clicks from triggering node clicks
+  private _labelClicked = false;
 
   @state()
   private _data: string | Phylotree = '';
@@ -56,8 +69,19 @@ export class LisPhylotreeElement extends LitElement {
     }
   }
 
+  // a function used to assign colors to nodes based on their name
   @property({type: Function, attribute: false})
   colorFunction?: ColorFunction;
+
+  // a function called when a node is clicked;
+  // the TnT Tree Node object that was clicked is passed as the argument
+  @property({type: Function, attribute: false})
+  nodeClickFunction?: ClickFunction;
+
+  // a function called when a leaf node label is clicked;
+  // the TnT Tree Node object the clicked label belongs to is passed as the argument
+  @property({type: Function, attribute: false})
+  labelClickFunction?: ClickFunction;
 
   private resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
@@ -91,33 +115,80 @@ export class LisPhylotreeElement extends LitElement {
   @globalSubstitution('d3', 'd3v3')
   makeTree(theData: string | Phylotree) {
     if (this._treeContainerRef.value) {
-      this._treeContainerRef.value.innerHTML = '';
       const height = 30;
 
-      const tree = tnt.tree();
-      tree
+      // reset the tree container
+      this._treeContainerRef.value.innerHTML = '';
+
+      // styles a D3 selection if the given clickFunction is defined
+      const selectionClickStyleFactory = (clickFunction?: ClickFunction) => {
+        return (selection: any) => {
+          if (clickFunction !== undefined) {
+            return selection.style('cursor', 'pointer');
+          }
+          return selection;
+        };
+      };
+
+      // configure the nodes
+      // NOTE: this uses a local copy of the tnt.tree.node_display.circle
+      // function because node CSS attributes can't be modified programmatically
+      // using only the TnT API
+      const nodes = circle(selectionClickStyleFactory(this.nodeClickFunction))
+        .size(5)
+        .fill((node: {data: any}) => {
+          if (node.data().color == null || node.data().color == '') {
+            if (this.colorFunction !== undefined && node.data().name) {
+              return this.colorFunction(node.data().name);
+            }
+            return 'white';
+          }
+          return node.data().color;
+        });
+
+      // configure the node labels
+      const labels = tnt.tree.label.text().height(height);
+      const defaultLabelDisplay = labels.display();
+      const labelClickFunction = this.labelClickFunction;
+      labels.display(function (...args: unknown[]) {
+        // @ts-expect-error 'this' implicitly has type 'any'
+        const selection = defaultLabelDisplay.call(this, ...args);
+        return selectionClickStyleFactory(labelClickFunction)(selection);
+      });
+
+      // create the tree
+      const tree = tnt
+        .tree()
         .data(theData)
         .layout(
           tnt.tree.layout[this.layout]()
-
             .width(this._treeContainerRef.value.offsetWidth)
             .scale(this.scale),
         )
-        .node_display(
-          tnt.tree.node_display
-            .circle()
-            .size(5)
-            .fill((node: {data: any}) => {
-              if (node.data().color == null || node.data().color == '') {
-                if (this.colorFunction !== undefined && node.data().name) {
-                  return this.colorFunction(node.data().name);
-                }
-                return 'white';
-              }
-              return node.data().color;
-            }),
-        )
-        .label(tnt.tree.label.text().height(height));
+        .node_display(nodes)
+        .label(labels);
+
+      // add a node click listener
+      if (this.nodeClickFunction !== undefined) {
+        const instance = this;
+        tree.on('click', function (node: unknown) {
+          if (!instance._labelClicked) {
+            // @ts-expect-error 'this' implicitly has type 'any'
+            instance.nodeClickFunction.call(this, node);
+          }
+          instance._labelClicked = false;
+        });
+      }
+
+      // add a label click listener
+      const instance = this;
+      labels.on('click', function (node: unknown) {
+        instance._labelClicked = true;
+        if (instance.labelClickFunction !== undefined) {
+          // @ts-expect-error 'this' implicitly has type 'any'
+          instance.labelClickFunction.call(this, node);
+        }
+      });
 
       const vis = tnt().tree(tree);
 
