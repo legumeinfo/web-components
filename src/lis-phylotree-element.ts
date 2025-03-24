@@ -68,8 +68,11 @@ export class LisPhylotreeElement extends LitElement {
   @property()
   layout: 'vertical' | 'radial' = 'vertical';
 
-  @property()
+  @property({type: Boolean})
   scale: boolean = false;
+
+  @property({type: Boolean})
+  edgeLengths: boolean = false;
 
   @property()
   set tree(tree: string | Phylotree) {
@@ -188,7 +191,9 @@ export class LisPhylotreeElement extends LitElement {
     const tree = tnt
       .tree()
       .data(this._data)
-      .layout(tnt.tree.layout[this.layout]().width(width).scale(this.scale))
+      .layout(
+        tnt.tree.layout[this.layout]().width(width).scale(this.edgeLengths),
+      )
       .node_display(nodes)
       .label(labels);
 
