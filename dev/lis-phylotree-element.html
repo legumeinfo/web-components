@@ -36,13 +36,22 @@
     <div class="uk-container">
       <h1>&lt;lis-phylotree-element&gt;</h1>
       <p>
-        This component displays a newick tree using the TnT javascript library.
+        The <code>&lt;lis-phylotree-element&gt;</code> provides a component for drawing interactive phylogenetic trees.
+        The tree is provided to the component via the <code>tree</code> attribute/property and can be either a Newick string or a Phylotree object.
+        In this example, the tree is given as a Newick string that was loaded using the LIS GraphQL API query <code>getFamilies</code>.
+        The tree nodes can be colored by either including colors in the given tree object or by providing a function that assigns colors to node labels via the <code>colorFunction</code> property.
+        Since Newick strings don't support colors, this example uses the latter.
       </p>
-      <hr></hr>
+      <p>
+        Optionally, the tree can be drawn in a radial layout, edge lengths can be derived from the given tree, and an edge length scale can be drawn.
+        These options are controlled with the <code>layout</code>, <code>edgeLengths</code>, and <code>scale</code> attributes/properties, respectively.
+        Additionally, optional click callbacks can be associated with the nodes and node labels via the <code>nodeClickCallback</code> and <code>labelClickCallback</code> properties, respectively.
+        You can try setting these properties in this example using the <code>phylotreeElement</code> variable in the Web console.
+      </p>
+      <hr>
     </div>
-      <!-- the custom gene phylotree element -->
-      <lis-phylotree-element tree="(B:6.0,(A:5.0,C:3.0,E:4.0)G:5.0,D:11.0);"> </lis-phylotree-element>
-      <lis-phylotree-element id="phylotree" layout="vertical" scale="true"> </lis-phylotree-element>
+      <!-- the custom phylotree element -->
+      <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths> </lis-phylotree-element>
 
       <script type="text/javascript">
         // organisms query from GraphQL
@@ -87,7 +96,7 @@
         }
 
         // get the second phylotree element
-        var anotherElement = document.getElementById("phylotree");
+        const phylotreeElement = document.getElementById("phylotree");
 
         // get organism info to color the tree with
         getOrganisms().then((organisms) => {
@@ -95,16 +104,24 @@
             return [abbreviation, `${genus} ${species}`];
           });
           const organismLookup = new Map(organismPairs);
-          anotherElement.colorFunction = (name) => {
+          phylotreeElement.colorFunction = (name) => {
             const [abbreviation, ...rest] = name.split('.');
             const organism = organismLookup.get(abbreviation) || ' ';
             return taxonChroma.get(organism);
+          };
+          phylotreeElement.nodeClickFunction = function(node) {
+            console.log(this);
+            console.log(node);
+          };
+          phylotreeElement.labelClickFunction = function(node) {
+            console.log(this);
+            console.log(node);
           };
         });
 
         // get a newick tree to display
         getNewick({pageSize: 1, page: 1000}).then((newick) => {
-          anotherElement.tree = newick;
+          phylotreeElement.tree = newick;
         });
 
       </script>
