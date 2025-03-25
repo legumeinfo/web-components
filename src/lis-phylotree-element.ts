@@ -9,6 +9,10 @@ import {globalSubstitution} from './utils/decorators';
 declare const tnt: any;
 declare const d3: any; // version 3
 
+/**
+ * The structure a phylotree must have if given to the
+ * {@link LisPhylotreeElement | `LisPhylotreeElement`} as an object.
+ */
 export type Phylotree = {
   name: string;
   length?: number;
@@ -37,6 +41,112 @@ export type ColorFunction = (name: string) => string;
  */
 export type ClickFunction = (node: unknown) => void;
 
+/**
+ * @htmlElement `<lis-phylotree-element>`
+ *
+ * A Web Component that draws a phylotree provided as either a Newick string or a
+ * {@link Phylotree | `Phylotree`} object. Note that the component fills all of the
+ * available horizontal space and will automatically redraw if the width of its parent
+ * element changes.
+ *
+ * @example
+ * The `<lis-phylotree-element>` tag requires the
+ * {@link https://tntvis.github.io/tnt.tree/ | TnT Tree} library, which itself requires
+ * <b>version 3</b> of {@link https://d3js.org/ | D3}. To allow multiple versions of D3 to
+ * be used on the same page, the {@link LisPhylotreeElement | `LisPhylotreeElement`} class
+ * uses the global `d3v3` variable if it has been set. Otherwise it uses the global `d3`
+ * variable by default. The following is an example of how to include these dependencies
+ * in the page and set the `d3v3` variable:
+ * ```html
+ * <!-- head -->
+ *
+ * <!-- D3 version 3-->
+ * <script src="http://d3js.org/d3.v3.min.js"></script>
+ *
+ * <!-- another version of D3 -->
+ * <script type="text/javascript">
+ *   var d3v3 = d3;
+ *   window.d3 = undefined;
+ * </script>
+ * <script src="http://d3js.org/d3.v7.min.js"></script>
+ *
+ * <!-- TnT -->
+ * <link rel="stylesheet" href="http://tntvis.github.io/tnt/build/tnt.css" type="text/css" />
+ * <script src="http://tntvis.github.io/tnt/build/tnt.min.js"></script>
+ *
+ * <!-- body -->
+ *
+ * <!-- add the Web Component to your HTML -->
+ * <lis-phylotree-element></lis-phylotree-element>
+ * ```
+ *
+ * @example
+ * {@link !HTMLElement | `HTMLElement`} properties can only be set via JavaScript. This means the
+ * {@link colorFunction | `colorFunction`}, {@link nodeClickFunction | `nodeClickFunction`}, and
+ * {@link labelClickFunction | `labelClickFunction`} properties must be set on a
+ * `<lis-phylotree-element>` tag's instance of the
+ * {@link LisPhylotreeElement | `LisPhylotreeElement`} class. Similarly, if the
+ * {@link tree | `tree`} property will be set to a {@link Phylotree | `Phylotree`} object, rather
+ * than a Newick string, then it too must be set via the class instance. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-phylotree-element id="phylotree"></lis-phylotree-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // returns a color given label of a node'
+ *   function nodeColor(label) {
+ *     // returns a color for the given label
+ *   }
+ *   // label click function that gets passed the TnT node associated
+ *   // with the label and is called in the TnT context
+ *   function labelClick(node) {
+ *     // `this` is the TnT context
+ *   }
+ *   // node click function that gets passed the clicked TnT node
+ *   // and is called in the TnT context
+ *   function nodeClick(node) {
+ *     // `this` is the TnT context
+ *   }
+ *   // get the phylotree element
+ *   const phylotreeElement = document.getElementById('phylotree');
+ *   // set the element's properties
+ *   phylotreeElement.colorFunction = nodeColor;
+ *   phylotreeElement.labelClickFunction = labelClick;
+ *   phylotreeElement.nodeClickFunction = nodeClick;
+ * </script>
+ * ```
+ *
+ * @example
+ * The {@link layout | `layout`}, {@link scale | `scale`}, and {@link edgeLengths | `edgeLengths`}
+ * properties can be set as attributes of the `<lis-phylotree-element>` tag or as properties of the
+ * tag's instance of the {@link LisPhylotreeElement | `LisPhylotreeElement`} class.
+ * {@link layout | `layout`} sets the layout of the phylotree to `vertical` or `radial` (`vertical`
+ * by default). {@link scale | `scale`} determines whether or not an edge length scale will be
+ * shown with the tree (`false` by default). And {@link edgeLengths | `edgeLengths`} determines
+ * whether edges should be drawn using unit length or using length data provided by the tree (unit,
+ * i.e. `false`, by default). For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-phylotree-element
+ *   tree="(B:6.0,(A:5.0,C:3.0,E:4.0)G:5.0,D:11.0);"
+ *   layout="radial"
+ *   scale
+ *   edgeLengths
+ * ></lis-phylotree-element>
+ * <lis-phylotree-element id="phylotree"></lis-phylotree-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the gene search element
+ *   const phylotreeElement = document.getElementById('phylotree');
+ *   // set the element's properties
+ *   phylotreeElement.layout = 'radial';
+ *   phylotreeElement.scale = true;
+ *   phylotreeElement.edgeLengths = true;
+ * </script>
+ * ```
+ */
 @customElement('lis-phylotree-element')
 export class LisPhylotreeElement extends LitElement {
   static readonly AXIS_SAMPLE_PIXELS = 30;
@@ -65,15 +175,36 @@ export class LisPhylotreeElement extends LitElement {
   @state()
   private _data?: Phylotree;
 
+  /**
+   * The layout the tree should be drawn in.
+   *
+   * @attribute
+   */
   @property()
   layout: 'vertical' | 'radial' = 'vertical';
 
+  /**
+   * Determines whether or not a scale for the edge lengths will be drawn.
+   *
+   * @attribute
+   */
   @property({type: Boolean})
   scale: boolean = false;
 
+  /**
+   * Determines whether or not edge lengths are given by the tree. If not, each
+   * edge will be given unit length.
+   *
+   * @attribute
+   */
   @property({type: Boolean})
   edgeLengths: boolean = false;
 
+  /**
+   * The tree data.
+   *
+   * @attribute
+   */
   @property()
   set tree(tree: string | Phylotree) {
     if (typeof tree == 'string') {
