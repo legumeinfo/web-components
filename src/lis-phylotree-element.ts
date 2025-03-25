@@ -222,6 +222,10 @@ export class LisPhylotreeElement extends LitElement {
     // draw the tree in the container
     tree(this._treeContainerRef.value);
 
+    if (!this.scale) {
+      return;
+    }
+
     // create the x-axis
     const distance = tree.scale_bar(
       LisPhylotreeElement.AXIS_SAMPLE_PIXELS,
