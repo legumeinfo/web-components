@@ -262,6 +262,16 @@ export class LisPhylotreeElement extends LitElement {
   }
 
   @globalSubstitution('d3', 'd3v3')
+  private _emitNodeClick(context: unknown, tree: unknown, node: unknown) {
+    this.nodeClickFunction?.call(context, tree, node);
+  }
+
+  @globalSubstitution('d3', 'd3v3')
+  private _emitLabelClick(context: unknown, tree: unknown, node: unknown) {
+    this.labelClickFunction?.call(context, tree, node);
+  }
+
+  @globalSubstitution('d3', 'd3v3')
   makeTree() {
     if (
       this._data === undefined ||
@@ -334,7 +344,7 @@ export class LisPhylotreeElement extends LitElement {
       tree.on('click', function (node: unknown) {
         if (!instance._labelClicked) {
           // @ts-expect-error 'this' implicitly has type 'any'
-          instance.nodeClickFunction.call(this, tree, node);
+          instance._emitNodeClick(this, tree, node);
         }
         instance._labelClicked = false;
       });
@@ -346,7 +356,7 @@ export class LisPhylotreeElement extends LitElement {
       instance._labelClicked = true;
       if (instance.labelClickFunction !== undefined) {
         // @ts-expect-error 'this' implicitly has type 'any'
-        instance.labelClickFunction.call(this, tree, node);
+        instance._emitLabelClick(this, tree, node);
       }
     });
 
