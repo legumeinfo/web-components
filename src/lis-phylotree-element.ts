@@ -39,7 +39,7 @@ export type ColorFunction = (name: string) => string;
  *
  * @param node An instand of the TnT Tree Node class for the node that was clicked.
  */
-export type ClickFunction = (node: unknown) => void;
+export type ClickFunction = (tree: unknown, node: unknown) => void;
 
 /**
  * @htmlElement `<lis-phylotree-element>`
@@ -98,14 +98,14 @@ export type ClickFunction = (node: unknown) => void;
  *   function nodeColor(label) {
  *     // returns a color for the given label
  *   }
- *   // label click function that gets passed the TnT node associated
- *   // with the label and is called in the TnT context
- *   function labelClick(node) {
+ *   // label click function that gets passed the TnT Tree and the TnT Node
+ *   // associated with the label and is called in the TnT context
+ *   function labelClick(tree, node) {
  *     // `this` is the TnT context
  *   }
- *   // node click function that gets passed the clicked TnT node
+ *   // node click function that gets passed the TnT Tree and the clicked TnT node
  *   // and is called in the TnT context
- *   function nodeClick(node) {
+ *   function nodeClick(tree, node) {
  *     // `this` is the TnT context
  *   }
  *   // get the phylotree element
@@ -334,7 +334,7 @@ export class LisPhylotreeElement extends LitElement {
       tree.on('click', function (node: unknown) {
         if (!instance._labelClicked) {
           // @ts-expect-error 'this' implicitly has type 'any'
-          instance.nodeClickFunction.call(this, node);
+          instance.nodeClickFunction.call(this, tree, node);
         }
         instance._labelClicked = false;
       });
@@ -346,7 +346,7 @@ export class LisPhylotreeElement extends LitElement {
       instance._labelClicked = true;
       if (instance.labelClickFunction !== undefined) {
         // @ts-expect-error 'this' implicitly has type 'any'
-        instance.labelClickFunction.call(this, node);
+        instance.labelClickFunction.call(this, tree, node);
       }
     });
 
