@@ -155,7 +155,13 @@ export class LisPhylotreeElement extends LitElement {
   static readonly SCALE_HEIGHT = 40;
   static readonly TNT_LABEL_PADDING = 15;
   static readonly TNT_LEFT_RIGHT_MARGIN = 3;
+  static readonly TNT_TRANSITION_DURATION = 500;
   static readonly TNT_TRANSLATE = 20;
+
+  // disable shadow DOM to inherit global styles, i.e. TnT styles
+  override createRenderRoot() {
+    return this;
+  }
 
   // bind to the tree container div element in the template
   private _treeContainerRef: Ref<HTMLDivElement> = createRef();
@@ -174,6 +180,9 @@ export class LisPhylotreeElement extends LitElement {
 
   @state()
   private _data?: Phylotree;
+
+  // the current instance of the TnT Tree
+  private _tree: unknown;
 
   /**
    * The layout the tree should be drawn in.
@@ -246,7 +255,8 @@ export class LisPhylotreeElement extends LitElement {
   }
 
   override render() {
-    this.makeTree();
+    this.drawTree();
+    this.drawScale();
     return html` <div
         style="overflow: hidden; margin: 0 ${LisPhylotreeElement.TNT_LEFT_RIGHT_MARGIN}px"
         ${ref(this._scaleContainerRef)}
@@ -257,38 +267,54 @@ export class LisPhylotreeElement extends LitElement {
         ${ref(this.treeContainerReady)}
       ></div>`;
   }
-  override createRenderRoot() {
-    return this;
+
+  @globalSubstitution('d3', 'd3v3')
+  private _emitNodeClick(context: unknown, node: unknown) {
+    this.nodeClickFunction?.call(context, this._tree, node);
   }
 
   @globalSubstitution('d3', 'd3v3')
-  private _emitNodeClick(context: unknown, tree: unknown, node: unknown) {
-    this.nodeClickFunction?.call(context, tree, node);
+  private _emitLabelClick(context: unknown, node: unknown) {
+    this.labelClickFunction?.call(context, this._tree, node);
+  }
+
+  private _treeWidth(): number {
+    if (this._treeContainerRef.value === undefined) {
+      return 0;
+    }
+    // compenstate for sub-container margins
+    return (
+      this._treeContainerRef.value.offsetWidth -
+      LisPhylotreeElement.TNT_LEFT_RIGHT_MARGIN * 2
+    );
+  }
+
+  private _actualTreeWidth(): number {
+    if (this._treeContainerRef.value === undefined) {
+      return 0;
+    }
+    // compenstate for tree position and padding
+    return (
+      this._treeWidth() -
+      LisPhylotreeElement.TNT_TRANSLATE -
+      LisPhylotreeElement.TNT_LABEL_PADDING
+    );
   }
 
   @globalSubstitution('d3', 'd3v3')
-  private _emitLabelClick(context: unknown, tree: unknown, node: unknown) {
-    this.labelClickFunction?.call(context, tree, node);
-  }
-
-  @globalSubstitution('d3', 'd3v3')
-  makeTree() {
+  private drawTree() {
     if (
       this._data === undefined ||
-      this._treeContainerRef.value === undefined ||
-      this._scaleContainerRef.value === undefined
+      this._treeContainerRef.value === undefined
     ) {
       return;
     }
 
-    // set the width of the tree, compenstating for sub-container margins
-    const width =
-      this._treeContainerRef.value.offsetWidth -
-      LisPhylotreeElement.TNT_LEFT_RIGHT_MARGIN * 2;
-
-    // reset the containers
-    this._scaleContainerRef.value.innerHTML = '';
+    // reset the container
     this._treeContainerRef.value.innerHTML = '';
+
+    // set the width of the tree
+    const width = this._treeWidth();
 
     // styles a D3 selection if the given clickFunction is defined
     const selectionClickStyleFactory = (clickFunction?: ClickFunction) => {
@@ -329,7 +355,7 @@ export class LisPhylotreeElement extends LitElement {
     });
 
     // create the tree
-    const tree = tnt
+    this._tree = tnt
       .tree()
       .data(this._data)
       .layout(
@@ -341,10 +367,11 @@ export class LisPhylotreeElement extends LitElement {
     // add a node click listener
     if (this.nodeClickFunction !== undefined) {
       const instance = this;
-      tree.on('click', function (node: unknown) {
+      // @ts-expect-error Object is of type 'unknown'
+      this._tree.on('click', function (node: unknown) {
         if (!instance._labelClicked) {
           // @ts-expect-error 'this' implicitly has type 'any'
-          instance._emitNodeClick(this, tree, node);
+          instance._emitNodeClick(this, node);
         }
         instance._labelClicked = false;
       });
@@ -356,35 +383,54 @@ export class LisPhylotreeElement extends LitElement {
       instance._labelClicked = true;
       if (instance.labelClickFunction !== undefined) {
         // @ts-expect-error 'this' implicitly has type 'any'
-        instance._emitLabelClick(this, tree, node);
+        instance._emitLabelClick(this, node);
       }
     });
 
     // draw the tree in the container
-    tree(this._treeContainerRef.value);
+    // @ts-expect-error Object is of type 'unknown'
+    this._tree(this._treeContainerRef.value);
+  }
 
-    if (!this.scale) {
+  // NOTE: this should be called from contexts with correct version of D3
+  private _xAxis() {
+    if (this._scaleContainerRef.value === undefined) {
       return;
     }
 
-    // create the x-axis
-    const distance = tree.scale_bar(
+    // @ts-expect-error Object is of type 'unknown'
+    const distance = this._tree.scale_bar(
       LisPhylotreeElement.AXIS_SAMPLE_PIXELS,
       'pixel',
     );
-    const translatedWidth =
-      width -
-      LisPhylotreeElement.TNT_TRANSLATE -
-      LisPhylotreeElement.TNT_LABEL_PADDING;
-    const scale = d3.scale
-      .linear()
-      .domain([0, (distance * width) / LisPhylotreeElement.AXIS_SAMPLE_PIXELS])
-      .range([0, translatedWidth]);
+    const width = this._treeWidth();
+    const domain = (distance * width) / LisPhylotreeElement.AXIS_SAMPLE_PIXELS;
+    const range = this._actualTreeWidth();
+    const scale = d3.scale.linear().domain([0, domain]).range([0, range]);
     const axis = d3.svg
       .axis()
       .scale(scale)
       .ticks(LisPhylotreeElement.AXIS_TICKS)
       .orient('bottom');
+
+    return axis;
+  }
+
+  @globalSubstitution('d3', 'd3v3')
+  private drawScale() {
+    if (
+      !this.scale ||
+      this._tree === undefined ||
+      this._scaleContainerRef.value === undefined
+    ) {
+      return;
+    }
+
+    // reset the container
+    this._scaleContainerRef.value.innerHTML = '';
+
+    const width = this._treeWidth();
+    const actualWidth = this._actualTreeWidth();
 
     // draw the x-axis
     d3.select(this._scaleContainerRef.value)
@@ -396,9 +442,9 @@ export class LisPhylotreeElement extends LitElement {
         'transform',
         `translate(${LisPhylotreeElement.TNT_TRANSLATE}, ${LisPhylotreeElement.TNT_TRANSLATE})`,
       )
-      .attr('width', translatedWidth)
-      .attr('class', 'x axis')
-      .call(axis);
+      .attr('width', actualWidth)
+      .attr('class', 'x-axis')
+      .call(this._xAxis());
 
     // set x-axis attributes
     d3.select(this._scaleContainerRef.value)
@@ -411,6 +457,30 @@ export class LisPhylotreeElement extends LitElement {
     d3.selectAll(this._scaleContainerRef.value)
       .selectAll('g.tick > text')
       .style('font-size', '10px');
+  }
+
+  @globalSubstitution('d3', 'd3v3')
+  private _updateXAxis() {
+    d3.select(this._scaleContainerRef.value)
+      .select('.x-axis')
+      .transition()
+      .call(this._xAxis());
+  }
+
+  /**
+   * Calls the `.update()` method on the component's instance of the TnT Tree. This should be used
+   * in preference of calling the `.update()` method directly when using the scale property because
+   * this method will also update the scale to reflect updates in the tree.
+   */
+  @globalSubstitution('d3', 'd3v3')
+  updateTree() {
+    // update the tree
+    // @ts-expect-error Object is of type 'unknown'
+    this._tree.update();
+    // update the x-axis
+    setTimeout(() => {
+      this._updateXAxis();
+    }, LisPhylotreeElement.TNT_TRANSITION_DURATION);
   }
 }
 
