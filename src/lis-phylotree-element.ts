@@ -239,9 +239,11 @@ export class LisPhylotreeElement extends LitElement {
 
   private resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
+      // @ts-expect-error Property 'layout' does not exist on type '{}'
+      const drawnWidth = this._tree?.layout().width();
       if (
         entry.target == this._treeContainerRef.value &&
-        entry.contentRect.width !== this._treeContainerRef.value?.clientWidth
+        drawnWidth !== this._treeWidth()
       ) {
         this.requestUpdate();
       }
