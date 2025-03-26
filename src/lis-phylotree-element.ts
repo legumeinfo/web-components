@@ -153,7 +153,6 @@ export class LisPhylotreeElement extends LitElement {
   static readonly AXIS_TICKS = 12;
   static readonly LABEL_HEIGHT = 30;
   static readonly SCALE_HEIGHT = 40;
-  static readonly TNT_LABEL_PADDING = 15;
   static readonly TNT_LEFT_RIGHT_MARGIN = 3;
   static readonly TNT_TRANSITION_DURATION = 500;
   static readonly TNT_TRANSLATE = 20;
@@ -299,7 +298,8 @@ export class LisPhylotreeElement extends LitElement {
     return (
       this._treeWidth() -
       LisPhylotreeElement.TNT_TRANSLATE -
-      LisPhylotreeElement.TNT_LABEL_PADDING
+      // @ts-expect-error Object is of type 'unknown'
+      this._tree.layout().max_leaf_label_width()
     );
   }
 
@@ -394,6 +394,19 @@ export class LisPhylotreeElement extends LitElement {
     this._tree(this._treeContainerRef.value);
   }
 
+  /**
+   * Recursively computes the maximum distance from the root node.
+   *
+   * @param node The next node in the recursive traversal.
+   */
+  private _maxRootDist(node: any): number {
+    if (node.is_leaf()) {
+      return node.root_dist();
+    }
+    const rootDists = node.children().map((c: any) => this._maxRootDist(c));
+    return Math.max(...rootDists);
+  }
+
   // NOTE: this should be called from contexts with correct version of D3
   private _xAxis() {
     if (this._scaleContainerRef.value === undefined) {
@@ -401,12 +414,13 @@ export class LisPhylotreeElement extends LitElement {
     }
 
     // @ts-expect-error Object is of type 'unknown'
+    const domain = this._maxRootDist(this._tree?.root());
+
+    // @ts-expect-error Object is of type 'unknown'
     const distance = this._tree.scale_bar(
       LisPhylotreeElement.AXIS_SAMPLE_PIXELS,
       'pixel',
     );
-    const width = this._treeWidth();
-    const domain = (distance * width) / LisPhylotreeElement.AXIS_SAMPLE_PIXELS;
     const range = this._actualTreeWidth();
     const scale = d3.scale.linear().domain([0, domain]).range([0, range]);
     const axis = d3.svg
