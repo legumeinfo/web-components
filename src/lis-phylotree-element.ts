@@ -232,7 +232,7 @@ export class LisPhylotreeElement extends LitElement {
     entries.forEach((entry: ResizeObserverEntry) => {
       if (
         entry.target == this._treeContainerRef.value &&
-        entry.contentBoxSize
+        entry.contentRect.width !== this._treeContainerRef.value?.clientWidth
       ) {
         this.requestUpdate();
       }
