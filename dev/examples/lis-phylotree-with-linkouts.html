@@ -6,17 +6,17 @@
     <meta charset="utf-8" />
     <title>LIS Web-Components - &lt;lis-phylotree-element&gt;</title>
     <!-- CSS framework -->
-    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
-    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
     <!-- web components polyfills -->
-    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
-    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/lit/polyfill-support.js"></script>
     <!-- GraphQL -->
-    <script type="text/javascript" src="./graphql.js"></script>
+    <script type="text/javascript" src="../graphql.js"></script>
     <!-- LIS colors -->
-    <script type="text/javascript" src="./lis-taxon-symbology.js"></script>
+    <script type="text/javascript" src="../lis-taxon-symbology.js"></script>
     <!-- web components -->
-    <script type="module" src="../lib/index.js"></script>
+    <script type="module" src="../../lib/index.js"></script>
 
     <!-- D3 -->
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
@@ -34,19 +34,16 @@
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-phylotree-element&gt;</h1>
+      <h1>&lt;lis-phylotree-element&gt; with &lt;lis-linkout-element&gt; and &lt;lis-modal-element&gt;</h1>
       <p>
         The <code>&lt;lis-phylotree-element&gt;</code> provides a component for drawing interactive phylogenetic trees.
-        The tree is provided to the component via the <code>tree</code> attribute/property and can be either a Newick string or a Phylotree object.
-        In this example, the tree is given as a Newick string that was loaded using the LIS GraphQL API query <code>getFamilies</code>.
-        The tree nodes can be colored by either including colors in the given tree object or by providing a function that assigns colors to node labels via the <code>colorFunction</code> property.
-        Since Newick strings don't support colors, this example uses the latter.
+        In this example, a phytlotree loaded from the LIS GraphQL API is made interactive by making internal nodes collapsible and adding linkouts to leaf node labels.
       </p>
       <p>
-        Optionally, the tree can be drawn in a radial layout, edge lengths can be derived from the given tree, and an edge length scale can be drawn.
-        These options are controlled with the <code>layout</code>, <code>edgeLengths</code>, and <code>scale</code> attributes/properties, respectively.
-        Additionally, optional click callbacks can be associated with the nodes and node labels via the <code>nodeClickCallback</code> and <code>labelClickCallback</code> properties, respectively.
-        You can try setting these properties in this example using the <code>phylotreeElement</code> variable in the Web console.
+        To demonstrate how to interact with multiple components, the name of the genes in the <code>&lt;lis-phylotree-element&gt;</code>'s leaf nodes are clickable.
+        Clicking on these labels will open an instance of the <code>&lt;lis-modal-element&gt;</code> containing an instance of the <code>&lt;lis-linkout-element&gt;</code>.
+        The <code>&lt;lis-linkout-element&gt;</code> uses the LIS GraphQL API to load links for the gene that was clicked.
+        See the source code for details on how these components interact.
       </p>
       <hr>
     </div>
@@ -54,6 +51,9 @@
     <div class="uk-container uk-container-expand">
       <!-- the custom phylotree element -->
       <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths> </lis-phylotree-element>
+      <lis-modal-element modalId="modal">
+        <lis-linkout-element id="linkouts"></lis-linkout-element>
+      </lis-modal-element>
     </div>
 
     <script type="text/javascript">
@@ -98,8 +98,37 @@
           })
       }
 
-      // get the phylotree element
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // the linkout function to give to the linkout component
+      function linkoutFunction({type, variables}, {abortSignal}) {
+        if (type == 'gene') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts.results}));
+        }
+        return Promise.reject();
+      }
+
+      // get the web component elements
       const phylotreeElement = document.getElementById("phylotree");
+      phylotreeElement.nodeClickFunction = function(tree, node) {
+        node.toggle();
+        phylotreeElement.updateTree();
+      };
+      const linkoutElement = document.getElementById('linkouts');
+      linkoutElement.linkoutFunction = linkoutFunction;
 
       // get organism info to color the tree with
       getOrganisms().then((organisms) => {
@@ -118,6 +147,16 @@
       getNewick({pageSize: 1, page: 1000}).then((newick) => {
         phylotreeElement.tree = newick;
       });
+
+      // wait for the modal slot to load before adding an event listener
+      window.onload = (event) => {
+        const modal = document.getElementById('modal');
+        phylotreeElement.labelClickFunction = function(tree, node) {
+          const identifier = this.innerHTML;
+          UIkit.modal(modal).show();
+          linkoutElement.getLinkouts({type: 'gene', variables: {identifier}});
+        };
+      };
 
     </script>
   </body>
