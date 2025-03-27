@@ -14,7 +14,13 @@
     <!-- GraphQL -->
     <script type="text/javascript" src="./graphql.js"></script>
     <!-- LIS colors -->
-    <script type="text/javascript" src="./lis-taxon-symbology.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "lis-taxon-symbology": "../node_modules/@legumeinfo/taxon-symbology/dist/taxon-symbology.min.js"
+        }
+      }
+    </script>
     <!-- web components -->
     <script type="module" src="../lib/index.js"></script>
 
@@ -56,7 +62,9 @@
       <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths> </lis-phylotree-element>
     </div>
 
-    <script type="text/javascript">
+    <script type="module">
+      import { taxonChroma } from 'lis-taxon-symbology';
+
       // organisms query from GraphQL
       const organismsQuery = `
       query Organisms {
