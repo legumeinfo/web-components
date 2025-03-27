@@ -151,7 +151,6 @@ export type ClickFunction = (tree: unknown, node: unknown) => void;
 export class LisPhylotreeElement extends LitElement {
   static readonly AXIS_SAMPLE_PIXELS = 30;
   static readonly AXIS_TICKS = 12;
-  static readonly LABEL_HEIGHT = 30;
   static readonly SCALE_HEIGHT = 40;
   static readonly TNT_LEFT_RIGHT_MARGIN = 3;
   static readonly TNT_TRANSITION_DURATION = 500;
@@ -207,6 +206,14 @@ export class LisPhylotreeElement extends LitElement {
    */
   @property({type: Boolean})
   edgeLengths: boolean = false;
+
+  /**
+   * Sets the pixel height of each label element.
+   *
+   * @attribute
+   */
+  @property({type: Number})
+  labelHeight: number = 15;
 
   /**
    * The tree data.
@@ -345,9 +352,7 @@ export class LisPhylotreeElement extends LitElement {
       });
 
     // configure the node labels
-    const labels = tnt.tree.label
-      .text()
-      .height(LisPhylotreeElement.LABEL_HEIGHT);
+    const labels = tnt.tree.label.text().height(this.labelHeight);
     const defaultLabelDisplay = labels.display();
     const labelClickFunction = this.labelClickFunction;
     labels.display(function (...args: unknown[]) {
