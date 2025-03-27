@@ -459,10 +459,16 @@ export class LisPhylotreeElement extends LitElement {
         `translate(${LisPhylotreeElement.TNT_TRANSLATE}, ${LisPhylotreeElement.TNT_TRANSLATE})`,
       )
       .attr('width', actualWidth)
-      .attr('class', 'x-axis')
-      .call(this._xAxis());
+      .attr('class', 'x-axis');
+    this._updateXAxis();
+  }
 
-    // set x-axis attributes
+  @globalSubstitution('d3', 'd3v3')
+  private _updateXAxis() {
+    d3.select(this._scaleContainerRef.value)
+      .select('.x-axis')
+      .transition()
+      .call(this._xAxis());
     d3.select(this._scaleContainerRef.value)
       .select('.domain')
       .attr('fill', 'none')
@@ -473,14 +479,6 @@ export class LisPhylotreeElement extends LitElement {
     d3.selectAll(this._scaleContainerRef.value)
       .selectAll('g.tick > text')
       .style('font-size', '10px');
-  }
-
-  @globalSubstitution('d3', 'd3v3')
-  private _updateXAxis() {
-    d3.select(this._scaleContainerRef.value)
-      .select('.x-axis')
-      .transition()
-      .call(this._xAxis());
   }
 
   /**
