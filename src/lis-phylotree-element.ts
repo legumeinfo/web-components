@@ -170,7 +170,7 @@ export class LisPhylotreeElement extends LitElement {
   // a controller that allows element resize events to be observed
   protected resizeObserverController = new LisResizeObserverController(
     this,
-    this.resize,
+    this._resize,
   );
 
   // HACK: this variable is used to prevent label clicks from triggering node clicks
@@ -243,7 +243,7 @@ export class LisPhylotreeElement extends LitElement {
   @property({type: Function, attribute: false})
   labelClickFunction?: ClickFunction;
 
-  private resize(entries: ResizeObserverEntry[]) {
+  private _resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
       // @ts-expect-error Property 'layout' does not exist on type '{}'
       const drawnWidth = this._tree?.layout().width();
@@ -256,15 +256,15 @@ export class LisPhylotreeElement extends LitElement {
     });
   }
 
-  private treeContainerReady() {
+  private _treeContainerReady() {
     if (this._treeContainerRef.value) {
       this.resizeObserverController.observe(this._treeContainerRef.value);
     }
   }
 
   override render() {
-    this.drawTree();
-    this.drawScale();
+    this._drawTree();
+    this._drawScale();
     return html` <div
         style="overflow: hidden; margin: 0 ${LisPhylotreeElement.TNT_LEFT_RIGHT_MARGIN}px"
         ${ref(this._scaleContainerRef)}
@@ -272,7 +272,7 @@ export class LisPhylotreeElement extends LitElement {
       <div
         style="overflow: hidden;"
         ${ref(this._treeContainerRef)}
-        ${ref(this.treeContainerReady)}
+        ${ref(this._treeContainerReady)}
       ></div>`;
   }
 
@@ -311,7 +311,7 @@ export class LisPhylotreeElement extends LitElement {
   }
 
   @globalSubstitution('d3', 'd3v3')
-  private drawTree() {
+  private _drawTree() {
     if (
       this._data === undefined ||
       this._treeContainerRef.value === undefined
@@ -438,7 +438,7 @@ export class LisPhylotreeElement extends LitElement {
   }
 
   @globalSubstitution('d3', 'd3v3')
-  private drawScale() {
+  private _drawScale() {
     if (
       !this.scale ||
       this._tree === undefined ||
