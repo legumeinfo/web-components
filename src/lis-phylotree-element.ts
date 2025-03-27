@@ -460,14 +460,17 @@ export class LisPhylotreeElement extends LitElement {
       )
       .attr('width', actualWidth)
       .attr('class', 'x-axis');
-    this._updateXAxis();
+    this._updateXAxis(0);
   }
 
   @globalSubstitution('d3', 'd3v3')
-  private _updateXAxis() {
+  private _updateXAxis(
+    duration: number = LisPhylotreeElement.TNT_TRANSITION_DURATION,
+  ) {
     d3.select(this._scaleContainerRef.value)
       .select('.x-axis')
       .transition()
+      .duration(duration)
       .call(this._xAxis());
     d3.select(this._scaleContainerRef.value)
       .select('.domain')
