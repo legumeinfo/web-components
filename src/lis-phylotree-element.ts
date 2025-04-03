@@ -229,19 +229,35 @@ export class LisPhylotreeElement extends LitElement {
     }
   }
 
-  // a function used to assign colors to nodes based on their name
+  /**
+   * A function used to assign colors to nodes based on their name.
+   */
   @property({type: Function, attribute: false})
   colorFunction?: ColorFunction;
 
-  // a function called when a node is clicked;
-  // the TnT Tree Node object that was clicked is passed as the argument
+  /**
+   * A function called when a node is clicked;
+   * the TnT Tree Node object that was clicked is passed as the argument.
+   */
   @property({type: Function, attribute: false})
   nodeClickFunction?: ClickFunction;
 
-  // a function called when a leaf node label is clicked;
-  // the TnT Tree Node object the clicked label belongs to is passed as the argument
+  /**
+   * A function called when a leaf node label is clicked;
+   * the TnT Tree Node object the clicked label belongs to is passed as the argument.
+   */
   @property({type: Function, attribute: false})
   labelClickFunction?: ClickFunction;
+
+  /**
+   * Determines if label click events are propagated to the node they are associated with.
+   * If so, this will trigger the node label click function. If a label click function and
+   * a node click function has been assigned, both click functions will be called.
+   *
+   * @attribute
+   */
+  @property({type: Boolean})
+  labelClickPropagation: boolean = false;
 
   private _resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
@@ -326,9 +342,9 @@ export class LisPhylotreeElement extends LitElement {
     const width = this._treeWidth();
 
     // styles a D3 selection if the given clickFunction is defined
-    const selectionClickStyleFactory = (clickFunction?: ClickFunction) => {
+    const selectionClickStyleFactory = (clickFunction: unknown) => {
       return (selection: any) => {
-        if (clickFunction !== undefined) {
+        if (clickFunction) {
           return selection.style('cursor', 'pointer');
         }
         return selection;
@@ -354,11 +370,13 @@ export class LisPhylotreeElement extends LitElement {
     // configure the node labels
     const labels = tnt.tree.label.text().height(this.labelHeight);
     const defaultLabelDisplay = labels.display();
-    const labelClickFunction = this.labelClickFunction;
+    const clickable =
+      this.labelClickFunction ||
+      (this.nodeClickFunction && this.labelClickPropagation);
     labels.display(function (...args: unknown[]) {
       // @ts-expect-error 'this' implicitly has type 'any'
       const selection = defaultLabelDisplay.call(this, ...args);
-      return selectionClickStyleFactory(labelClickFunction)(selection);
+      return selectionClickStyleFactory(clickable)(selection);
     });
 
     // create the tree
@@ -376,7 +394,7 @@ export class LisPhylotreeElement extends LitElement {
       const instance = this;
       // @ts-expect-error Object is of type 'unknown'
       this._tree.on('click', function (node: unknown) {
-        if (!instance._labelClicked) {
+        if (!instance._labelClicked || instance.labelClickPropagation) {
           // @ts-expect-error 'this' implicitly has type 'any'
           instance._emitNodeClick(this, node);
         }
@@ -388,7 +406,10 @@ export class LisPhylotreeElement extends LitElement {
     const instance = this;
     labels.on('click', function (node: unknown) {
       instance._labelClicked = true;
-      if (instance.labelClickFunction !== undefined) {
+      if (
+        instance.labelClickFunction !== undefined ||
+        (instance.nodeClickFunction && instance.labelClickPropagation)
+      ) {
         // @ts-expect-error 'this' implicitly has type 'any'
         instance._emitLabelClick(this, node);
       }
