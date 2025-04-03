@@ -56,7 +56,7 @@
 
     <div class="uk-container uk-container-expand">
       <!-- the custom phylotree element -->
-      <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths> </lis-phylotree-element>
+      <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths labelClickPropagation> </lis-phylotree-element>
       <lis-modal-element modalId="modal">
         <lis-linkout-element id="linkouts"></lis-linkout-element>
       </lis-modal-element>
@@ -131,10 +131,6 @@
 
       // get the web component elements
       const phylotreeElement = document.getElementById("phylotree");
-      phylotreeElement.nodeClickFunction = function(tree, node) {
-        node.toggle();
-        phylotreeElement.updateTree();
-      };
       const linkoutElement = document.getElementById('linkouts');
       linkoutElement.linkoutFunction = linkoutFunction;
 
@@ -159,10 +155,17 @@
       // wait for the modal slot to load before adding an event listener
       window.onload = (event) => {
         const modal = document.getElementById('modal');
-        phylotreeElement.labelClickFunction = function(tree, node) {
-          const identifier = this.innerHTML;
-          UIkit.modal(modal).show();
-          linkoutElement.getLinkouts({type: 'gene', variables: {identifier}});
+        phylotreeElement.nodeClickFunction = function(tree, node) {
+          // leaf node/label clicked
+          if (node.is_leaf() && !node.is_collapsed()) {
+            const identifier = this.lastChild.innerHTML;
+            UIkit.modal(modal).show();
+            linkoutElement.getLinkouts({type: 'gene', variables: {identifier}});
+          // internal node clicked
+          } else {
+            node.toggle();
+            phylotreeElement.updateTree();
+          }
         };
       };
 
