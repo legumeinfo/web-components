@@ -2,9 +2,9 @@ import {html, LitElement} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
-import {LisResizeObserverController} from './controllers';
+import {LisResizeObserverController} from '../controllers';
 import {circle} from './tnt/node-display';
-import {globalSubstitution} from './utils/decorators';
+import {globalSubstitution} from '../utils/decorators';
 
 declare const tnt: any;
 declare const d3: any; // version 3
