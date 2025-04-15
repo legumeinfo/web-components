@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+import {importMapsPlugin} from '@web/dev-server-import-maps';
 import {legacyPlugin} from '@web/dev-server-legacy';
 
 const mode = process.env.MODE || 'dev';
@@ -15,6 +16,7 @@ export default {
   nodeResolve: {exportConditions: mode === 'dev' ? ['development'] : []},
   preserveSymlinks: true,
   plugins: [
+    importMapsPlugin(),
     legacyPlugin({
       polyfills: {
         // Manually imported in index.html file

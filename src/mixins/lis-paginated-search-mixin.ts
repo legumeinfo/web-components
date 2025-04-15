@@ -25,7 +25,6 @@ import {StringObjectModel} from '../models';
  * @param args - The arguments that will be passed to the super class
  * constructor.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = {}, Params extends any[] = any[]> = new (
   ...args: Params
 ) => T;
@@ -469,7 +468,6 @@ export const LisPaginatedSearchMixin =
       // constructor //
       /////////////////
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructor(...rest: any[]) {
         super(...rest);
       }

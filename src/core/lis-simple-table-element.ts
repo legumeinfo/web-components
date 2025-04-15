@@ -5,7 +5,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 import {LisSlotController} from '../controllers';
 import {StringObjectModel} from '../models';
-import {hasOwnProperty} from '../utility';
+import {hasOwnProperty} from '../utils';
 
 /**
  * @htmlElement `<lis-simple-table-element>`

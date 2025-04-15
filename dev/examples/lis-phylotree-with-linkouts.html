@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-phylotree-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="../graphql.js"></script>
+    <!-- LIS colors -->
+    <script type="importmap">
+      {
+        "imports": {
+          "lis-taxon-symbology": "../../node_modules/@legumeinfo/taxon-symbology/dist/taxon-symbology.min.js"
+        }
+      }
+    </script>
+    <!-- web components -->
+    <script type="module" src="../../lib/index.js"></script>
+
+    <!-- D3 -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      var d3v3 = d3;
+      window.d3 = undefined;
+    </script>
+
+    <!-- TnT -->
+    <link rel="stylesheet" href="http://tntvis.github.io/tnt/build/tnt.css" type="text/css" />
+    <script src="http://tntvis.github.io/tnt/build/tnt.min.js" charset="utf-8"></script>
+    <script src="http://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-phylotree-element&gt; with &lt;lis-linkout-element&gt; and &lt;lis-modal-element&gt;</h1>
+      <p>
+        The <code>&lt;lis-phylotree-element&gt;</code> provides a component for drawing interactive phylogenetic trees.
+        In this example, a phytlotree loaded from the LIS GraphQL API is made interactive by making internal nodes collapsible and adding linkouts to leaf node labels.
+      </p>
+      <p>
+        To demonstrate how to interact with multiple components, the name of the genes in the <code>&lt;lis-phylotree-element&gt;</code>'s leaf nodes are clickable.
+        Clicking on these labels will open an instance of the <code>&lt;lis-modal-element&gt;</code> containing an instance of the <code>&lt;lis-linkout-element&gt;</code>.
+        The <code>&lt;lis-linkout-element&gt;</code> uses the LIS GraphQL API to load links for the gene that was clicked.
+        See the source code for details on how these components interact.
+      </p>
+      <hr>
+    </div>
+
+    <div class="uk-container uk-container-expand">
+      <!-- the custom phylotree element -->
+      <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths labelClickPropagation> </lis-phylotree-element>
+      <lis-modal-element modalId="modal">
+        <lis-linkout-element id="linkouts"></lis-linkout-element>
+      </lis-modal-element>
+    </div>
+
+    <script type="module">
+      import { taxonChroma } from 'lis-taxon-symbology';
+
+      // organisms query from GraphQL
+      const organismsQuery = `
+      query Organisms {
+        organisms {
+          results {
+            abbreviation
+            genus
+            species
+          }
+        }
+      }`;
+
+      // a function to get the list of organisms
+      function getOrganisms() {
+        return graphqlQuery(uri, organismsQuery)
+          .then(({data}) => data.organisms.results);
+      }
+
+      // phylotree newick query from GraphQL
+      const geneNewickQuery = `
+      query GeneFamilies($page: Int, $pageSize: Int) {
+        geneFamilies(page: $page, pageSize: $pageSize) {
+          results {
+            phylotree {
+              newick
+            }
+          }
+        }
+      }`;
+
+      // a function to get a newick tree
+      function getNewick(variables) {
+        return graphqlQuery(uri, geneNewickQuery, variables)
+          .then(({data}) => {
+            if(data.geneFamilies.results.length == 1) {
+              return data.geneFamilies.results[0].phylotree.newick
+            }
+            return "";
+          })
+      }
+
+      // gene linkout query for the LIS GraphQL API
+      const geneLinkoutsQuery = `
+      query GeneLinkoutsQuery($identifier: ID!) {
+        geneLinkouts(identifier: $identifier) {
+          results {
+            href
+            text
+          }
+        }
+      }
+      `;
+
+      // the linkout function to give to the linkout component
+      function linkoutFunction({type, variables}, {abortSignal}) {
+        if (type == 'gene') {
+          // returns a Promise that resolves to an array of linkout objects that the
+          // linkout Web Component knows how to parse: {text: string, href: string}[]
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts.results}));
+        }
+        return Promise.reject();
+      }
+
+      // get the web component elements
+      const phylotreeElement = document.getElementById("phylotree");
+      const linkoutElement = document.getElementById('linkouts');
+      linkoutElement.linkoutFunction = linkoutFunction;
+
+      // get organism info to color the tree with
+      getOrganisms().then((organisms) => {
+        const organismPairs = organisms.map(({abbreviation, genus, species}) => {
+          return [abbreviation, `${genus} ${species}`];
+        });
+        const organismLookup = new Map(organismPairs);
+        phylotreeElement.colorFunction = (name) => {
+          const [abbreviation, ...rest] = name.split('.');
+          const organism = organismLookup.get(abbreviation) || ' ';
+          return taxonChroma.get(organism);
+        };
+      });
+
+      // get a newick tree to display
+      getNewick({pageSize: 1, page: 1000}).then((newick) => {
+        phylotreeElement.tree = newick;
+      });
+
+      // wait for the modal slot to load before adding an event listener
+      window.onload = (event) => {
+        const modal = document.getElementById('modal');
+        phylotreeElement.nodeClickFunction = function(tree, node) {
+          // leaf node/label clicked
+          if (node.is_leaf() && !node.is_collapsed()) {
+            const identifier = this.lastChild.innerHTML;
+            UIkit.modal(modal).show();
+            linkoutElement.getLinkouts({type: 'gene', variables: {identifier}});
+          // internal node clicked
+          } else {
+            node.toggle();
+            phylotreeElement.updateTree();
+          }
+        };
+      };
+
+    </script>
+  </body>
+</html>
