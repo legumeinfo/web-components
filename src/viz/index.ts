@@ -6,4 +6,5 @@
  *
  * @module viz components
  */
+export * from './lis-legend-element';
 export * from './lis-phylotree-element';

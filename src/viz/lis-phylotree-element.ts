@@ -30,7 +30,7 @@ export type Phylotree = {
  *
  * @returns A string containing a valid CSS color value.
  */
-export type ColorFunction = (name: string) => string;
+export type PhylotreeColorFunction = (name: string) => string;
 
 /**
  * The signature of the function of the
@@ -39,7 +39,7 @@ export type ColorFunction = (name: string) => string;
  *
  * @param node An instand of the TnT Tree Node class for the node that was clicked.
  */
-export type ClickFunction = (tree: unknown, node: unknown) => void;
+export type PhylotreeClickFunction = (tree: unknown, node: unknown) => void;
 
 /**
  * @htmlElement `<lis-phylotree-element>`
@@ -233,21 +233,21 @@ export class LisPhylotreeElement extends LitElement {
    * A function used to assign colors to nodes based on their name.
    */
   @property({type: Function, attribute: false})
-  colorFunction?: ColorFunction;
+  colorFunction?: PhylotreeColorFunction;
 
   /**
    * A function called when a node is clicked;
    * the TnT Tree Node object that was clicked is passed as the argument.
    */
   @property({type: Function, attribute: false})
-  nodeClickFunction?: ClickFunction;
+  nodeClickFunction?: PhylotreeClickFunction;
 
   /**
    * A function called when a leaf node label is clicked;
    * the TnT Tree Node object the clicked label belongs to is passed as the argument.
    */
   @property({type: Function, attribute: false})
-  labelClickFunction?: ClickFunction;
+  labelClickFunction?: PhylotreeClickFunction;
 
   /**
    * Determines if label click events are propagated to the node they are associated with.
