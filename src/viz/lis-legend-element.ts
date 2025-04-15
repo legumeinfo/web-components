@@ -100,8 +100,8 @@ export class LisLegendElement extends LitElement {
    *
    * @attribute
    */
-  //@property()
-  //layout: 'vertical' | 'horizontal' = 'vertical';
+  @property()
+  layout: 'vertical' | 'horizontal' = 'vertical';
 
   /**
    * The glyph to use for each element in the legend.
@@ -184,81 +184,72 @@ export class LisLegendElement extends LitElement {
 
     // create the SVG element
     const width = this._legendWidth();
-    const n = this.data.entries.length;
-    const height =
-      n * LisLegendElement.GLYPH_SIZE + (n + 1) * LisLegendElement.GLYPH_MARGIN;
-    const svg = d3.create('svg').attr('width', width).attr('height', height);
-
-    // add legend to DOM
+    const svg = d3.create('svg').attr('width', width);
     this._legendContainerRef.value.append(svg.node());
 
     // variables
-    const rx = this.glyph == 'circle' ? LisLegendElement.GLYPH_SIZE / 2 : 0;
-    const padding = Math.max(rx, LisLegendElement.GLYPH_MARGIN);
+    const radius = this.glyph == 'circle' ? LisLegendElement.GLYPH_SIZE / 2 : 0;
+    const padding = Math.max(radius, LisLegendElement.GLYPH_MARGIN);
     const color = this.compact ? '#FFFFFF' : 'inherit';
 
     // add a group for each entry
+    let x = 0;
+    let row = 0;
     this.data.entries.forEach((e, i) => {
       // create the entry
-      const y =
-        i * LisLegendElement.GLYPH_SIZE +
-        (i + 1) * LisLegendElement.GLYPH_MARGIN;
-      const entry = svg.append('g').attr('transform', `translate(0, ${y})`);
+      const entry = svg.append('g');
       // add label
-      let x = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
+      let offset = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
       if (this.compact) {
-        x = padding;
+        offset = padding;
       }
       const text = entry
         .append('text')
-        //.attr('font-size', LisLegendElement.GLYPH_SIZE)
         .attr('line-height', LisLegendElement.GLYPH_SIZE)
-        .attr('font-size', LisLegendElement.GLYPH_SIZE / 1.2)
-        .attr('x', x)
+        .attr('font-size', LisLegendElement.GLYPH_SIZE / 1.2) // 1.2 is roughly what web browsers use
         .style('dominant-baseline', 'middle')
+        .attr('x', offset)
         .attr('y', LisLegendElement.GLYPH_SIZE / 2)
         .text(e.label)
         .style('fill', color);
       // add glyph
       let w = LisLegendElement.GLYPH_SIZE;
       if (this.compact) {
-        w = text.node().getBBox().width + padding * 2;
+        w = text.node().getComputedTextLength() + padding * 2;
       }
       entry
         .append('rect')
         .attr('width', w)
         .attr('height', LisLegendElement.GLYPH_SIZE)
-        .attr('rx', rx)
+        .attr('rx', radius)
         .style('fill', e.color);
       text.raise();
+      // set the group position now that we know its size
+      if (this.layout == 'horizontal') {
+        const paddedWidth =
+          entry.node().getBBox().width + LisLegendElement.GLYPH_MARGIN;
+        if (x + paddedWidth > width) {
+          x = 0;
+          row += 1;
+        }
+        const y =
+          row * LisLegendElement.GLYPH_SIZE +
+          (row + 1) * LisLegendElement.GLYPH_MARGIN;
+        entry.attr('transform', `translate(${x}, ${y})`);
+        x += paddedWidth;
+      } else {
+        const y =
+          i * LisLegendElement.GLYPH_SIZE +
+          (i + 1) * LisLegendElement.GLYPH_MARGIN;
+        entry.attr('transform', `translate(0, ${y})`);
+      }
     });
 
-    // add glyphs
-    /*
-    svg.selectAll('glyphs')
-      .data(this.data.entries)
-      .enter()
-      .append('circle')
-        .attr('cx', 100)
-        // @ts-expect-error 'd' is declared but its value is never read
-        .attr('cy', (d, i) => LisLegendElement.GLYPH_SIZE + i * LisLegendElement.GLYPH_MARGIN)
-        .attr('r', 7)
-        .style('fill', (d: LegendEntry) => d.color)
-    */
-
-    // add labels
-    /*
-    svg.selectAll('labels')
-      .data(this.data.entries)
-      .enter()
-      .append('text')
-        .attr('x', 120)
-        .attr('y', function(d,i){ return 100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
-        .style('fill', function(d){ return color(d)})
-        .text(function(d){ return d})
-        .attr('text-anchor', 'left')
-        .style('alignment-baseline', 'middle')
-    */
+    // set the SVG height now that all element have been added
+    const n = this.layout == 'horizontal' ? row + 1 : this.data.entries.length;
+    const height =
+      n * LisLegendElement.GLYPH_SIZE + (n + 1) * LisLegendElement.GLYPH_MARGIN;
+    svg.attr('height', height);
   }
 }
 
