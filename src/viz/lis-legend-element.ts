@@ -116,8 +116,8 @@ export class LisLegendElement extends LitElement {
    *
    * @attribute
    */
-  //@property({type: Boolean})
-  //compact: boolean = false;
+  @property({type: Boolean})
+  compact: boolean = false;
 
   /**
    * The legend data.
@@ -182,13 +182,11 @@ export class LisLegendElement extends LitElement {
     // reset the container
     this._legendContainerRef.value.innerHTML = '';
 
-    // set the width of the tree
+    // create the SVG element
     const width = this._legendWidth();
     const n = this.data.entries.length;
     const height =
       n * LisLegendElement.GLYPH_SIZE + (n + 1) * LisLegendElement.GLYPH_MARGIN;
-
-    // create the SVG element
     const svg = d3.create('svg').attr('width', width).attr('height', height);
 
     // add legend to DOM
@@ -196,30 +194,43 @@ export class LisLegendElement extends LitElement {
 
     // variables
     const rx = this.glyph == 'circle' ? LisLegendElement.GLYPH_SIZE / 2 : 0;
+    const padding = Math.max(rx, LisLegendElement.GLYPH_MARGIN);
+    const color = this.compact ? '#FFFFFF' : 'inherit';
 
     // add a group for each entry
     this.data.entries.forEach((e, i) => {
+      // create the entry
       const y =
         i * LisLegendElement.GLYPH_SIZE +
         (i + 1) * LisLegendElement.GLYPH_MARGIN;
       const entry = svg.append('g').attr('transform', `translate(0, ${y})`);
-      // add glyph
-      entry
-        .append('rect')
-        .attr('width', LisLegendElement.GLYPH_SIZE)
-        .attr('height', LisLegendElement.GLYPH_SIZE)
-        .attr('rx', rx)
-        .style('fill', e.color);
       // add label
-      entry
+      let x = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
+      if (this.compact) {
+        x = padding;
+      }
+      const text = entry
         .append('text')
         //.attr('font-size', LisLegendElement.GLYPH_SIZE)
         .attr('line-height', LisLegendElement.GLYPH_SIZE)
         .attr('font-size', LisLegendElement.GLYPH_SIZE / 1.2)
-        .attr('x', LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN)
+        .attr('x', x)
         .style('dominant-baseline', 'middle')
         .attr('y', LisLegendElement.GLYPH_SIZE / 2)
-        .text(e.label);
+        .text(e.label)
+        .style('fill', color);
+      // add glyph
+      let w = LisLegendElement.GLYPH_SIZE;
+      if (this.compact) {
+        w = text.node().getBBox().width + padding * 2;
+      }
+      entry
+        .append('rect')
+        .attr('width', w)
+        .attr('height', LisLegendElement.GLYPH_SIZE)
+        .attr('rx', rx)
+        .style('fill', e.color);
+      text.raise();
     });
 
     // add glyphs
