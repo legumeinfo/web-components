@@ -156,6 +156,10 @@ export class LisPhylotreeElement extends LitElement {
   static readonly TNT_TRANSITION_DURATION = 500;
   static readonly TNT_TRANSLATE = 20;
 
+  static newickToData(newick: string): Phylotree {
+    return tnt.tree.parse_newick(newick);
+  }
+
   // disable shadow DOM to inherit global styles, i.e. TnT styles
   override createRenderRoot() {
     return this;
@@ -223,7 +227,7 @@ export class LisPhylotreeElement extends LitElement {
   @property()
   set tree(tree: string | Phylotree) {
     if (typeof tree == 'string') {
-      this._data = tnt.tree.parse_newick(tree);
+      this._data = LisPhylotreeElement.newickToData(tree);
     } else {
       this._data = tree;
     }
