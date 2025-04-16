@@ -24,11 +24,18 @@
     <!-- web components -->
     <script type="module" src="../../lib/index.js"></script>
 
-    <!-- D3 -->
+    <!-- D3 version 3 for phylotree -->
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script type="text/javascript">
       var d3v3 = d3;
       window.d3 = undefined;
+    </script>
+
+    <!-- D3 version 7 for legend -->
+    <script src="http://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      var d3v7 = d3;
+      window.d7 = undefined;
     </script>
 
     <!-- TnT -->
@@ -40,21 +47,25 @@
   <body>
 
     <div class="uk-container">
-      <h1>&lt;lis-phylotree-element&gt; with &lt;lis-linkout-element&gt; and &lt;lis-modal-element&gt;</h1>
+      <h1>&lt;lis-phylotree-element&gt; with &lt;lis-legend-element&gt;, &lt;lis-linkout-element&gt;, and &lt;lis-modal-element&gt;</h1>
       <p>
         The <code>&lt;lis-phylotree-element&gt;</code> provides a component for drawing interactive phylogenetic trees.
-        In this example, a phytlotree loaded from the LIS GraphQL API is made interactive by making internal nodes collapsible and adding linkouts to leaf node labels.
+        In this example, a phytlotree loaded from the LIS GraphQL API is made interactive by making internal nodes collapsible and adding linkouts to leaf nodes and their labels.
       </p>
       <p>
         To demonstrate how to interact with multiple components, the name of the genes in the <code>&lt;lis-phylotree-element&gt;</code>'s leaf nodes are clickable.
         Clicking on these labels will open an instance of the <code>&lt;lis-modal-element&gt;</code> containing an instance of the <code>&lt;lis-linkout-element&gt;</code>.
         The <code>&lt;lis-linkout-element&gt;</code> uses the LIS GraphQL API to load links for the gene that was clicked.
         See the source code for details on how these components interact.
+        Additionally, the <code>&lt;lis-legend-element&gt;</code> is used with the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Sybology</a> library to convey the meaning of the colors in the phylotree.
+        Not only does this complement <code>&lt;lis-phylotree-element&gt;</code>, it also demonstrates how multiple components that require different versions of the same library (in this case D3) can be used in the same page.
       </p>
       <hr>
     </div>
 
     <div class="uk-container uk-container-expand">
+      <!-- the custom legend element -->
+      <lis-legend-element id="legend" layout="horizontal" compact></lis-legend-element>
       <!-- the custom phylotree element -->
       <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths labelClickPropagation> </lis-phylotree-element>
       <lis-modal-element modalId="modal">
@@ -130,12 +141,13 @@
       }
 
       // get the web component elements
+      const legendElement = document.getElementById("legend");
       const phylotreeElement = document.getElementById("phylotree");
       const linkoutElement = document.getElementById('linkouts');
       linkoutElement.linkoutFunction = linkoutFunction;
 
       // get organism info to color the tree with
-      getOrganisms().then((organisms) => {
+      const orgnaismLookupPromise = getOrganisms().then((organisms) => {
         const organismPairs = organisms.map(({abbreviation, genus, species}) => {
           return [abbreviation, `${genus} ${species}`];
         });
@@ -145,12 +157,39 @@
           const organism = organismLookup.get(abbreviation) || ' ';
           return taxonChroma.get(organism);
         };
+        return organismLookup;
       });
 
       // get a newick tree to display
-      getNewick({pageSize: 1, page: 1000}).then((newick) => {
+      const newickDataPromise = getNewick({pageSize: 1, page: 1000}).then((newick) => {
         phylotreeElement.tree = newick;
+        const data = phylotreeElement.constructor.newickToData(newick);
+        return data;
       });
+
+      // recursively gets all node names from phylotree data
+      function getNodeNames(node, names=[]) {
+        names.push(node.name);
+        node.children?.forEach((n) => getNodeNames(n, names));
+        return names;
+      }
+
+      // use data from both requests to make legend data
+      Promise.all([orgnaismLookupPromise, newickDataPromise])
+        .then(([organismLookup, newickData]) => {
+          const taxa = getNodeNames(newickData)
+            // get taxa abbreviations from names
+            .map((name) => name.split('.')[0])
+            // make sure abbreviations are unique and occur in lookup
+            .filter((abbr, i, array) => abbr != "" && organismLookup.get(abbr) && array.indexOf(abbr) === i)
+            // map abbreviations to taxa
+            .map((abbr) => organismLookup.get(abbr));
+          legendElement.data = {entries: taxa.map((label) => ({label}))};
+          legendElement.colorFunction = (entry) => {
+            const {label} = entry;
+            return taxonChroma.get(label);
+          };
+        });
 
       // wait for the modal slot to load before adding an event listener
       window.onload = (event) => {
