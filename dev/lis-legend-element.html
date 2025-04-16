@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-phylotree-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- LIS colors -->
+    <script type="importmap">
+      {
+        "imports": {
+          "lis-taxon-symbology": "../node_modules/@legumeinfo/taxon-symbology/dist/taxon-symbology.min.js"
+        }
+      }
+    </script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+
+    <!-- D3 -->
+    <script src="http://d3js.org/d3.v7.min.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      var d3v7 = d3;
+      window.d3 = undefined;
+    </script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-legend-element&gt;</h1>
+      <p>
+        The <code>&lt;lis-legend-element&gt;</code> provides a component for drawing interactive legends.
+        The legend data is provided to the component via the <code>data</code> property.
+        Legend entries can be colored either by including a <code>color</code> attribute in the entries or using an external function given to the component using the <code>colorFunction</code> property.
+        In this example, colors are assigned by a function that utilizes the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Sybology</a> library and the input data is the list of all taxa the library specifically has colors for.
+      </p>
+      <p>
+        Optionally, the legend can be drawn in a vertical or horizontal layout, glyphs can be either circles or squares, the legend can be made more compact by drawing labels inside of glyphs, and a click callback function can be called whenever an entry is clicked.
+        These options are controlled with the <code>layout</code>, <code>glyph</code>, <code>compact</code>, and <code>clickFunction</code> attributes/properties, respectively.
+        When using a click callback, the clicked entry is passed as the argument to the callback function.
+      </p>
+      <hr>
+      Use this form to try the various configurations of the legend component.
+      When the mouse click is enabled, the entry clicked will be logged in the Web console.
+      <form onchange="configureLegend(this)" autocomplete="off" class="uk-grid-small" uk-grid>
+          <div class="uk-width-1-4@s">
+            <div class="uk-form-label">Layout</div>
+            <div class="uk-form-controls">
+              <label><input class="uk-radio" type="radio" name="layout" value="vertical" checked="checked"> Vertical</label><br>
+              <label><input class="uk-radio" type="radio" name="layout" value="horizontal"> Horizontal</label>
+            </div>
+          </div>
+          <div class="uk-width-1-4@s">
+            <div class="uk-form-label">Glyph</div>
+            <div class="uk-form-controls">
+              <label><input class="uk-radio" type="radio" name="glyph" value="circle" checked="checked"> Circle</label><br>
+              <label><input class="uk-radio" type="radio" name="glyph" value="square"> Square</label>
+            </div>
+          </div>
+          <div class="uk-width-1-4@s">
+            <div class="uk-form-label">Compact</div>
+            <div class="uk-form-controls">
+              <label><input class="uk-checkbox" type="checkbox" name="compact"> Yes</label>
+            </div>
+          </div>
+          <div class="uk-width-1-4@s">
+            <div class="uk-form-label">Mouse Click (cursor pointer)</div>
+            <div class="uk-form-controls">
+              <label><input class="uk-checkbox" type="checkbox" name="click"> Yes</label>
+            </div>
+          </div>
+      </form>
+      <br/>
+    </div>
+
+    <div class="uk-container uk-container-expand">
+      <!-- the custom legend element -->
+      <lis-legend-element id="legend"></lis-legend-element>
+    </div>
+
+    <script type="text/javascript">
+      const clickFunction = (entry) => {
+        console.log(entry);
+      };
+
+      function configureLegend(form) {
+        const legendElement = document.getElementById("legend");
+        legendElement.glyph = form.glyph.value;
+        legendElement.layout = form.layout.value;
+        legendElement.compact = form.compact.checked;
+        if (form.click.checked) {
+          legendElement.clickFunction = clickFunction;
+        } else {
+          legendElement.clickFunction = undefined;
+        }
+      }
+    </script>
+
+    <script type="module">
+      import { taxonChroma } from 'lis-taxon-symbology';
+
+      const data = {
+        entries: [
+          {label: 'Acacia crassicarpa'},
+          {label: 'Aeschynomene evenia'},
+          {label: 'Apios americana'},
+          {label: 'Arachis duranensis'},
+          {label: 'Arachis hypogaea'},
+          {label: 'Arachis ipaensis'},
+          {label: 'Bauhinia variegata'},
+          {label: 'Cajanus cajan'},
+          {label: 'Cercis canadensis'},
+          {label: 'Chamaecrista fasciculata'},
+          {label: 'Cicer arietinum'},
+          {label: 'Dalbergia odorifera'},
+          {label: 'Glycine max'},
+          {label: 'Glycine soja'},
+          {label: 'Lablab purpureus'},
+          {label: 'Lens culinaris'},
+          {label: 'Lotus japonicus'},
+          {label: 'Lupinus albus'},
+          {label: 'Lupinus angustifolius'},
+          {label: 'Medicago sativa'},
+          {label: 'Medicago truncatula'},
+          {label: 'Phanera championii'},
+          {label: 'Phaseolus lunatus'},
+          {label: 'Phaseolus vulgaris'},
+          {label: 'Pisum sativum'},
+          {label: 'Quillaja saponaria'},
+          {label: 'Senna tora'},
+          {label: 'Sindora glabra'},
+          {label: 'Trifolium pratense'},
+          {label: 'Trifolium repens'},
+          {label: 'Vicia faba'},
+          {label: 'Vigna angularis'},
+          {label: 'Vigna radiata'},
+          {label: 'Vigna unguiculata'},
+        ],
+      };
+
+      // define a color function
+      const colorFunction = (entry) => {
+        const {label} = entry;
+        return taxonChroma.get(label);
+      };
+
+      // get the legend element
+      const legendElement = document.getElementById("legend");
+      legendElement.data = data;
+      legendElement.colorFunction = colorFunction;
+
+    </script>
+  </body>
+</html>
