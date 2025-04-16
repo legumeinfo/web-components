@@ -130,8 +130,8 @@ export class LisLegendElement extends LitElement {
   /**
    * A function used to assign colors to entries.
    */
-  //@property({type: Function, attribute: false})
-  //colorFunction?: LegendColorFunction;
+  @property({type: Function, attribute: false})
+  colorFunction?: LegendColorFunction;
 
   /**
    * A function called when an entry is clicked;
@@ -222,7 +222,7 @@ export class LisLegendElement extends LitElement {
         .attr('width', w)
         .attr('height', LisLegendElement.GLYPH_SIZE)
         .attr('rx', radius)
-        .style('fill', e.color);
+        .style('fill', () => e.color || this.colorFunction?.(e));
       text.raise();
       // set the group position now that we know its size
       if (this.layout == 'horizontal') {
