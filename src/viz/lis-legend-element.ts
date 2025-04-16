@@ -137,8 +137,8 @@ export class LisLegendElement extends LitElement {
    * A function called when an entry is clicked;
    * the entry that was clicked is passed as the argument.
    */
-  //@property({type: Function, attribute: false})
-  //clickFunction?: LegendClickFunction;
+  @property({type: Function, attribute: false})
+  clickFunction?: LegendClickFunction;
 
   private _resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
@@ -198,6 +198,11 @@ export class LisLegendElement extends LitElement {
     this.data.entries.forEach((e, i) => {
       // create the entry
       const entry = svg.append('g');
+      if (this.clickFunction !== undefined) {
+        entry
+          .style('cursor', 'pointer')
+          .on('click', () => this.clickFunction?.(e));
+      }
       // add label
       let offset = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
       if (this.compact) {
