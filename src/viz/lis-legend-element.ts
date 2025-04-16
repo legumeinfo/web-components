@@ -52,7 +52,7 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  * automatically redraw if the width of its parent element changes.
  *
  * @example
- * The `<lis-legend-element>` tag requires the <b>version 7</b> of {@link https://d3js.org/ | D3}.
+ * The `<lis-legend-element>` tag requires <b>version 7</b> of {@link https://d3js.org/ | D3}.
  * To allow multiple versions of D3 to be used on the same page, the
  * {@link LisLegendElement | `LisLegendElement`} class uses the global `d3v7` variable if it has
  * been set. Otherwise it uses the global `d3` variable by default. The following is an example of
@@ -60,7 +60,7 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  * ```html
  * <!-- head -->
  *
- * <!-- D3 version ? -->
+ * <!-- D3 version 7 -->
  * <script src='http://d3js.org/d3.v7.min.js'></script>
  *
  * <!-- another version of D3 -->
@@ -74,6 +74,70 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  *
  * <!-- add the Web Component to your HTML -->
  * <lis-legend-element></lis-legend-element>
+ * ```
+ *
+ * @example
+ * {@link !HTMLElement | `HTMLElement`} properties can only be set via JavaScript. This means the
+ * {@link data | `data`}, {@link colorFunction | `colorFunction`}, and
+ * {@link clickFunction | `nodeClickFunction`} properties must be set on a `<lis-legend-element>`
+ * tag's instance of the {@link LisLegendElement | `LisLegendElement`} class. For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-legend-element id="legend"></lis-legend-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // legend data
+ *   const data = {
+ *     entries: [
+ *       {label: 'Acacia crassicarpa'},
+ *       {label: 'Aeschynomene evenia'},
+ *       {label: 'Apios americana'},
+ *     ],
+ *   };
+ *   // returns a color given an entry
+ *   function color(entry) {
+ *     // returns a color for the given label
+ *   }
+ *   // click callback that gets passed the clicked entry
+ *   function click(entry) {
+ *     // do something
+ *   }
+ *   // get the legend element
+ *   const legendElement = document.getElementById('legend');
+ *   // set the element's properties
+ *   phylotreeElement.data = data;
+ *   phylotreeElement.colorFunction = color;
+ *   phylotreeElement.clickFunction = click;
+ * </script>
+ * ```
+ *
+ * @example
+ * The {@link layout | `layout`}, {@link glyph | `glyph`}, and {@link compact | `compact`}
+ * properties can be set as attributes of the `<lis-legend-element>` tag or as properties of the
+ * tag's instance of the {@link LisLegendElement | `LisLegendElement`} class.
+ * {@link layout | `layout`} sets the layout of the legend to `vertical` or `horizontal` (`vertical`
+ * by default). {@link glyph | `glyph`} determines whether the glyph of each entry will be drawn as
+ * a circle or a square (`circle` by default). And {@link compact | `compact`} will draw entry
+ * labels insides of glyphs to save space when enabled (disabled by default). For example:
+ * ```html
+ * <!-- add the Web Component to your HTML -->
+ * <lis-legend-element
+ *   layout="horizontal"
+ *   glyph="square"
+ *   compact
+ * ></lis-legend-element>
+ * <lis-legend-element id="legend"></lis-legend-element>
+ *
+ * <!-- configure the Web Component via JavaScript -->
+ * <script type="text/javascript">
+ *   // get the legend element
+ *   const legendElement = document.getElementById('legend');
+ *   // set the element's properties
+ *   legendElement.layout = 'horizontal';
+ *   legendElement.glyph = 'square';
+ *   legendElement.compact = true;
+ * </script>
  * ```
  */
 @customElement('lis-legend-element')
@@ -124,7 +188,7 @@ export class LisLegendElement extends LitElement {
    *
    * @attribute
    */
-  @property()
+  @property({attribute: false})
   data: LegendData = {entries: []};
 
   /**
