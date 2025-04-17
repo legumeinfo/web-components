@@ -2,9 +2,9 @@ import {html, LitElement} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
-import {LisResizeObserverController} from './controllers';
+import {LisResizeObserverController} from '../controllers';
 import {circle} from './tnt/node-display';
-import {globalSubstitution} from './utils/decorators';
+import {globalSubstitution} from '../utils/decorators';
 
 declare const tnt: any;
 declare const d3: any; // version 3
@@ -30,7 +30,7 @@ export type Phylotree = {
  *
  * @returns A string containing a valid CSS color value.
  */
-export type ColorFunction = (name: string) => string;
+export type PhylotreeColorFunction = (name: string) => string;
 
 /**
  * The signature of the function of the
@@ -39,7 +39,7 @@ export type ColorFunction = (name: string) => string;
  *
  * @param node An instand of the TnT Tree Node class for the node that was clicked.
  */
-export type ClickFunction = (tree: unknown, node: unknown) => void;
+export type PhylotreeClickFunction = (tree: unknown, node: unknown) => void;
 
 /**
  * @htmlElement `<lis-phylotree-element>`
@@ -156,6 +156,10 @@ export class LisPhylotreeElement extends LitElement {
   static readonly TNT_TRANSITION_DURATION = 500;
   static readonly TNT_TRANSLATE = 20;
 
+  static newickToData(newick: string): Phylotree {
+    return tnt.tree.parse_newick(newick);
+  }
+
   // disable shadow DOM to inherit global styles, i.e. TnT styles
   override createRenderRoot() {
     return this;
@@ -223,7 +227,7 @@ export class LisPhylotreeElement extends LitElement {
   @property()
   set tree(tree: string | Phylotree) {
     if (typeof tree == 'string') {
-      this._data = tnt.tree.parse_newick(tree);
+      this._data = LisPhylotreeElement.newickToData(tree);
     } else {
       this._data = tree;
     }
@@ -233,21 +237,21 @@ export class LisPhylotreeElement extends LitElement {
    * A function used to assign colors to nodes based on their name.
    */
   @property({type: Function, attribute: false})
-  colorFunction?: ColorFunction;
+  colorFunction?: PhylotreeColorFunction;
 
   /**
    * A function called when a node is clicked;
    * the TnT Tree Node object that was clicked is passed as the argument.
    */
   @property({type: Function, attribute: false})
-  nodeClickFunction?: ClickFunction;
+  nodeClickFunction?: PhylotreeClickFunction;
 
   /**
    * A function called when a leaf node label is clicked;
    * the TnT Tree Node object the clicked label belongs to is passed as the argument.
    */
   @property({type: Function, attribute: false})
-  labelClickFunction?: ClickFunction;
+  labelClickFunction?: PhylotreeClickFunction;
 
   /**
    * Determines if label click events are propagated to the node they are associated with.
