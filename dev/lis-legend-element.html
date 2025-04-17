@@ -40,11 +40,11 @@
         The <code>&lt;lis-legend-element&gt;</code> provides a component for drawing interactive legends.
         The legend data is provided to the component via the <code>data</code> property.
         Legend entries can be colored either by including a <code>color</code> attribute in the entries or using an external function given to the component using the <code>colorFunction</code> property.
-        In this example, colors are assigned by a function that utilizes the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Sybology</a> library and the input data is the list of all taxa the library specifically has colors for.
+        In this example, colors are assigned by a function that utilizes the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Symbology</a> library and the input data is the list of all taxa the library specifically has colors for.
       </p>
       <p>
-        Optionally, the legend can be drawn in a vertical or horizontal layout, glyphs can be either circles or squares, the legend can be made more compact by drawing labels inside of glyphs, and a click callback function can be called whenever an entry is clicked.
-        These options are controlled with the <code>layout</code>, <code>glyph</code>, <code>compact</code>, and <code>clickFunction</code> attributes/properties, respectively.
+        Optionally, the legend can be drawn in a vertical or horizontal layout, glyphs can be either circles or squares, the position of the glyphs relative to the labels can be changed, and a click callback function can be called whenever an entry is clicked.
+        These options are controlled with the <code>layout</code>, <code>glyph</code>, <code>position</code>, and <code>clickFunction</code> attributes/properties, respectively.
         When using a click callback, the clicked entry is passed as the argument to the callback function.
       </p>
       <hr>
@@ -66,9 +66,10 @@
             </div>
           </div>
           <div class="uk-width-1-4@s">
-            <div class="uk-form-label">Compact</div>
+            <div class="uk-form-label">Position</div>
             <div class="uk-form-controls">
-              <label><input class="uk-checkbox" type="checkbox" name="compact"> Yes</label>
+              <label><input class="uk-radio" type="radio" name="position" value="left" checked="checked"> Left</label><br>
+              <label><input class="uk-radio" type="radio" name="position" value="contain"> Contain</label>
             </div>
           </div>
           <div class="uk-width-1-4@s">
@@ -95,7 +96,7 @@
         const legendElement = document.getElementById("legend");
         legendElement.glyph = form.glyph.value;
         legendElement.layout = form.layout.value;
-        legendElement.compact = form.compact.checked;
+        legendElement.position = form.position.value;
         if (form.click.checked) {
           legendElement.clickFunction = clickFunction;
         } else {

@@ -57,7 +57,7 @@
         Clicking on these labels will open an instance of the <code>&lt;lis-modal-element&gt;</code> containing an instance of the <code>&lt;lis-linkout-element&gt;</code>.
         The <code>&lt;lis-linkout-element&gt;</code> uses the LIS GraphQL API to load links for the gene that was clicked.
         See the source code for details on how these components interact.
-        Additionally, the <code>&lt;lis-legend-element&gt;</code> is used with the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Sybology</a> library to convey the meaning of the colors in the phylotree.
+        Additionally, the <code>&lt;lis-legend-element&gt;</code> is used with the <a href="https://github.com/legumeinfo/taxon-symbology">Taxon Symbology</a> library to convey the meaning of the colors in the phylotree.
         Not only does this complement <code>&lt;lis-phylotree-element&gt;</code>, it also demonstrates how multiple components that require different versions of the same library (in this case D3) can be used in the same page.
       </p>
       <hr>
@@ -65,7 +65,7 @@
 
     <div class="uk-container uk-container-expand">
       <!-- the custom legend element -->
-      <lis-legend-element id="legend" layout="horizontal" compact></lis-legend-element>
+      <lis-legend-element id="legend" layout="horizontal"></lis-legend-element>
       <!-- the custom phylotree element -->
       <lis-phylotree-element id="phylotree" layout="vertical" scale edgeLengths labelClickPropagation> </lis-phylotree-element>
       <lis-modal-element modalId="modal">
