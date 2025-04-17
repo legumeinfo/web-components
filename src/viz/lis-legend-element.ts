@@ -20,9 +20,7 @@ export type LegendEntry = {
  * The structure legend data must have when given to the
  * {@link LisLegendElement | `LisLegendElement`} component.
  */
-export type LegendData = {
-  entries: LegendEntry[];
-};
+export type LegendData = LegendEntry[];
 
 /**
  * The signature of the function used by the
@@ -88,13 +86,11 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   // legend data
- *   const data = {
- *     entries: [
- *       {label: 'Acacia crassicarpa'},
- *       {label: 'Aeschynomene evenia'},
- *       {label: 'Apios americana'},
- *     ],
- *   };
+ *   const data = [
+ *     {label: 'Acacia crassicarpa'},
+ *     {label: 'Aeschynomene evenia'},
+ *     {label: 'Apios americana'},
+ *   ];
  *   // returns a color given an entry
  *   function color(entry) {
  *     // returns a color for the given label
@@ -189,7 +185,7 @@ export class LisLegendElement extends LitElement {
    * @attribute
    */
   @property({attribute: false})
-  data: LegendData = {entries: []};
+  data: LegendData = [];
 
   /**
    * A function used to assign colors to entries.
@@ -259,7 +255,7 @@ export class LisLegendElement extends LitElement {
     // add a group for each entry
     let x = 0;
     let row = 0;
-    this.data.entries.forEach((e, i) => {
+    this.data.forEach((e, i) => {
       // create the entry
       const entry = svg.append('g');
       if (this.clickFunction !== undefined) {
@@ -315,7 +311,7 @@ export class LisLegendElement extends LitElement {
     });
 
     // set the SVG height now that all element have been added
-    const n = this.layout == 'horizontal' ? row + 1 : this.data.entries.length;
+    const n = this.layout == 'horizontal' ? row + 1 : this.data.length;
     const height =
       n * LisLegendElement.GLYPH_SIZE + (n + 1) * LisLegendElement.GLYPH_MARGIN;
     svg.attr('height', height);
