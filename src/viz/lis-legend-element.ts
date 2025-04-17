@@ -113,19 +113,19 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  * ```
  *
  * @example
- * The {@link layout | `layout`}, {@link glyph | `glyph`}, and {@link compact | `compact`}
+ * The {@link layout | `layout`}, {@link glyph | `glyph`}, and {@link position | `position`}
  * properties can be set as attributes of the `<lis-legend-element>` tag or as properties of the
  * tag's instance of the {@link LisLegendElement | `LisLegendElement`} class.
  * {@link layout | `layout`} sets the layout of the legend to `vertical` or `horizontal` (`vertical`
  * by default). {@link glyph | `glyph`} determines whether the glyph of each entry will be drawn as
- * a circle or a square (`circle` by default). And {@link compact | `compact`} will draw entry
- * labels insides of glyphs to save space when enabled (disabled by default). For example:
+ * a circle or a square (`circle` by default). And {@link position | `position`} determines the
+ * position of the glyph relative to the label (`left` by default). For example:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-legend-element
  *   layout="horizontal"
  *   glyph="square"
- *   compact
+ *   position="contain"
  * ></lis-legend-element>
  * <lis-legend-element id="legend"></lis-legend-element>
  *
@@ -136,7 +136,7 @@ export type LegendClickFunction = (entry: LegendEntry) => void;
  *   // set the element's properties
  *   legendElement.layout = 'horizontal';
  *   legendElement.glyph = 'square';
- *   legendElement.compact = true;
+ *   legendElement.position = 'contain';
  * </script>
  * ```
  */
@@ -176,12 +176,12 @@ export class LisLegendElement extends LitElement {
   glyph: 'circle' | 'square' = 'circle';
 
   /**
-   * Draws the legend more compactly by putting the text of each entry inside of its glyph.
+   * Determines the position of the glyph relative to the label.
    *
    * @attribute
    */
-  @property({type: Boolean})
-  compact: boolean = false;
+  @property()
+  position: 'left' | 'contain' = 'left';
 
   /**
    * The legend data.
@@ -254,7 +254,7 @@ export class LisLegendElement extends LitElement {
     // variables
     const radius = this.glyph == 'circle' ? LisLegendElement.GLYPH_SIZE / 2 : 0;
     const padding = Math.max(radius, LisLegendElement.GLYPH_MARGIN);
-    const color = this.compact ? '#FFFFFF' : 'inherit';
+    const color = this.position == 'contain' ? '#FFFFFF' : 'inherit';
 
     // add a group for each entry
     let x = 0;
@@ -269,7 +269,7 @@ export class LisLegendElement extends LitElement {
       }
       // add label
       let offset = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
-      if (this.compact) {
+      if (this.position == 'contain') {
         offset = padding;
       }
       const text = entry
@@ -283,7 +283,7 @@ export class LisLegendElement extends LitElement {
         .style('fill', color);
       // add glyph
       let w = LisLegendElement.GLYPH_SIZE;
-      if (this.compact) {
+      if (this.position == 'contain') {
         w = text.node().getComputedTextLength() + padding * 2;
       }
       entry
