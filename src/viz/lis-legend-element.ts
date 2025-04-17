@@ -177,7 +177,7 @@ export class LisLegendElement extends LitElement {
    * @attribute
    */
   @property()
-  position: 'left' | 'contain' = 'left';
+  position: 'left' | 'contain' | 'right' = 'left';
 
   /**
    * The legend data.
@@ -264,9 +264,11 @@ export class LisLegendElement extends LitElement {
           .on('click', () => this.clickFunction?.(e));
       }
       // add label
-      let offset = LisLegendElement.GLYPH_SIZE + LisLegendElement.GLYPH_MARGIN;
+      let offset = LisLegendElement.GLYPH_MARGIN; // position == 'right'
       if (this.position == 'contain') {
         offset = padding;
+      } else if (this.position == 'left') {
+        offset += LisLegendElement.GLYPH_SIZE;
       }
       const text = entry
         .append('text')
@@ -278,14 +280,21 @@ export class LisLegendElement extends LitElement {
         .text(e.label)
         .style('fill', color);
       // add glyph
+      const textWidth = text.node().getComputedTextLength();
       let w = LisLegendElement.GLYPH_SIZE;
       if (this.position == 'contain') {
-        w = text.node().getComputedTextLength() + padding * 2;
+        w = textWidth + padding * 2;
+      }
+      if (this.position == 'right') {
+        offset += textWidth + LisLegendElement.GLYPH_MARGIN;
+      } else {
+        offset = 0;
       }
       entry
         .append('rect')
         .attr('width', w)
         .attr('height', LisLegendElement.GLYPH_SIZE)
+        .attr('x', offset)
         .attr('rx', radius)
         .style('fill', () => e.color || this.colorFunction?.(e));
       text.raise();
