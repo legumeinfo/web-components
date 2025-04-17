@@ -184,7 +184,7 @@
             .filter((abbr, i, array) => abbr != "" && organismLookup.get(abbr) && array.indexOf(abbr) === i)
             // map abbreviations to taxa
             .map((abbr) => organismLookup.get(abbr));
-          legendElement.data = {entries: taxa.map((label) => ({label}))};
+          legendElement.data = taxa.map((label) => ({label}));
           legendElement.colorFunction = (entry) => {
             const {label} = entry;
             return taxonChroma.get(label);
