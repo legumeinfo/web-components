@@ -1,6 +1,6 @@
 {
   "name": "@legumeinfo/web-components",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Web Components for the Legume Information System and other AgBio databases",
   "repository": {
     "type": "git",
@@ -60,34 +60,34 @@
   "author": "Legume Information System",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
+    "@eslint/js": "^9.26.0",
     "@legumeinfo/taxon-symbology": "^1.1.0",
     "@open-wc/testing": "^4.0.0",
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "@rollup/plugin-replace": "^6.0.1",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/eslint__js": "^8.42.3",
     "@web/dev-server": "^0.4.6",
     "@web/dev-server-import-maps": "^0.2.1",
     "@web/dev-server-legacy": "^2.1.1",
-    "@web/test-runner": "^0.19.0",
+    "@web/test-runner": "^0.20.1",
     "@web/test-runner-playwright": "^0.11.0",
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "eslint": "^9.13.0",
-    "eslint-config-prettier": "^9.1.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1",
     "lit-analyzer": "^2.0.3",
     "pinst": "^3.0.0",
-    "prettier": "^3.3.3",
+    "prettier": "^3.5.3",
     "rimraf": "^6.0.1",
-    "rollup": "^4.24.0",
-    "typedoc": "^0.26.10",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.11.0",
-    "uikit": "^3.21.13"
+    "rollup": "^4.40.1",
+    "typedoc": "^0.28.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0",
+    "uikit": "^3.23.6"
   },
   "dependencies": {
-    "lit": "^3.2.1"
+    "lit": "^3.3.0"
   }
 }
