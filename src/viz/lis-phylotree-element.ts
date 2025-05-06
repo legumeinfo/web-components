@@ -446,11 +446,6 @@ export class LisPhylotreeElement extends LitElement {
     // @ts-expect-error Object is of type 'unknown'
     const domain = this._maxRootDist(this._tree?.root());
 
-    // @ts-expect-error Object is of type 'unknown'
-    const distance = this._tree.scale_bar(
-      LisPhylotreeElement.AXIS_SAMPLE_PIXELS,
-      'pixel',
-    );
     const range = this._actualTreeWidth();
     const scale = d3.scale.linear().domain([0, domain]).range([0, range]);
     const axis = d3.svg
