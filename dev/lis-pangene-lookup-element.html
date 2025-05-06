@@ -59,11 +59,11 @@
           results {
             annotationVersion
             assemblyVersion
+            organism {
+              genus
+              species
+            }
             strain {
-              organism {
-                genus
-                species
-              }
               identifier
             }
           }
@@ -86,11 +86,11 @@
             data.chromosomes.results.forEach(({
               annotationVersion,
               assemblyVersion,
+              organism: {
+                genus,
+                species,
+              },
               strain: {
-                organism: {
-                  genus,
-                  species,
-                },
                 identifier,
               },
             }) => {
