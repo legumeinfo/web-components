@@ -5,13 +5,18 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
+  LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
+} from './mixins';
 
 /**
  * The data used to construct the search form in the
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
  */
-export type GeneSearchFormData = {
+export type LisGeneSearchFormData = {
   genuses: {
     genus: string;
     species: {
@@ -29,22 +34,22 @@ export type GeneSearchFormData = {
  * before the current function completes. This signal should be used to cancel in-flight
  * requests if the external API supports it.
  */
-export type GeneFormDataOptions = {abortSignal?: AbortSignal};
+export type LisGeneSearchFormDataOptions = {abortSignal?: AbortSignal};
 
 /**
  * The type signature of a function that may be used to load the data used to construct
  * the search form in the {@link LisGeneSearchElement | `LisGeneSearchElement`} template.
  */
-export type GeneFormDataFunction = (
-  options: GeneFormDataOptions,
-) => Promise<GeneSearchFormData>;
+export type LisGeneSearchFormDataFunction = (
+  options: LisGeneSearchFormDataOptions,
+) => Promise<LisGeneSearchFormData>;
 
 /**
  * The data that will be passed to the search function by the
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class when a search is
  * performed.
  */
-export type GeneSearchData = {
+export type LisGeneSearchData = {
   page: number;
   genus: string;
   species: string;
@@ -54,11 +59,13 @@ export type GeneSearchData = {
   description: string;
 };
 
+export type LisGeneSearchOptions = LisPaginatedSearchOptions;
+
 /**
  * A single result of a gene search performed by the
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class.
  */
-export type GeneSearchResult = {
+export type LisGeneSearchResult = {
   name: string;
   identifier: string;
   description: string;
@@ -71,23 +78,21 @@ export type GeneSearchResult = {
 };
 
 /**
+ * The complete search result data returned by a gene search performed by the
+ * {@link LisGeneSearchElement | `LisGeneSearchElement`} class.
+ */
+export type LisGeneSearchResults =
+  LisPaginatedSearchResults<LisGeneSearchResult>;
+
+/**
  * The signature of the function the
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
  * performing a gene search.
- *
- * @param searchData An object containing a value of each field in the submitted form.
- * new search is performed.
- * @param options Optional parameters that aren't required to perform a gene
- * search but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link GeneSearchResult | `GeneSearchResult`}
- * objects.
  */
-export type GeneSearchFunction = (
-  searchData: GeneSearchData,
-  options: PaginatedSearchOptions,
-) => Promise<Array<GeneSearchResult>>;
+export type LisGeneSearchFunction = LisPaginatedSearchFunction<
+  LisGeneSearchData,
+  LisGeneSearchResult
+>;
 
 /**
  * @htmlElement `<lis-gene-search-element>`
@@ -205,8 +210,8 @@ export type GeneSearchFunction = (
  */
 @customElement('lis-gene-search-element')
 export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
-  GeneSearchData,
-  GeneSearchResult
+  LisGeneSearchData,
+  LisGeneSearchResult
 >() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
@@ -219,14 +224,14 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
    * @attribute
    */
   @property()
-  formData: GeneSearchFormData = {genuses: []};
+  formData: LisGeneSearchFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: GeneFormDataFunction = () =>
+  formDataFunction: LisGeneSearchFormDataFunction = () =>
     Promise.reject(new Error('No form data function provided'));
 
   /**
@@ -343,7 +348,7 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
-    const formData: GeneSearchFormData = {genuses: []};
+    const formData: LisGeneSearchFormData = {genuses: []};
     const genus = this._getDefaultGenus();
     if (genus) {
       formData.genuses.push({genus, species: []});

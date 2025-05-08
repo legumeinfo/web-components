@@ -1,7 +1,7 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
 
 /**
  * The data that will be passed to the search function by the
@@ -44,7 +44,7 @@ export type QTLSearchResult = {
  */
 export type QTLSearchFunction = (
   searchData: QTLSearchData,
-  options: PaginatedSearchOptions,
+  options: LisPaginatedSearchOptions,
 ) => Promise<Array<QTLSearchResult>>;
 
 /**

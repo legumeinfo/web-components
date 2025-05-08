@@ -1,6 +1,6 @@
 import {LitElement, css, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
+import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
 import {property, state} from 'lit/decorators.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
@@ -82,7 +82,7 @@ export type TraitAssociationSearchResult = {
  */
 export type TraitAssociationSearchFunction = (
   searchData: TraitAssociationSearchData,
-  options: PaginatedSearchOptions,
+  options: LisPaginatedSearchOptions,
 ) => Promise<Array<TraitAssociationSearchResult>>;
 
 /**

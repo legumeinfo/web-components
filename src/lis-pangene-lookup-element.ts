@@ -6,10 +6,10 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
 import {
-  DownloadFunction,
+  LisPaginatedDownloadFunction,
   LisPaginatedSearchMixin,
-  PaginatedSearchData,
-  PaginatedSearchOptions,
+  LisPaginatedSearchData,
+  LisPaginatedSearchOptions,
 } from './mixins';
 
 /**
@@ -62,7 +62,7 @@ export type PangeneLookupData = {
   assembly: string;
   annotation: string;
   genes: string[];
-} & PaginatedSearchData;
+} & LisPaginatedSearchData;
 
 /**
  * A single result of a pangene lookup performed by the
@@ -91,10 +91,11 @@ export type PangeneLookupResult = {
  */
 export type PangeneSearchFunction = (
   searchData: PangeneLookupData,
-  options: PaginatedSearchOptions,
+  options: LisPaginatedSearchOptions,
 ) => Promise<Array<PangeneLookupResult>>;
 
-export type PangeneDownloadFunction = DownloadFunction<PangeneLookupData>;
+export type PangeneDownloadFunction =
+  LisPaginatedDownloadFunction<PangeneLookupData>;
 
 /**
  * @htmlElement `<lis-pangene-lookup-element>`
@@ -321,7 +322,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   private _splitGenesFunctionWrapper(
     fn: PangeneSearchFunction | PangeneDownloadFunction,
   ) {
-    return (data: PangeneLookupData, options: PaginatedSearchOptions) => {
+    return (data: PangeneLookupData, options: LisPaginatedSearchOptions) => {
       // @ts-expect-error Property 'trim' does not exist on type 'string[]'
       const genes = data['genes'].trim().split(this.genesRegexp);
       const modifiedData = {...data, genes};
