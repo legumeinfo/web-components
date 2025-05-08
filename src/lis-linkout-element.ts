@@ -9,7 +9,7 @@ import {LisLoadingElement, LisSimpleTableElement} from './core';
  * A single result of a linkout performed by the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class.
  */
-export type LinkoutResult = {
+export type LisLinkoutResult = {
   href: string;
   text: string;
 };
@@ -18,8 +18,8 @@ export type LinkoutResult = {
  * The type of object the {@link LisLinkoutElement | `LisLinkoutElement`} expects back
  * from the linkout function.
  */
-export type LinkoutResults = {
-  results: LinkoutResult[];
+export type LisLinkoutResults = {
+  results: LisLinkoutResult[];
 };
 
 /**
@@ -28,7 +28,7 @@ export type LinkoutResults = {
  * before the current linkout completes. This signal should be used to cancel in-flight
  * requests if the linkout API supports it.
  */
-export type LinkoutOptions = {abortSignal?: AbortSignal};
+export type LisLinkoutOptions = {abortSignal?: AbortSignal};
 
 /**
  * The signature of the function of the
@@ -42,12 +42,12 @@ export type LinkoutOptions = {abortSignal?: AbortSignal};
  * be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to a
- * {@link LinkoutResults | `LinkoutResults`} object.
+ * {@link LisLinkoutResults | `LisLinkoutResults`} object.
  */
-export type LinkoutFunction<LinkoutData> = (
+export type LisLinkoutFunction<LinkoutData> = (
   linkoutData: LinkoutData,
-  options: LinkoutOptions,
-) => Promise<LinkoutResults>;
+  options: LisLinkoutOptions,
+) => Promise<LisLinkoutResults>;
 
 /**
  * @htmlElement `<lis-linkout-element>`
@@ -58,7 +58,7 @@ export type LinkoutFunction<LinkoutData> = (
  *
  * @example
  * {@link !HTMLElement | `HTMLElement`} properties can only be set via
- * JavaScript. This means the {@link linkoutFunction | `LinkoutFunction`} property
+ * JavaScript. This means the {@link linkoutFunction | `linkoutFunction`} property
  * must be set on a `<lis-linkout-element>` tag's instance of the
  * {@link LisLinkoutElement | `LisLinkoutElement`} class. For example:
  * ```html
@@ -100,7 +100,7 @@ export class LisLinkoutElement extends LitElement {
   // the linkout callback function; not an attribute because functions can't be
   // parsed from attributes
   @property({type: Function, attribute: false})
-  linkoutFunction: LinkoutFunction<unknown> = () =>
+  linkoutFunction: LisLinkoutFunction<unknown> = () =>
     Promise.reject(new Error('No linkout function provided'));
 
   // bind to the table element in the template
@@ -125,7 +125,7 @@ export class LisLinkoutElement extends LitElement {
     const options = {abortSignal: this.cancelPromiseController.abortSignal};
     const linkoutPromise = this.linkoutFunction(data, options);
     this.cancelPromiseController.wrapPromise(linkoutPromise).then(
-      (results: LinkoutResults) => this._linkoutSuccess(results),
+      (results: LisLinkoutResults) => this._linkoutSuccess(results),
       (error: Error | Event) => {
         // do nothing if the request was aborted
         if (!(error instanceof Event && error.type === 'abort')) {
@@ -138,7 +138,7 @@ export class LisLinkoutElement extends LitElement {
 
   /** @ignore */
   // updates the table and loading element with the search result data
-  private _linkoutSuccess(linkoutResults: LinkoutResults): void {
+  private _linkoutSuccess(linkoutResults: LisLinkoutResults): void {
     // destruct the linkout result
     const {results} = linkoutResults;
     // update the loading element accordingly
@@ -148,7 +148,7 @@ export class LisLinkoutElement extends LitElement {
       this._loadingRef.value?.noResults();
     }
     // display the results in the table
-    const data = results.map((result: LinkoutResult) => {
+    const data = results.map((result: LisLinkoutResult) => {
       return {linkout: `<a href="${result.href}">${result.text}.</a>`};
     });
     this._table.data = data;
