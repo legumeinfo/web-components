@@ -1,23 +1,30 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
+import {
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
+  LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
+} from './mixins';
 
 /**
  * The data that will be passed to the search function by the
  * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class when a search is
  * performed.
  */
-export type PublicationSearchData = {
+export type LisPublicationSearchData = {
   page: number;
   query: string;
 };
+
+export type LisPublicationSearchOptions = LisPaginatedSearchOptions;
 
 /**
  * A single result of a Publication search performed by the
  * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class.
  */
-export type PublicationSearchResult = {
+export type LisPublicationSearchResult = {
   year: number;
   title: string;
   journal: string;
@@ -27,24 +34,21 @@ export type PublicationSearchResult = {
 };
 
 /**
+ * The complete search result data returned by a publication search performed by the
+ * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class.
+ */
+export type LisPublicationSearchResults =
+  LisPaginatedSearchResults<LisPublicationSearchResult>;
+
+/**
  * The signature of the function the
  * {@link LisPublicationSearchElement | `LisPublicationSearchElement`} class requires for
- * performing a Publication search.
- *
- * @param query The search term in the input element when the search form was
- * submitted.
- * new search is performed.
- * @param options Optional parameters that aren't required to perform a Publication
- * search but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link PublicationSearchResult | `PublicationSearchResult`}
- * objects.
+ * performing a publication search.
  */
-export type PublicationSearchFunction = (
-  searchData: PublicationSearchData,
-  options: LisPaginatedSearchOptions,
-) => Promise<Array<PublicationSearchResult>>;
+export type LisPublicationSearchSearchFunction = LisPaginatedSearchFunction<
+  LisPublicationSearchData,
+  LisPublicationSearchResult
+>;
 
 /**
  * @htmlElement `<lis-publication-search-element>`
@@ -132,7 +136,7 @@ export type PublicationSearchFunction = (
 @customElement('lis-publication-search-element')
 export class LisPublicationSearchElement extends LisPaginatedSearchMixin(
   LitElement,
-)<PublicationSearchData, PublicationSearchResult>() {
+)<LisPublicationSearchData, LisPublicationSearchResult>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
