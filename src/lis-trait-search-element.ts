@@ -1,47 +1,51 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
+import {
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
+  LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
+} from './mixins';
 
 /**
  * The data that will be passed to the search function by the
  * {@link LisTraitSearchElement | `LisTraitSearchElement`} class when a
  * search is performed.
  */
-export type TraitSearchData = {
+export type LisTraitSearchData = {
   page: number;
   query: string;
 };
+
+export type LisTraitSearchOptions = LisPaginatedSearchOptions;
 
 /**
  * A single result of a trait search performed by the
  * {@link LisTraitSearchElement | `LisTraitSearchElement`} class.
  */
-export type TraitSearchResult = {
+export type LisTraitSearchResult = {
   identifier: string;
   name: string;
   description: string;
 };
 
 /**
+ * The complete search result data returned by a trait search performed by the
+ * {@link LisTraitSearchElement | `LisTraitSearchElement`} class.
+ */
+export type LisTraitSearchResults =
+  LisPaginatedSearchResults<LisTraitSearchResult>;
+
+/**
  * The signature of the function the
  * {@link LisTraitSearchElement | `LisTraitSearchElement`} class requires for
  * performing a trait search.
- *
- * @param query The search term in the input element when the search form was
- * submitted.
- * new search is performed.
- * @param options Optional parameters that aren't required to perform a trait
- * search but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link TraitSearchResult | `TraitSearchResult`}
- * objects.
  */
-export type TraitSearchFunction = (
-  searchData: TraitSearchData,
-  options: LisPaginatedSearchOptions,
-) => Promise<Array<TraitSearchResult>>;
+export type LisTraitSearchSearchFunction = LisPaginatedSearchFunction<
+  LisTraitSearchData,
+  LisTraitSearchResult
+>;
 
 /**
  * @htmlElement `<lis-trait-search-element>`
@@ -130,8 +134,8 @@ export type TraitSearchFunction = (
  */
 @customElement('lis-trait-search-element')
 export class LisTraitSearchElement extends LisPaginatedSearchMixin(LitElement)<
-  TraitSearchData,
-  TraitSearchResult
+  LisTraitSearchData,
+  LisTraitSearchResult
 >() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
