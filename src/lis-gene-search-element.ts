@@ -89,7 +89,7 @@ export type LisGeneSearchResults =
  * {@link LisGeneSearchElement | `LisGeneSearchElement`} class requires for
  * performing a gene search.
  */
-export type LisGeneSearchFunction = LisPaginatedSearchFunction<
+export type LisGeneSearchSearchFunction = LisPaginatedSearchFunction<
   LisGeneSearchData,
   LisGeneSearchResult
 >;
