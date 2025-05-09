@@ -7,16 +7,18 @@ import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
 import {
   LisPaginatedDownloadFunction,
-  LisPaginatedSearchMixin,
   LisPaginatedSearchData,
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
   LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
 } from './mixins';
 
 /**
  * The data used to construct the lookup form in the
  * {@link LisPangeneLookupElement | `LisPangeneLookupElement`} template.
  */
-export type PangeneLookupFormData = {
+export type LisPangeneLookupFormData = {
   genuses: {
     genus: string;
     species: {
@@ -40,22 +42,22 @@ export type PangeneLookupFormData = {
  * before the current function completes. This signal should be used to cancel in-flight
  * requests if the external API supports it.
  */
-export type PangeneFormDataOptions = {abortSignal?: AbortSignal};
+export type LisPangeneLookupFormDataOptions = {abortSignal?: AbortSignal};
 
 /**
  * The type signature of a function that may be used to load the data used to construct
  * the lookup form in the {@link LisPangeneLookupElement | `LisPangeneLookupElement`} template.
  */
-export type PangeneFormDataFunction = (
-  options: PangeneFormDataOptions,
-) => Promise<PangeneLookupFormData>;
+export type LisPangeneLookupFormDataFunction = (
+  options: LisPangeneLookupFormDataOptions,
+) => Promise<LisPangeneLookupFormData>;
 
 /**
  * The data that will be passed to the lookup function by the
  * {@link LisPangeneLookupElement | `LisPangeneLookupElement`} class when a lookup is
  * performed.
  */
-export type PangeneLookupData = {
+export type LisPangeneLookupData = {
   genus: string;
   species: string;
   strain: string;
@@ -64,38 +66,37 @@ export type PangeneLookupData = {
   genes: string[];
 } & LisPaginatedSearchData;
 
+export type LisPangeneLookupOptions = LisPaginatedSearchOptions;
+
 /**
  * A single result of a pangene lookup performed by the
  * {@link LisPangeneLookupElement | `LisPangeneLookupElement`} class.
  */
-export type PangeneLookupResult = {
+export type LisPangeneLookupResult = {
   input: string;
   panGeneSet: string;
   target: string;
 };
 
 /**
+ * The complete lookup result data returned by a pangene lookup performed by the
+ * {@link LisPangeneLookupElement | `LisPangeneLookupElement`} class.
+ */
+export type LisPangeneLookupResults =
+  LisPaginatedSearchResults<LisPangeneLookupResult>;
+
+/**
  * The signature of the function the
  * {@link LisPangeneLookupElement | `LisPangeneLookupElement`} class requires for
- * performing a pangene lookup.
- *
- * @param lookupData An object containing a value of each field in the submitted form.
- * @param page What page of results the lookup is for. Will always be 1 when a
- * new lookup is performed.
- * @param options Optional parameters that aren't required to perform a pangene
- * lookup but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link PangeneLookupResult | `PangeneLookupResult`}
- * objects.
+ * performing a pangene lookups.
  */
-export type PangeneSearchFunction = (
-  searchData: PangeneLookupData,
-  options: LisPaginatedSearchOptions,
-) => Promise<Array<PangeneLookupResult>>;
+export type LisPangeneLookupSearchFunction = LisPaginatedSearchFunction<
+  LisPangeneLookupData,
+  LisPangeneLookupResult
+>;
 
-export type PangeneDownloadFunction =
-  LisPaginatedDownloadFunction<PangeneLookupData>;
+export type LisPangeneLookupDownloadFunction =
+  LisPaginatedDownloadFunction<LisPangeneLookupData>;
 
 /**
  * @htmlElement `<lis-pangene-lookup-element>`
@@ -198,7 +199,7 @@ export type PangeneDownloadFunction =
 @customElement('lis-pangene-lookup-element')
 export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   LitElement,
-)<PangeneLookupData, PangeneLookupResult>() {
+)<LisPangeneLookupData, LisPangeneLookupResult>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -210,14 +211,14 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
    * @attribute
    */
   @property()
-  formData: PangeneLookupFormData = {genuses: []};
+  formData: LisPangeneLookupFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: PangeneFormDataFunction = () =>
+  formDataFunction: LisPangeneLookupFormDataFunction = () =>
     Promise.reject(new Error('No form data function provided'));
 
   /**
@@ -320,9 +321,9 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
   );
 
   private _splitGenesFunctionWrapper(
-    fn: PangeneSearchFunction | PangeneDownloadFunction,
+    fn: LisPangeneLookupSearchFunction | LisPangeneLookupDownloadFunction,
   ) {
-    return (data: PangeneLookupData, options: LisPaginatedSearchOptions) => {
+    return (data: LisPangeneLookupData, options: LisPaginatedSearchOptions) => {
       // @ts-expect-error Property 'trim' does not exist on type 'string[]'
       const genes = data['genes'].trim().split(this.genesRegexp);
       const modifiedData = {...data, genes};
@@ -341,7 +342,6 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
       changedProperties.has('downloadFunction') &&
       this.downloadFunction !== undefined
     ) {
-      // @ts-expect-error incompatible types
       this.downloadFunction = this._splitGenesFunctionWrapper(
         this.downloadFunction,
       );
