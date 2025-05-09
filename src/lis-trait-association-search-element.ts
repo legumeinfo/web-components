@@ -1,6 +1,11 @@
 import {LitElement, css, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
+import {
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
+  LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
+} from './mixins';
 import {property, state} from 'lit/decorators.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
@@ -11,7 +16,7 @@ import {live} from 'lit/directives/live.js';
  * The data used to construct the search form in the
  * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} template.
  */
-export type TraitAssociationSearchFormData = {
+export type LisTraitAssociationSearchFormData = {
   genuses: {
     genus: string;
     species: {
@@ -20,29 +25,33 @@ export type TraitAssociationSearchFormData = {
   }[];
 };
 
+export type LisTraitAssociationSearchOptions = LisPaginatedSearchOptions;
+
 /**
  * Optional parameters that may be given to a form data function. The
  * {@link !AbortSignal | `AbortSignal`} instance will emit if a new function is provided
  * before the current function completes. This signal should be used to cancel in-flight
  * requests if the external API supports it.
  */
-export type TraitAssociationSearchFormDataOptions = {abortSignal?: AbortSignal};
+export type LisTraitAssociationSearchFormDataOptions = {
+  abortSignal?: AbortSignal;
+};
 
 /**
  * The type signature of a function that may be used to load the data used to construct
  * the search form in the {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`}
  * template.
  */
-export type TraitAssociationFormDataFunction = (
-  options: TraitAssociationSearchFormDataOptions,
-) => Promise<TraitAssociationSearchFormData>;
+export type LisTraitAssociationFormDataFunction = (
+  options: LisTraitAssociationSearchFormDataOptions,
+) => Promise<LisTraitAssociationSearchFormData>;
 
 /**
  * The data that will be passed to the search function by the
  * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class when a search
  * is performed.
  */
-export type TraitAssociationSearchData = {
+export type LisTraitAssociationSearchData = {
   page: number;
   genus: string;
   species: string;
@@ -58,7 +67,7 @@ export type TraitAssociationSearchData = {
  * Contains the name of the trait and either a GWAS or QTL study object.
  *
  */
-export type TraitAssociationSearchResult = {
+export type LisTraitAssociationSearchResult = {
   name: string;
   type: string;
   identifier: string;
@@ -68,22 +77,22 @@ export type TraitAssociationSearchResult = {
 };
 
 /**
+ * The complete search result data returned by a trait association search performed by the
+ * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class.
+ */
+export type LisTraitAssociationSearchResults =
+  LisPaginatedSearchResults<LisTraitAssociationSearchResult>;
+
+/**
  * The signature of the function the
  * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class requires for
- * performing a trait association search.
- *
- * @param searchData An object containing a value of each field in the submitted form.
- * @param options Optional parameters that aren't required to perform a trait association search
- * but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link TraitAssociationSearchResult | `TraitAssociationSearchResult`}
- * objects.
+ * performing a publication search.
  */
-export type TraitAssociationSearchFunction = (
-  searchData: TraitAssociationSearchData,
-  options: LisPaginatedSearchOptions,
-) => Promise<Array<TraitAssociationSearchResult>>;
+export type LisTraitAssociationSearchSearchFunction =
+  LisPaginatedSearchFunction<
+    LisTraitAssociationSearchData,
+    LisTraitAssociationSearchResult
+  >;
 
 /**
  * @htmlElement `<lis-trait-association-search-element>`
@@ -201,7 +210,7 @@ export type TraitAssociationSearchFunction = (
 @customElement('lis-trait-association-search-element')
 export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   LitElement,
-)<TraitAssociationSearchData, TraitAssociationSearchResult>() {
+)<LisTraitAssociationSearchData, LisTraitAssociationSearchResult>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -213,14 +222,14 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    * @attribute
    */
   @property()
-  formData: TraitAssociationSearchFormData = {genuses: []};
+  formData: LisTraitAssociationSearchFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: TraitAssociationFormDataFunction = () =>
+  formDataFunction: LisTraitAssociationFormDataFunction = () =>
     Promise.reject(new Error('No form data function provided'));
 
   /**
@@ -334,7 +343,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     super.connectedCallback();
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
-    const formData: TraitAssociationSearchFormData = {genuses: []};
+    const formData: LisTraitAssociationSearchFormData = {genuses: []};
     const genus = this._getDefaultGenus();
     if (genus) {
       formData.genuses.push({genus, species: []});
