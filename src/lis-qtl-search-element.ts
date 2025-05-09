@@ -1,23 +1,30 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {LisPaginatedSearchMixin, LisPaginatedSearchOptions} from './mixins';
+import {
+  LisPaginatedSearchFunction,
+  LisPaginatedSearchMixin,
+  LisPaginatedSearchOptions,
+  LisPaginatedSearchResults,
+} from './mixins';
 
 /**
  * The data that will be passed to the search function by the
  * {@link LisQTLSearchElement | `LisQTLSearchElement`} class when a search is
  * performed.
  */
-export type QTLSearchData = {
+export type LisQTLSearchData = {
   page: number;
   query: string;
 };
+
+export type LisQTLSearchOptions = LisPaginatedSearchOptions;
 
 /**
  * A single result of a QTL search performed by the
  * {@link LisQTLSearchElement | `LisQTLSearchElement`} class.
  */
-export type QTLSearchResult = {
+export type LisQTLSearchResult = {
   trait_name: string;
   identifier: string;
   linkageGroup_geneticMap_identifier: string;
@@ -28,24 +35,20 @@ export type QTLSearchResult = {
 };
 
 /**
+ * The complete search result data returned by a QTL search performed by the
+ * {@link LisQTLSearchElement | `LisQTLSearchElement`} class.
+ */
+export type LisQTLSearchResults = LisPaginatedSearchResults<LisQTLSearchResult>;
+
+/**
  * The signature of the function the
  * {@link LisQTLSearchElement | `LisQTLSearchElement`} class requires for
  * performing a QTL search.
- *
- * @param query The search term in the input element when the search form was
- * submitted.
- * new search is performed.
- * @param options Optional parameters that aren't required to perform a QTL
- * search but may be useful.
- *
- * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link QTLSearchResult | `QTLSearchResult`}
- * objects.
  */
-export type QTLSearchFunction = (
-  searchData: QTLSearchData,
-  options: LisPaginatedSearchOptions,
-) => Promise<Array<QTLSearchResult>>;
+export type LisQTLSearchSearchFunction = LisPaginatedSearchFunction<
+  LisQTLSearchData,
+  LisQTLSearchResult
+>;
 
 /**
  * @htmlElement `<lis-qtl-search-element>`
@@ -132,8 +135,8 @@ export type QTLSearchFunction = (
  */
 @customElement('lis-qtl-search-element')
 export class LisQTLSearchElement extends LisPaginatedSearchMixin(LitElement)<
-  QTLSearchData,
-  QTLSearchResult
+  LisQTLSearchData,
+  LisQTLSearchResult
 >() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
