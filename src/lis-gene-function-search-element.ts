@@ -99,7 +99,7 @@ export type GeneFunctionSearchFunction = (
  * - **species:** The selected species in the search form.
  * - **geneIdentifier:** The gene ID, symbol, or locus name provided in the search form.
  * - **traits:** The traits provided in the search form.
- * - **pubid:** The publication ID provided in the search form. Either a PubMed ID or a DOI.
+ * - **pubId:** The publication ID provided in the search form. Either a PubMed ID or a DOI.
  * - **author:** The author provided in the search form.
  * - **page:** What page of results is loaded. Starts at 1.
  *
@@ -231,7 +231,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
       ['genus', 'species'],
       ['geneIdentifier'],
       ['traits'],
-      ['pubid'],
+      ['pubId'],
       ['author'],
     ];
     this.resultAttributes = [
@@ -508,7 +508,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
                 class="uk-input"
                 type="text"
                 name="pubId"
-                .value=${this.queryStringController.getParameter('pubid')}
+                .value=${this.queryStringController.getParameter('pubId')}
               />
               <lis-form-input-example-element
                 .text=${this.publicationExample}

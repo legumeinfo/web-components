@@ -100,7 +100,7 @@ export type TraitAssociationSearchFunction = (
  * - **species:** The selected species in the search for.
  * - **type:** The selected type in the search form. Either 'GWAS' or 'QTL'.
  * - **traits:** The traits provided in the search form.
- * - **pubid** The publication ID provided in the search form. Either a PubMed ID or a DOI.
+ * - **pubId** The publication ID provided in the search form. Either a PubMed ID or a DOI.
  * - **author** The author provided in the search form.
  * - **page:** What page of results is loaded. Starts at 1.
  *
@@ -297,7 +297,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       ['genus', 'species'],
       ['traits'],
       ['type'],
-      ['pubid'],
+      ['pubId'],
       ['author'],
     ];
     this.resultAttributes = [
@@ -594,7 +594,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
                 class="uk-input"
                 type="text"
                 name="pubId"
-                .value=${this.queryStringController.getParameter('pubid')}
+                .value=${this.queryStringController.getParameter('pubId')}
               />
               <lis-form-input-example-element
                 .text=${this.publicationExample}
