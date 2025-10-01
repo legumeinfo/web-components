@@ -57,14 +57,13 @@ export type GeneFunctionSearchData = {
  * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class.
  */
 export type GeneFunctionSearchResult = {
-  classicalLocus: string;
   geneSymbols: string[];
   geneSymbolDescription: string;
   geneModelPubName: string;
   geneModelFullName: string;
   synopsis: string;
   traits: string[];
-  citation: string;
+  citations: string;
 };
 
 /**
@@ -236,24 +235,22 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
       ['author'],
     ];
     this.resultAttributes = [
-      'classicalLocus',
       'geneSymbols',
       'geneSymbolDescription',
       'geneModelPubName',
       'geneModelFullName',
       'synopsis',
       'traits',
-      'citation',
+      'citations',
     ];
     this.tableHeader = {
-      classicalLocus: 'Classical Locus',
       geneSymbols: 'Gene Symbols',
       geneSymbolDescription: 'Gene Symbol Description',
       geneModelPubName: 'Gene Model Pub Name',
       geneModelFullName: 'Gene Model Full Name',
       synopsis: 'Synopsis',
       traits: 'Traits',
-      citation: 'One Citation',
+      citations: 'Citations',
     };
     this.tableColumnClasses = {
       description: 'uk-table-expand',
