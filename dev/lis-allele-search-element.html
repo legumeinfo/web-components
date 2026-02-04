@@ -70,7 +70,6 @@
             };
         }
 
-        // Strain Search -> dev.lis.ncgr.org
         async function strainSearchFunction({ collection, fileName }, abortSignal) {
             const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
             const doubleEncoded = encodeURIComponent(encodeURIComponent(vcfUrl));
@@ -82,7 +81,6 @@
             return (data.samples || []).map(s => ({ identifier: s.identifier || s }));
         }
 
-        // Variant Search -> app.soybase.org
         async function variantSearchFunction({ collection, fileName, chromosome, start, end, strains }, abortSignal) {
             const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
             let apiBase = `https://dev.lis.ncgr.org:50043/vcf/fetch`;
