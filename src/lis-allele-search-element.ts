@@ -437,7 +437,7 @@ export class LisAlleleSearchElement extends LitElement {
           <!-- By Region -->
           <div class="uk-card uk-card-default uk-card-body">
             <h3 class="uk-card-title">Or Search by Genomic Region</h3>
-            <div class="uk-grid-small" uk-grid>
+            <div class="uk-grid-small uk-flex-middle" uk-grid>
               <div class="uk-width-auto">
                 <label class="uk-form-label">Chr</label>
                 <select
