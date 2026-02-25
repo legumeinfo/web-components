@@ -16,14 +16,30 @@ export type VariantCollection = {
 };
 
 /**
- * A single Result from the Allele Search.
+ * Encoding for allele genotype display: VCF (e.g. 0/0, 1/1) or HapMap (e.g. TT, CC).
  */
-export type AlleleSearchResult = {
-  chrom: string;
-  id: string;
-  pos: number;
+export type AlleleEncoding = 'vcf' | 'hap';
+
+/**
+ * One variant from the alleles API with genotypes per sample.
+ */
+export type AlleleVariant = {
+  position: number;
   ref: string;
-  alts: string;
+  alt: string;
+  genotypes: Record<string, string>;
+};
+
+/**
+ * Response from the /vcf/alleles/ API.
+ */
+export type AlleleVariantsResponse = {
+  region: {chromosome: string; start: number; end: number};
+  encoding: AlleleEncoding;
+  samples: string[];
+  invalid_samples?: string[];
+  variant_count: number;
+  variants: AlleleVariant[];
 };
 
 /**
@@ -45,9 +61,10 @@ export type AlleleVariantSearchFunction = (
     start: number;
     end: number;
     strains?: string[];
+    encoding?: AlleleEncoding;
   },
   abortSignal?: AbortSignal,
-) => Promise<AlleleSearchResult[]>;
+) => Promise<AlleleVariantsResponse>;
 
 /**
  * Function to fetch strains for a collection.
@@ -122,8 +139,12 @@ export class LisAlleleSearchElement extends LitElement {
   @state()
   private strainFilter: string = '';
 
+  /** Display encoding: hap or vcf. Default hap. */
   @state()
-  private searchResults: AlleleSearchResult[] = [];
+  private encoding: AlleleEncoding = 'hap';
+
+  @state()
+  private searchResults: AlleleVariantsResponse | null = null;
 
   @state()
   private searchedRegion: string = '';
@@ -194,6 +215,11 @@ export class LisAlleleSearchElement extends LitElement {
     );
   }
 
+  private _onEncodingChange(e: Event) {
+    const target = e.target as HTMLInputElement;
+    this.encoding = target.value as AlleleEncoding;
+  }
+
   private async _fetchStrains() {
     const collection = this.collections[this.selectedCollectionIdx];
     if (!collection) return;
@@ -219,7 +245,7 @@ export class LisAlleleSearchElement extends LitElement {
   private async _onSearchLocation() {
     const locationInput = (
       this.renderRoot.querySelector('#location-id') as HTMLInputElement
-    ).value;
+    ).value.trim();
     const flankInput = (
       this.renderRoot.querySelector('#flank-region') as HTMLInputElement
     ).value;
@@ -228,7 +254,7 @@ export class LisAlleleSearchElement extends LitElement {
 
     this._toggleModal(true);
     this._resultsLoadingRef.value?.loading();
-    this.searchResults = [];
+    this.searchResults = null;
     this.searchedTerm = locationInput;
     this.searchedRegion = '';
 
@@ -269,7 +295,7 @@ export class LisAlleleSearchElement extends LitElement {
 
     this._toggleModal(true);
     this._resultsLoadingRef.value?.loading();
-    this.searchResults = [];
+    this.searchResults = null;
     this.searchedTerm = '';
     this.searchedRegion = `${chromInput}:${startInput}-${endInput}`;
 
@@ -304,12 +330,13 @@ export class LisAlleleSearchElement extends LitElement {
           this.strainMode === 'specific-strain'
             ? this.selectedStrains
             : undefined,
+        encoding: this.encoding,
       },
       this.cancelPromiseController.abortSignal,
     );
 
     this.searchResults = results;
-    if (results.length === 0) {
+    if (results.variant_count === 0) {
       this._resultsLoadingRef.value?.noResults();
     } else {
       this._resultsLoadingRef.value?.success();
@@ -393,6 +420,39 @@ export class LisAlleleSearchElement extends LitElement {
             : ''}
         </div>
 
+        <!-- Encoding: VCF vs HapMap -->
+        <div class="uk-margin">
+          <label class="uk-form-label uk-text-bold">Genotype display:</label>
+          <div class="uk-margin-small-top">
+            <label
+              ><input
+                class="uk-radio"
+                type="radio"
+                name="encoding"
+                value="hap"
+                ?checked=${this.encoding === 'hap'}
+                @change=${this._onEncodingChange}
+              />
+              HapMap</label
+            >
+            <label class="uk-margin-left"
+              ><input
+                class="uk-radio"
+                type="radio"
+                name="encoding"
+                value="vcf"
+                ?checked=${this.encoding === 'vcf'}
+                @change=${this._onEncodingChange}
+              />
+              VCF</label
+            >
+          </div>
+          <p class="uk-text-meta">
+            VCF encodes data as reference-relative states (0/1), while HapMap
+            reports the specific observed nucleotides directly (e.g., A, G).
+          </p>
+        </div>
+
         <hr />
 
         <!-- Search Forms -->
@@ -445,26 +505,27 @@ export class LisAlleleSearchElement extends LitElement {
                   class="uk-select uk-form-width-small"
                 >
                   ${[
-                    'Gm01',
-                    'Gm02',
-                    'Gm03',
-                    'Gm04',
-                    'Gm05',
-                    'Gm06',
-                    'Gm07',
-                    'Gm08',
-                    'Gm09',
-                    'Gm10',
-                    'Gm11',
-                    'Gm12',
-                    'Gm13',
-                    'Gm14',
-                    'Gm15',
-                    'Gm16',
-                    'Gm17',
-                    'Gm18',
-                    'Gm19',
-                    'Gm20',
+                    // TODO: Get this from the API or datastore
+                    'glyma.Wm82.gnm4.Gm01',
+                    'glyma.Wm82.gnm4.Gm02',
+                    'glyma.Wm82.gnm4.Gm03',
+                    'glyma.Wm82.gnm4.Gm04',
+                    'glyma.Wm82.gnm4.Gm05',
+                    'glyma.Wm82.gnm4.Gm06',
+                    'glyma.Wm82.gnm4.Gm07',
+                    'glyma.Wm82.gnm4.Gm08',
+                    'glyma.Wm82.gnm4.Gm09',
+                    'glyma.Wm82.gnm4.Gm10',
+                    'glyma.Wm82.gnm4.Gm11',
+                    'glyma.Wm82.gnm4.Gm12',
+                    'glyma.Wm82.gnm4.Gm13',
+                    'glyma.Wm82.gnm4.Gm14',
+                    'glyma.Wm82.gnm4.Gm15',
+                    'glyma.Wm82.gnm4.Gm16',
+                    'glyma.Wm82.gnm4.Gm17',
+                    'glyma.Wm82.gnm4.Gm18',
+                    'glyma.Wm82.gnm4.Gm19',
+                    'glyma.Wm82.gnm4.Gm20',
                   ].map((c) => html`<option>${c}</option>`)}
                 </select>
               </div>
@@ -512,22 +573,57 @@ export class LisAlleleSearchElement extends LitElement {
             <div><strong>Region:</strong> ${this.searchedRegion}</div>
           </div>
 
-          <lis-loading-element
-            ${ref(this._resultsLoadingRef)}
-          ></lis-loading-element>
+          <div class="uk-inline uk-width-1-1">
+            <lis-loading-element
+              ${ref(this._resultsLoadingRef)}
+            ></lis-loading-element>
 
-          <lis-simple-table-element
-            .dataAttributes=${['chrom', 'id', 'pos', 'ref', 'alts']}
-            .header=${{
-              chrom: 'Chromosome',
-              id: 'Variant ID',
-              pos: 'Position',
-              ref: 'Ref',
-              alts: 'Alt',
-            }}
-            .data=${this.searchResults}
-          ></lis-simple-table-element>
+            ${this._renderAlleleVariantsTable(this.searchResults)}
+          </div>
         </lis-modal-element>
+      </div>
+    `;
+  }
+
+  private _renderAlleleVariantsTable(response: AlleleVariantsResponse | null) {
+    const variants = Array.isArray(response?.variants)
+      ? response!.variants
+      : [];
+    const samples = Array.isArray(response?.samples) ? response!.samples : [];
+
+    const dataAttributes: string[] = ['position', 'ref', 'alt', ...samples];
+    const header: Record<string, string> = {
+      position: 'Position',
+      ref: 'Ref',
+      alt: 'Alt',
+    };
+    samples.forEach((s) => {
+      header[s] = s;
+    });
+
+    const data = variants.map((v) => {
+      const row: {[key: string]: string} = {
+        position: v.position != null ? String(v.position) : '',
+        ref: v.ref ?? '',
+        alt: v.alt ?? '',
+      };
+
+      samples.forEach((sample) => {
+        const g = v.genotypes ? v.genotypes[sample] : undefined;
+        row[sample] = g != null ? String(g) : '';
+      });
+
+      return row;
+    });
+
+    // Render table
+    return html`
+      <div class="uk-overflow-auto">
+        <lis-simple-table-element
+          .dataAttributes=${dataAttributes}
+          .header=${header}
+          .data=${data}
+        ></lis-simple-table-element>
       </div>
     `;
   }

@@ -41,6 +41,10 @@
         // Location Search -> GraphQL
         // Query: genes(identifier: $id) { results { locations { chromosome { identifier } start end } } }
         async function locationSearchFunction(identifier, abortSignal) {
+            // Trim whitespace from the identifier.
+            if (typeof identifier === 'string') {
+                identifier = identifier.trim();
+            }
             const query = `
                 query Results($identifier: String) {
                     genes(identifier: $identifier) {
@@ -58,13 +62,12 @@
             const result = response.data?.genes?.results?.[0];
             if (!result) throw new Error('Feature not found');
             const loc = result.locations[0];
-            // The API returns chromosome identifier like "glyma.Wm82.gnm4.Gm01"
-            // But the FASTA API expects "Gm01". We need to parse it.
-            const chromParts = loc.chromosome.identifier.split('.');
-            const shortChrom = chromParts[chromParts.length - 1]; // "Gm01"
+            // The alleles API expects the full contig identifier from the VCF,
+            // e.g. "glyma.Wm82.gnm4.Gm16", not just "Gm16".
+            const fullChrom = loc.chromosome.identifier;
 
             return {
-                chromosome: shortChrom,
+                chromosome: fullChrom,
                 start: loc.start,
                 end: loc.end
             };
@@ -73,7 +76,7 @@
         async function strainSearchFunction({ collection, fileName }, abortSignal) {
             const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
             const doubleEncoded = encodeURIComponent(encodeURIComponent(vcfUrl));
-            const url = `https://dev.lis.ncgr.org:50043/vcf/samples/${doubleEncoded}`;
+            const url = `http://dev.lis.ncgr.org:50043/vcf/samples/${doubleEncoded}`;
 
             const response = await fetch(url, { signal: abortSignal });
             if (!response.ok) throw new Error('Failed to fetch strains');
@@ -81,30 +84,22 @@
             return (data.samples || []).map(s => ({ identifier: s.identifier || s }));
         }
 
-        async function variantSearchFunction({ collection, fileName, chromosome, start, end, strains }, abortSignal) {
+        async function variantSearchFunction({ collection, fileName, chromosome, start, end, strains, encoding }, abortSignal) {
             const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
-            let apiBase = `https://dev.lis.ncgr.org:50043/vcf/fetch`;
-            // Construct path parameter structure the API expects
-            const parts = fileName.split('.');
-            const regionId = `${parts[0]}.${parts[1]}.${parts[2]}.${chromosome}`;
-
-            const url = new URL(`${apiBase}/${regionId}:${start}-${end}/${vcfUrl}`);
+            // Double-encode so the URL passes through the proxy correctly
+            const doubleEncodedUrl = encodeURIComponent(encodeURIComponent(vcfUrl));
+            const apiBase = `http://dev.lis.ncgr.org:50043/vcf/alleles`;
+            const path = `${chromosome}:${start}-${end}/${doubleEncodedUrl}`;
+            const url = new URL(`${apiBase}/${path}`);
+            url.searchParams.set('encoding', encoding || 'hap');
             if (strains && strains.length > 0) {
-                strains.forEach(s => url.searchParams.append('samples', s));
+                url.searchParams.set('samples', strains.join(','));
             }
 
             const response = await fetch(url.toString(), { signal: abortSignal });
             if (!response.ok) throw new Error('Failed to fetch variants');
             const data = await response.json();
-
-            // Map to expected format
-            return data.map(d => ({
-                chrom: d.chrom,
-                id: d.id,
-                pos: d.pos,
-                ref: d.ref,
-                alts: d.alts
-            }));
+            return data;
         }
 
         // 3. Bind to Element
