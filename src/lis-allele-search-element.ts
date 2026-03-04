@@ -77,6 +77,8 @@ export type AlleleStrainSearchFunction = (
   abortSignal?: AbortSignal,
 ) => Promise<{identifier: string}[]>;
 
+const MAX_REGION_SIZE = 1_000_000;
+
 @customElement('lis-allele-search-element')
 export class LisAlleleSearchElement extends LitElement {
   /** @ignore */
@@ -85,6 +87,22 @@ export class LisAlleleSearchElement extends LitElement {
   /** @ignore */
   override createRenderRoot() {
     return this;
+  }
+
+  override connectedCallback(): void {
+    super.connectedCallback();
+
+    const dataAttr = this.getAttribute('data-collections');
+    if (dataAttr) {
+      try {
+        const parsed = JSON.parse(dataAttr);
+        if (Array.isArray(parsed)) {
+          this.collections = parsed;
+        }
+      } catch (e) {
+        console.error('Failed to parse data-collections attribute', e);
+      }
+    }
   }
 
   // --- Properties ---
@@ -271,6 +289,13 @@ export class LisAlleleSearchElement extends LitElement {
       start = Math.max(0, start - flank);
       end = end + flank;
 
+      if (end - start > MAX_REGION_SIZE) {
+        this._resultsLoadingRef.value?.error(
+          `Region too large; maximum span is ${MAX_REGION_SIZE.toLocaleString()} bases.`,
+        );
+        return;
+      }
+
       this.searchedRegion = `${chromosome}:${start}-${end}`;
 
       // 2. Fetch Variants
@@ -293,18 +318,29 @@ export class LisAlleleSearchElement extends LitElement {
 
     if (!chromInput || !startInput || !endInput) return;
 
+    const start = parseInt(startInput);
+    const end = parseInt(endInput);
+
+    if (isNaN(start) || isNaN(end) || end <= start) {
+      return;
+    }
+
+    if (end - start > MAX_REGION_SIZE) {
+      this._toggleModal(true);
+      this._resultsLoadingRef.value?.error(
+        `Region too large; maximum span is ${MAX_REGION_SIZE.toLocaleString()} bases.`,
+      );
+      return;
+    }
+
     this._toggleModal(true);
     this._resultsLoadingRef.value?.loading();
     this.searchResults = null;
     this.searchedTerm = '';
-    this.searchedRegion = `${chromInput}:${startInput}-${endInput}`;
+    this.searchedRegion = `${chromInput}:${start}-${end}`;
 
     try {
-      await this._performVariantSearch(
-        chromInput,
-        parseInt(startInput),
-        parseInt(endInput),
-      );
+      await this._performVariantSearch(chromInput, start, end);
     } catch (error) {
       this._resultsLoadingRef.value?.error('Search failed: ' + error);
     }
@@ -400,7 +436,7 @@ export class LisAlleleSearchElement extends LitElement {
                 ?checked=${this.strainMode === 'ref-alt'}
                 @change=${this._onStrainModeChange}
               />
-              Ref / Alt only</label
+              All strains</label
             >
             <label class="uk-margin-left"
               ><input
@@ -475,7 +511,9 @@ export class LisAlleleSearchElement extends LitElement {
                 </div>
               </div>
               <div class="uk-width-1-3@s">
-                <label class="uk-form-label">Flanking Region</label>
+                <label class="uk-form-label"
+                  >Flanking Region (1 million max)</label
+                >
                 <input
                   id="flank-region"
                   class="uk-input"

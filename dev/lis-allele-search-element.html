@@ -22,21 +22,19 @@
         <h1>&lt;lis-allele-search-element&gt;</h1>
         <hr>
 
-        <lis-allele-search-element id="allele-search"></lis-allele-search-element>
+        <lis-allele-search-element
+            id="allele-search"
+            data-collections='[{
+                "name": "glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz",
+                "collectionName": "Wm82.gnm4.div.Song_Hyten_2015",
+                "synopsis": "Soybean diversity panel."
+            }]'
+        ></lis-allele-search-element>
 
     </div>
 
     <script type="text/javascript">
-        // 1. Mock Data (should be set with Liquid logic in production)
-        const collections = [
-            {
-                name: "glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz",
-                collectionName: "Wm82.gnm4.div.Song_Hyten_2015",
-                synopsis: "Soybean diversity panel."
-            },
-        ];
-
-        // 2. Connector Functions
+        // 1. Connector Functions
 
         // Location Search -> GraphQL
         // Query: genes(identifier: $id) { results { locations { chromosome { identifier } start end } } }
@@ -102,9 +100,8 @@
             return data;
         }
 
-        // 3. Bind to Element
+        // 2. Bind to Element
         const element = document.getElementById('allele-search');
-        element.collections = collections;
         element.preSelectedCollection = "Wm82.gnm4.div.Song_Hyten_2015";
         element.locationSearchFunction = locationSearchFunction;
         element.strainSearchFunction = strainSearchFunction;
