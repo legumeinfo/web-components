@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-allele-search-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <script src="../node_modules/uikit/dist/js/uikit-icons.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+</head>
+
+<body>
+    <div class="uk-container uk-margin-top">
+        <h1>&lt;lis-allele-search-element&gt;</h1>
+        <hr>
+
+        <lis-allele-search-element
+            id="allele-search"
+            data-collections='[{
+                "name": "glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz",
+                "collectionName": "Wm82.gnm4.div.Song_Hyten_2015",
+                "synopsis": "Soybean diversity panel."
+            }]'
+            data-chromosomes='[
+                "glyma.Wm82.gnm4.Gm01",
+                "glyma.Wm82.gnm4.Gm02",
+                "glyma.Wm82.gnm4.Gm03",
+                "glyma.Wm82.gnm4.Gm04",
+                "glyma.Wm82.gnm4.Gm05",
+                "glyma.Wm82.gnm4.Gm06",
+                "glyma.Wm82.gnm4.Gm07",
+                "glyma.Wm82.gnm4.Gm08",
+                "glyma.Wm82.gnm4.Gm09",
+                "glyma.Wm82.gnm4.Gm10",
+                "glyma.Wm82.gnm4.Gm11",
+                "glyma.Wm82.gnm4.Gm12",
+                "glyma.Wm82.gnm4.Gm13",
+                "glyma.Wm82.gnm4.Gm14",
+                "glyma.Wm82.gnm4.Gm15",
+                "glyma.Wm82.gnm4.Gm16",
+                "glyma.Wm82.gnm4.Gm17",
+                "glyma.Wm82.gnm4.Gm18",
+                "glyma.Wm82.gnm4.Gm19",
+                "glyma.Wm82.gnm4.Gm20"
+            ]'
+        ></lis-allele-search-element>
+
+    </div>
+
+    <script type="text/javascript">
+        // 1. Connector Functions
+
+        // Location Search -> GraphQL
+        // Query: genes(identifier: $id) { results { locations { chromosome { identifier } start end } } }
+        async function locationSearchFunction(identifier, abortSignal) {
+            // Trim whitespace from the identifier.
+            if (typeof identifier === 'string') {
+                identifier = identifier.trim();
+            }
+            const query = `
+                query Results($identifier: String) {
+                    genes(identifier: $identifier) {
+                        results {
+                            locations {
+                                chromosome { identifier }
+                                start
+                                end
+                            }
+                        }
+                    }
+                }
+             `;
+            const response = await graphqlQuery(uri, query, { identifier }, abortSignal);
+            const result = response.data?.genes?.results?.[0];
+            if (!result) throw new Error('Feature not found');
+            const loc = result.locations[0];
+            // The alleles API expects the full contig identifier from the VCF,
+            // e.g. "glyma.Wm82.gnm4.Gm16", not just "Gm16".
+            const fullChrom = loc.chromosome.identifier;
+
+            return {
+                chromosome: fullChrom,
+                start: loc.start,
+                end: loc.end
+            };
+        }
+
+        async function strainSearchFunction({ collection, fileName }, abortSignal) {
+            const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
+            const doubleEncoded = encodeURIComponent(encodeURIComponent(vcfUrl));
+            const url = `http://dev.lis.ncgr.org:50043/vcf/samples/${doubleEncoded}`;
+
+            const response = await fetch(url, { signal: abortSignal });
+            if (!response.ok) throw new Error('Failed to fetch strains');
+            const data = await response.json();
+            return (data.samples || []).map(s => ({ identifier: s.identifier || s }));
+        }
+
+        async function variantSearchFunction({ collection, fileName, chromosome, start, end, strains, encoding }, abortSignal) {
+            const vcfUrl = `https://data.legumeinfo.org/Glycine/max/diversity/${collection}/${fileName}`;
+            // Double-encode so the URL passes through the proxy correctly
+            const doubleEncodedUrl = encodeURIComponent(encodeURIComponent(vcfUrl));
+            const apiBase = `http://dev.lis.ncgr.org:50043/vcf/alleles`;
+            const path = `${chromosome}:${start}-${end}/${doubleEncodedUrl}`;
+            const url = new URL(`${apiBase}/${path}`);
+            url.searchParams.set('encoding', encoding || 'hap');
+            if (strains && strains.length > 0) {
+                url.searchParams.set('samples', strains.join(','));
+            }
+
+            const response = await fetch(url.toString(), { signal: abortSignal });
+            if (!response.ok) throw new Error('Failed to fetch variants');
+            const data = await response.json();
+            return data;
+        }
+
+        // 2. Bind to Element
+        const element = document.getElementById('allele-search');
+        element.preSelectedCollection = "Wm82.gnm4.div.Song_Hyten_2015";
+        element.locationSearchFunction = locationSearchFunction;
+        element.strainSearchFunction = strainSearchFunction;
+        element.variantSearchFunction = variantSearchFunction;
+
+    </script>
+</body>
+
+</html>

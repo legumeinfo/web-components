@@ -108,6 +108,14 @@ export class LisModalElement extends LitElement {
   @property({type: String})
   heading: string = '';
 
+  /**
+   * Options to pass to the uk-modal attribute (e.g. "container: false").
+   *
+   * @attribute
+   */
+  @property({type: String})
+  modalOptions: string = '';
+
   /** @ignore */
   // returns the modal heading portion of the component
   private _getHeading() {
@@ -123,7 +131,7 @@ export class LisModalElement extends LitElement {
     const heading = this._getHeading();
     // draw the modal
     return html`
-      <div id="${this.modalId}" uk-modal>
+      <div id="${this.modalId}" uk-modal="${this.modalOptions}">
         <div class="uk-modal-dialog">
           <button
             class="uk-modal-close-default"
