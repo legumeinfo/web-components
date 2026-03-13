@@ -103,6 +103,18 @@ export class LisAlleleSearchElement extends LitElement {
         console.error('Failed to parse data-collections attribute', e);
       }
     }
+
+    const chromosomesAttr = this.getAttribute('data-chromosomes');
+    if (chromosomesAttr) {
+      try {
+        const parsed = JSON.parse(chromosomesAttr);
+        if (Array.isArray(parsed)) {
+          this.chromosomes = parsed;
+        }
+      } catch (e) {
+        console.error('Failed to parse data-chromosomes attribute', e);
+      }
+    }
   }
 
   // --- Properties ---
@@ -112,6 +124,12 @@ export class LisAlleleSearchElement extends LitElement {
    */
   @property({type: Array})
   collections: VariantCollection[] = [];
+
+  /**
+   * The list of available chromosome identifiers for region search.
+   */
+  @property({type: Array})
+  chromosomes: string[] = [];
 
   /**
    * The name of the collection to select by default.
@@ -542,29 +560,7 @@ export class LisAlleleSearchElement extends LitElement {
                   id="chromosome-select"
                   class="uk-select uk-form-width-small"
                 >
-                  ${[
-                    // TODO: Get this from the API or datastore
-                    'glyma.Wm82.gnm4.Gm01',
-                    'glyma.Wm82.gnm4.Gm02',
-                    'glyma.Wm82.gnm4.Gm03',
-                    'glyma.Wm82.gnm4.Gm04',
-                    'glyma.Wm82.gnm4.Gm05',
-                    'glyma.Wm82.gnm4.Gm06',
-                    'glyma.Wm82.gnm4.Gm07',
-                    'glyma.Wm82.gnm4.Gm08',
-                    'glyma.Wm82.gnm4.Gm09',
-                    'glyma.Wm82.gnm4.Gm10',
-                    'glyma.Wm82.gnm4.Gm11',
-                    'glyma.Wm82.gnm4.Gm12',
-                    'glyma.Wm82.gnm4.Gm13',
-                    'glyma.Wm82.gnm4.Gm14',
-                    'glyma.Wm82.gnm4.Gm15',
-                    'glyma.Wm82.gnm4.Gm16',
-                    'glyma.Wm82.gnm4.Gm17',
-                    'glyma.Wm82.gnm4.Gm18',
-                    'glyma.Wm82.gnm4.Gm19',
-                    'glyma.Wm82.gnm4.Gm20',
-                  ].map((c) => html`<option>${c}</option>`)}
+                  ${this.chromosomes.map((c) => html`<option>${c}</option>`)}
                 </select>
               </div>
               <div class="uk-width-expand">
