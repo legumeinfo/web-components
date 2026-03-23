@@ -311,6 +311,17 @@ export declare class LisPaginatedSearchElementInterface<
 
   /** @internal */
   protected _downloadingRef: Ref<LisInlineLoadingElement>;
+
+  /**
+   * Components that use the
+   * {@link LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin can use
+   * this method to render a download button in their form. The button will only
+   * be rendered if a {@link downloadFunction | `downloadFunction`} has been provided.
+   *
+   * @returns The download button portion of the template, or empty if no download
+   * function is set.
+   */
+  protected renderDownloadButton(): unknown;
 }
 
 /**
@@ -804,6 +815,25 @@ export const LisPaginatedSearchMixin =
       // a method the concrete class must implement to render the form
       protected renderForm(): unknown {
         throw new Error('Method not implemented');
+      }
+
+      // a method that renders the optional download button
+      protected renderDownloadButton(): unknown {
+        if (this.downloadFunction === undefined) {
+          return html``;
+        }
+        return html`
+          <button
+            type="submit"
+            value="download"
+            class="uk-button uk-button-default"
+          >
+            Download
+          </button>
+          <lis-inline-loading-element
+            ${ref(this._downloadingRef)}
+          ></lis-inline-loading-element>
+        `;
       }
 
       // a method that provides a default template for displaying results info that can be

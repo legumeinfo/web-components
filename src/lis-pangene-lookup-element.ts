@@ -738,21 +738,7 @@ export class LisPangeneLookupElement extends LisPaginatedSearchMixin(
     const assemblySelector = this._renderAssemblySelector();
     const annotationSelector = this._renderAnnotationSelector();
     // render the optional download button
-    let downloadButton = html``;
-    if (this.downloadFunction !== undefined) {
-      downloadButton = html`
-        <button
-          type="submit"
-          value="download"
-          class="uk-button uk-button-default"
-        >
-          Download
-        </button>
-        <lis-inline-loading-element
-          ${ref(this._downloadingRef)}
-        ></lis-inline-loading-element>
-      `;
-    }
+    const downloadButton = this.renderDownloadButton();
 
     // render the form
     return html`
