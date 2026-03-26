@@ -5,6 +5,7 @@ import {live} from 'lit/directives/live.js';
 
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement, LisModalElement} from './core';
+import {downloadTableAsTSV} from './utils';
 
 /**
  * The object describing a Variant Collection.
@@ -408,6 +409,39 @@ export class LisAlleleSearchElement extends LitElement {
     }
   }
 
+  private _downloadResults() {
+    if (!this.searchResults) return;
+
+    const {samples, variants} = this.searchResults;
+    const attributes = ['position', 'ref', 'alt', ...samples];
+    const headers: Record<string, string> = {
+      position: 'Position',
+      ref: 'Ref',
+      alt: 'Alt',
+    };
+    samples.forEach((s) => {
+      headers[s] = s;
+    });
+
+    const data = variants.map((v) => {
+      const row: Record<string, unknown> = {
+        position: v.position,
+        ref: v.ref,
+        alt: v.alt,
+      };
+      samples.forEach((sample) => {
+        row[sample] = v.genotypes?.[sample] ?? '';
+      });
+      return row;
+    });
+
+    const filename = this.searchedRegion
+      ? `alleles-${this.searchedRegion.replace(/[:/]/g, '-')}.tsv`
+      : 'alleles.tsv';
+
+    downloadTableAsTSV(data, attributes, headers, filename);
+  }
+
   // --- Render ---
 
   override render() {
@@ -600,19 +634,36 @@ export class LisAlleleSearchElement extends LitElement {
           modalOptions="container: false"
           heading="Allele Search Results"
         >
-          <div class="uk-margin-bottom">
-            <div>
-              <strong>Identifier:</strong> ${this.searchedTerm || 'N/A'}
+          <div>
+            <div class="uk-margin-bottom">
+              <div>
+                <strong>Identifier:</strong> ${this.searchedTerm || 'N/A'}
+              </div>
+              <div><strong>Region:</strong> ${this.searchedRegion}</div>
             </div>
-            <div><strong>Region:</strong> ${this.searchedRegion}</div>
-          </div>
 
-          <div class="uk-inline uk-width-1-1">
-            <lis-loading-element
-              ${ref(this._resultsLoadingRef)}
-            ></lis-loading-element>
+            <div class="uk-inline uk-width-1-1">
+              <lis-loading-element
+                ${ref(this._resultsLoadingRef)}
+              ></lis-loading-element>
 
-            ${this._renderAlleleVariantsTable(this.searchResults)}
+              ${this._renderAlleleVariantsTable(this.searchResults)}
+            </div>
+
+            <div
+              class="uk-margin-top"
+              style="${this.searchResults?.variants?.length
+                ? ''
+                : 'display: none;'}"
+            >
+              <button
+                type="button"
+                class="uk-button uk-button-default"
+                @click=${this._downloadResults}
+              >
+                Download
+              </button>
+            </div>
           </div>
         </lis-modal-element>
       </div>

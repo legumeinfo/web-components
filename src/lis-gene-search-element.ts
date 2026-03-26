@@ -4,7 +4,7 @@ import {live} from 'lit/directives/live.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisCancelPromiseController} from './controllers';
-import {LisLoadingElement} from './core';
+import {LisInlineLoadingElement, LisLoadingElement} from './core';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
 
 /**
@@ -292,6 +292,9 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
   // bind to the loading element in the template
   private _formLoadingRef: Ref<LisLoadingElement> = createRef();
 
+  // bind to the download loading element in the template
+  private _downloadLoadingRef: Ref<LisInlineLoadingElement> = createRef();
+
   constructor() {
     super();
     // configure query string parameters
@@ -569,6 +572,19 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
     `;
   }
 
+  // downloads all search results as a TSV file
+  private async _downloadAllResults() {
+    this._downloadLoadingRef.value?.loading();
+    try {
+      await this.downloadAllResultsAsTSV('gene-search-results.tsv');
+      this._downloadLoadingRef.value?.success();
+    } catch (error) {
+      if (!(error instanceof Event && error.type === 'abort')) {
+        this._downloadLoadingRef.value?.failure();
+      }
+    }
+  }
+
   /** @ignore */
   // used by LisPaginatedSearchMixin to draw the search form part of template
   override renderForm() {
@@ -641,6 +657,17 @@ export class LisGeneSearchElement extends LisPaginatedSearchMixin(LitElement)<
             <button type="submit" class="uk-button uk-button-primary">
               Search
             </button>
+            <button
+              type="button"
+              class="uk-button uk-button-default"
+              ?disabled=${!this.searchResults.length}
+              @click=${this._downloadAllResults}
+            >
+              Download All
+            </button>
+            <lis-inline-loading-element
+              ${ref(this._downloadLoadingRef)}
+            ></lis-inline-loading-element>
           </div>
         </fieldset>
       </form>

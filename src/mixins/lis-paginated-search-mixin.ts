@@ -14,6 +14,7 @@ import {
   LisPaginationElement,
 } from '../core';
 import {StringObjectModel} from '../models';
+import {downloadTableAsTSV} from '../utils';
 
 /**
  * The constructor used to type constrain the super class type of the
@@ -311,6 +312,21 @@ export declare class LisPaginatedSearchElementInterface<
 
   /** @internal */
   protected _downloadingRef: Ref<LisInlineLoadingElement>;
+
+  /**
+   * Downloads all search results (across all pages) as a TSV file.
+   * Fetches each page sequentially using the component's
+   * {@link searchFunction | `searchFunction`} and combines them.
+   *
+   * @param filename - The name of the file to download (default: 'results.tsv').
+   * @param pageSize - The number of results to fetch per page (default: 10).
+   *
+   * @returns A {@link !Promise | `Promise`} that resolves when the download completes.
+   */
+  protected downloadAllResultsAsTSV(
+    filename?: string,
+    pageSize?: number,
+  ): Promise<void>;
 
   /**
    * Components that use the
@@ -728,6 +744,36 @@ export const LisPaginatedSearchMixin =
         } else {
           this._downloadingRef.value?.success();
         }
+      }
+
+      // fetches all pages sequentially and downloads as a TSV file
+      protected async downloadAllResultsAsTSV(
+        filename: string = 'results.tsv',
+        pageSize: number = 10,
+      ): Promise<void> {
+        if (this._searchData === undefined) return;
+
+        const allResults: SearchResult[] = [];
+        const baseSearchData = {...this._searchData, pageSize};
+        let page = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+          const response = await this.searchFunction(
+            {...baseSearchData, page},
+            {},
+          );
+          allResults.push(...response.results);
+          hasMore = response.hasNext ?? false;
+          page++;
+        }
+
+        downloadTableAsTSV(
+          allResults as Record<string, unknown>[],
+          this.resultAttributes,
+          this.tableHeader,
+          filename,
+        );
       }
 
       //////////////////////////

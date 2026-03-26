@@ -3,4 +3,5 @@
  * and should not be exported from this package.
  */
 export * from './decorators';
+export * from './download';
 export * from './has-own-property';
