@@ -122,12 +122,48 @@
             return data;
         }
 
+        // helper function to trigger file download
+        function downloadFile(filename, content) {
+            const file = new File(["\ufeff"+content], filename, {type: "text/plain:charset=UTF-8"});
+            const url = window.URL.createObjectURL(file);
+            const link = document.createElement("a");
+            link.style = "display: none";
+            link.href = url;
+            link.download = file.name;
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function downloadFunction({ collection, fileName, chromosome, start, end, strains, encoding }, abortSignal) {
+            // Fetch the data using the same API as variantSearchFunction
+            const data = await variantSearchFunction({ collection, fileName, chromosome, start, end, strains, encoding }, abortSignal);
+
+            // Generate TSV
+            const {samples, variants} = data;
+            const headers = ['position', 'ref', 'alt', ...samples];
+            const headerRow = headers.join('\t');
+            const dataRows = variants.map(v => {
+                const row = [v.position, v.ref, v.alt];
+                samples.forEach(sample => {
+                    row.push(v.genotypes?.[sample] ?? '');
+                });
+                return row.join('\t');
+            }).join('\n');
+
+            const tsvContent = headerRow + '\n' + dataRows;
+            const region = `${chromosome}:${start}-${end}`;
+            const filename = `alleles-${region.replace(/[:/]/g, '-')}.tsv`;
+            downloadFile(filename, tsvContent);
+        }
+
         // 2. Bind to Element
         const element = document.getElementById('allele-search');
         element.preSelectedCollection = "Wm82.gnm4.div.Song_Hyten_2015";
         element.locationSearchFunction = locationSearchFunction;
         element.strainSearchFunction = strainSearchFunction;
         element.variantSearchFunction = variantSearchFunction;
+        element.downloadFunction = downloadFunction;
 
     </script>
 </body>

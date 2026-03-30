@@ -4,8 +4,11 @@ import {Ref, createRef, ref} from 'lit/directives/ref.js';
 import {live} from 'lit/directives/live.js';
 
 import {LisCancelPromiseController} from './controllers';
-import {LisLoadingElement, LisModalElement} from './core';
-import {downloadTableAsTSV} from './utils';
+import {
+  LisInlineLoadingElement,
+  LisLoadingElement,
+  LisModalElement,
+} from './core';
 
 /**
  * The object describing a Variant Collection.
@@ -77,6 +80,23 @@ export type AlleleStrainSearchFunction = (
   },
   abortSignal?: AbortSignal,
 ) => Promise<{identifier: string}[]>;
+
+/**
+ * Function to download allele data as a file.
+ * Should fetch the data and trigger a file download.
+ */
+export type AlleleDownloadFunction = (
+  params: {
+    collection: string;
+    fileName: string;
+    chromosome: string;
+    start: number;
+    end: number;
+    strains?: string[];
+    encoding?: AlleleEncoding;
+  },
+  abortSignal?: AbortSignal,
+) => Promise<void>;
 
 const MAX_REGION_SIZE = 1_000_000;
 
@@ -159,6 +179,12 @@ export class LisAlleleSearchElement extends LitElement {
   strainSearchFunction: AlleleStrainSearchFunction = () =>
     Promise.reject('No strain search function');
 
+  /**
+   * Function to download allele data as a file.
+   */
+  @property({attribute: false})
+  downloadFunction?: AlleleDownloadFunction;
+
   // --- State ---
 
   @state()
@@ -196,6 +222,7 @@ export class LisAlleleSearchElement extends LitElement {
   private _strainLoadingRef: Ref<LisLoadingElement> = createRef();
   private _modalRef: Ref<LisModalElement> = createRef();
   private _resultsLoadingRef: Ref<LisLoadingElement> = createRef();
+  private _downloadLoadingRef: Ref<LisInlineLoadingElement> = createRef();
 
   // --- Lifecycle ---
 
@@ -409,37 +436,42 @@ export class LisAlleleSearchElement extends LitElement {
     }
   }
 
-  private _downloadResults() {
-    if (!this.searchResults) return;
+  private async _downloadResults() {
+    if (!this.downloadFunction || !this.searchResults) return;
 
-    const {samples, variants} = this.searchResults;
-    const attributes = ['position', 'ref', 'alt', ...samples];
-    const headers: Record<string, string> = {
-      position: 'Position',
-      ref: 'Ref',
-      alt: 'Alt',
-    };
-    samples.forEach((s) => {
-      headers[s] = s;
-    });
+    const selectedCollection = this.collections[this.selectedCollectionIdx];
+    if (!selectedCollection) return;
 
-    const data = variants.map((v) => {
-      const row: Record<string, unknown> = {
-        position: v.position,
-        ref: v.ref,
-        alt: v.alt,
-      };
-      samples.forEach((sample) => {
-        row[sample] = v.genotypes?.[sample] ?? '';
-      });
-      return row;
-    });
+    // Parse the searched region to get chromosome, start, end
+    const regionMatch = this.searchedRegion.match(/(.+):(\d+)-(\d+)/);
+    if (!regionMatch) return;
 
-    const filename = this.searchedRegion
-      ? `alleles-${this.searchedRegion.replace(/[:/]/g, '-')}.tsv`
-      : 'alleles.tsv';
+    const [, chromosome, startStr, endStr] = regionMatch;
+    const start = parseInt(startStr, 10);
+    const end = parseInt(endStr, 10);
 
-    downloadTableAsTSV(data, attributes, headers, filename);
+    this._downloadLoadingRef.value?.loading();
+
+    try {
+      await this.downloadFunction(
+        {
+          collection: selectedCollection.collectionName,
+          fileName: selectedCollection.name,
+          chromosome,
+          start,
+          end,
+          strains:
+            this.selectedStrains.length > 0 ? this.selectedStrains : undefined,
+          encoding: this.encoding,
+        },
+        this.cancelPromiseController.abortSignal,
+      );
+      this._downloadLoadingRef.value?.success();
+    } catch (error) {
+      if (!(error instanceof Event && error.type === 'abort')) {
+        this._downloadLoadingRef.value?.failure();
+      }
+    }
   }
 
   // --- Render ---
@@ -652,7 +684,8 @@ export class LisAlleleSearchElement extends LitElement {
 
             <div
               class="uk-margin-top"
-              style="${this.searchResults?.variants?.length
+              style="${this.downloadFunction &&
+              this.searchResults?.variants?.length
                 ? ''
                 : 'display: none;'}"
             >
@@ -663,6 +696,9 @@ export class LisAlleleSearchElement extends LitElement {
               >
                 Download
               </button>
+              <lis-inline-loading-element
+                ${ref(this._downloadLoadingRef)}
+              ></lis-inline-loading-element>
             </div>
           </div>
         </lis-modal-element>

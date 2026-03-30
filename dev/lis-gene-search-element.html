@@ -183,10 +183,84 @@
           });
       }
 
+      // helper function to trigger file download
+      function downloadFile(filename, content) {
+        const file = new File(["\ufeff"+content], filename, {type: "text/plain:charset=UTF-8"});
+        const url = window.URL.createObjectURL(file);
+        const link = document.createElement("a");
+        link.style = "display: none";
+        link.href = url;
+        link.download = file.name;
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
+
+      // the download function given to the LIS gene search Web Component
+      // fetches all pages sequentially and downloads as TSV
+      async function downloadGenes(searchData, {abortSignal}) {
+        const genus = searchData['genus'];
+        const species = searchData['species'];
+        const strain = searchData['strain'];
+        const identifier = searchData['identifier'];
+        const description = searchData['description'];
+        const family = searchData['family'];
+
+        // fetch all pages
+        const allResults = [];
+        let page = 1;
+        let hasMore = true;
+        const pageSize = 10;
+
+        while (hasMore) {
+          const variables = {
+            genus, species, strain, identifier, description, family,
+            page,
+            pageSize,
+          };
+          const response = await graphqlQuery(uri, geneQuery, variables, abortSignal);
+          const {hasNextPage, results} = response.data.genes.pageInfo;
+
+          // flatten results same as search
+          const flatResults = response.data.genes.results.map(({organism: {genus, species}, strain, ...gene}) => {
+            const geneFamilyAssignments = gene.geneFamilyAssignments.map(({geneFamily: {identifier}}) => identifier);
+            const panGeneSets = gene.panGeneSets.map(({identifier}) => identifier);
+            const locations = gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
+              const interval = `${start}-${end} (${strand})`;
+              if (chromosome?.identifier) return `${chromosome.identifier}:${interval} (chromosome)`;
+              if (supercontig?.identifier) return `${supercontig.identifier}:${interval} (supercontig)`;
+              return `unknown:${interval}`;
+            });
+            return {genus, species, strain: strain.identifier, ...gene, geneFamilyAssignments, panGeneSets, locations};
+          });
+
+          allResults.push(...flatResults);
+          hasMore = hasNextPage;
+          page++;
+        }
+
+        // generate TSV
+        const headers = ['name', 'identifier', 'description', 'genus', 'species', 'strain', 'geneFamilyAssignments', 'panGeneSets', 'locations'];
+        const headerRow = headers.join('\t');
+        const dataRows = allResults.map(row =>
+          headers.map(h => {
+            const val = row[h];
+            if (Array.isArray(val)) return val.join(', ');
+            return val ?? '';
+          }).join('\t')
+        ).join('\n');
+
+        const tsvContent = headerRow + '\n' + dataRows;
+        downloadFile('gene-search-results.tsv', tsvContent);
+
+        return {};
+      }
+
       // bind component properties
       const geneSearchElement = document.getElementById('gene-search');
       geneSearchElement.formDataFunction = getFormData;
       geneSearchElement.searchFunction = getGenes;
+      geneSearchElement.downloadFunction = downloadGenes;
 
     </script>
 
