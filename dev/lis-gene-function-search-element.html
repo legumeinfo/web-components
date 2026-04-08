@@ -135,15 +135,13 @@
             const results = 
               data.geneFunctions.results.map(({symbol, symbolLong, classicalLocus, genes, synopsis, traits}) => {
                 return {
-                  // Missing: Locus, gene symbols, description, gene model name, citation
-                  symbol,
-                  symbolLong,
-                  classicalLocus, 
+                  geneSymbols: [symbol],
+                  geneSymbolDescription: symbolLong,
                   geneModelPubName: genes[0]?.name,
                   geneModelFullName: genes[0]?.identifier,
                   synopsis,
                   traits: traits.map(t => t.name).join(', '),
-                  citation: genes[0]?.publications[0]?.title
+                  citations: genes[0]?.publications[0]?.title
                 };
               });
               
