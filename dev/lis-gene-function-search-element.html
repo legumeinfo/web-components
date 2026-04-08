@@ -99,13 +99,13 @@
               genes {
                 name
                 identifier
-                publications {
-                  title
-                }
               }
               synopsis
               traits {
                 name
+              }
+              publications {
+                title
               }
             }
           }
@@ -133,7 +133,7 @@
 
             // flatten results
             const results = 
-              data.geneFunctions.results.map(({symbol, symbolLong, classicalLocus, genes, synopsis, traits}) => {
+              data.geneFunctions.results.map(({symbol, symbolLong, classicalLocus, genes, synopsis, traits, publications}) => {
                 return {
                   geneSymbols: [symbol],
                   geneSymbolDescription: symbolLong,
@@ -141,7 +141,7 @@
                   geneModelFullName: genes[0]?.identifier,
                   synopsis,
                   traits: traits.map(t => t.name).join(', '),
-                  citations: genes[0]?.publications[0]?.title
+                  citations: publications[0]?.title
                 };
               });
               
