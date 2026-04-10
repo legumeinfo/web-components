@@ -153,8 +153,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: GeneFunctionFormDataFunction = () =>
-    Promise.reject(new Error('No form data function provided'));
+  formDataFunction?: GeneFunctionFormDataFunction;
 
   /**
    * An optional property that limits searches to a specific genus. Setting the property to the
@@ -289,7 +288,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   // called after every component update, e.g. when a property changes
   override updated(changedProperties: Map<string, unknown>) {
     // call the formDataFunction every time its value changes
-    if (changedProperties.has('formDataFunction')) {
+    if (changedProperties.has('formDataFunction') && this.formDataFunction) {
       this._getFormData();
     }
     // use querystring parameters to update the selectors when the form data changes
@@ -311,7 +310,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
     const options = {
       abortSignal: this.formDataCancelPromiseController.abortSignal,
     };
-    const formDataPromise = this.formDataFunction(options);
+    const formDataPromise = this.formDataFunction!(options);
     // call the cancellable function
     this.formDataCancelPromiseController.wrapPromise(formDataPromise).then(
       (formData) => {
