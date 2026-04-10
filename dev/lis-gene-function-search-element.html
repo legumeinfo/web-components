@@ -105,7 +105,9 @@
                 name
               }
               publications {
+                citation
                 title
+                doi
               }
             }
           }
@@ -141,7 +143,7 @@
                   geneModelFullName: genes[0]?.identifier,
                   synopsis,
                   traits: traits.map(t => t.name).join(', '),
-                  citations: publications[0]?.title
+                  citations: publications[0]
                 };
               });
               
@@ -152,10 +154,43 @@
           });          
       }
 
+      const geneLinkoutsQuery = `
+        query GeneLinkoutsQuery($identifier: ID!) {
+          geneLinkouts(identifier: $identifier) {
+            results {
+              href
+              text
+            }
+          }
+        }
+      `;
+
+      function geneLinkoutsFunction({type, variables}, {abortSignal} = {}) {
+        if (type === 'gene') {
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts.results}));
+        }
+        if (type === 'symbol') {
+          const href = `https://mines.dev.lis.ncgr.org/glycinemine/genefunction:${variables.identifier}`;
+          return Promise.resolve({results: [{href, text: href}]});
+        }
+        if (type === 'publication') {
+          const href = `https://doi.org/${variables.identifier}`;
+          const text = variables.label || href;
+          return Promise.resolve({results: [{href, text}]});
+        }
+        return Promise.reject(new Error(`Unknown linkout type: ${type}`));
+      }
+
       // bind component properties
       const geneFunctionSearchElement = document.getElementById('gene-function-search');
       geneFunctionSearchElement.formDataFunction = getFormData;
       geneFunctionSearchElement.searchFunction = getGeneFunctions;
+      geneFunctionSearchElement.linkoutFunction = geneLinkoutsFunction;
+      geneFunctionSearchElement.linkoutColumns = {
+        geneSymbols: 'symbol',
+        geneModelFullName: 'gene',
+      };
 
     </script>
 

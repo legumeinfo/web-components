@@ -1,9 +1,10 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-import {property, state} from 'lit/decorators.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
+import {LisLinkoutElement, LinkoutFunction} from './lis-linkout-element';
+import {StringObjectModel} from './models';
 import {createRef, ref, Ref} from 'lit/directives/ref.js';
 import {live} from 'lit/directives/live.js';
 
@@ -53,6 +54,15 @@ export type GeneFunctionSearchData = {
 };
 
 /**
+ * A publication associated with a gene function search result.
+ */
+export type GeneFunctionPublication = {
+  citation: string;
+  doi?: string;
+  title?: string;
+};
+
+/**
  * A single result of a gene function search performed by the
  * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class.
  */
@@ -63,8 +73,25 @@ export type GeneFunctionSearchResult = {
   geneModelFullName: string;
   synopsis: string;
   traits: string[];
-  citations: string;
+  citations?: GeneFunctionPublication;
 };
+
+/**
+ * Maps result attribute names to linkout type strings. When set alongside
+ * {@link LisGeneFunctionSearchElement.linkoutFunction | `linkoutFunction`},
+ * cells for the specified columns will be rendered as links that open a
+ * linkout modal. The type string is passed through to the linkout function
+ * as `{type, variables: {identifier}}`.
+ *
+ * @example
+ * ```js
+ * searchElement.linkoutColumns = {
+ *   geneSymbols: 'symbol',
+ *   geneModelFullName: 'gene',
+ * };
+ * ```
+ */
+export type GeneFunctionLinkoutColumns = Record<string, string>;
 
 /**
  * The signature of the function the
@@ -206,6 +233,22 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   @property({type: String})
   authorExample?: string;
 
+  /**
+   * An optional function for performing linkouts. When provided alongside
+   * {@link linkoutColumns | `linkoutColumns`}, cells for the configured columns
+   * will be rendered as links that open a linkout modal.
+   */
+  @property({type: Function, attribute: false})
+  linkoutFunction?: LinkoutFunction<unknown>;
+
+  /**
+   * Maps result attribute names to linkout type strings passed to
+   * {@link linkoutFunction | `linkoutFunction`}. Has no effect unless
+   * `linkoutFunction` is also set.
+   */
+  @property({type: Object, attribute: false})
+  linkoutColumns: GeneFunctionLinkoutColumns = {};
+
   // the selected index of the genus select element
   @state()
   private selectedGenus: number = 0;
@@ -218,6 +261,13 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   protected formDataCancelPromiseController = new LisCancelPromiseController(
     this,
   );
+
+  // unique ID for the linkout modal — avoids conflicts when multiple instances are on the same page
+  private _modalId = `lis-gene-function-linkout-${Math.random().toString(36).slice(2)}`;
+
+  // direct reference to the linkout element — createRef is used instead of @query because
+  // UIkit moves the modal <div> to document.body on open, which would break a querySelector
+  private _linkoutRef: Ref<LisLinkoutElement> = createRef();
 
   // bind to the loading element in the template
   private _formLoadingRef: Ref<LisLoadingElement> = createRef();
@@ -267,6 +317,7 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   // called when the component is added to the DOM; attributes should have properties now
   override connectedCallback() {
     super.connectedCallback();
+    this.addEventListener('click', this._handleLinkoutClick);
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
     const formData: GeneFunctionSearchFormData = {genuses: []};
@@ -283,6 +334,11 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
     this.queryStringController.addPreUpdateListener((_) => {
       this._initializeSelections();
     });
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('click', this._handleLinkoutClick);
   }
 
   // called after every component update, e.g. when a property changes
@@ -442,6 +498,119 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
         <option value="">-- any --</option>
         ${options}
       </select>
+    `;
+  }
+
+  // handles clicks on linkout anchor tags produced by _transformResultForLinkouts
+  private _handleLinkoutClick = (e: Event) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('[data-linkout-type]') as HTMLElement | null;
+    if (link && this._linkoutRef.value) {
+      const type = link.getAttribute('data-linkout-type')!;
+      const identifier = link.getAttribute('data-linkout-identifier')!;
+      const label = link.getAttribute('data-linkout-label') ?? undefined;
+      this._linkoutRef.value.getLinkouts({
+        type,
+        variables: {identifier, label},
+      });
+    }
+  };
+
+  // builds a linkout anchor string for use inside a table cell;
+  // linkoutLabel is an optional hint passed to the linkout function as variables.label
+  private _linkoutAnchor(
+    type: string,
+    identifier: string,
+    anchorText: string,
+    linkoutLabel?: string,
+  ): string {
+    const escapedId = identifier.replace(/"/g, '&quot;');
+    const labelAttr = linkoutLabel
+      ? ` data-linkout-label="${linkoutLabel.replace(/"/g, '&quot;')}"`
+      : '';
+    return `<a href="#${this._modalId}" uk-toggle data-linkout-type="${type}" data-linkout-identifier="${escapedId}"${labelAttr}>${anchorText}</a>`;
+  }
+
+  // transforms every result row to a flat StringObjectModel for the table;
+  // citations (a structured object) are always converted to a display string,
+  // and linkout columns are rendered as anchors when linkoutFunction is set
+  private _transformResult(
+    result: GeneFunctionSearchResult,
+  ): StringObjectModel {
+    const transformed: StringObjectModel = {};
+    for (const attr of this.resultAttributes) {
+      // citations is a structured object — handle separately
+      if (attr === 'citations') {
+        const pub = result.citations;
+        if (!pub?.citation) {
+          transformed[attr] = '';
+        } else if (this.linkoutFunction && pub.doi) {
+          transformed[attr] = this._linkoutAnchor(
+            'publication',
+            pub.doi,
+            pub.citation,
+            pub.title,
+          );
+        } else if (pub.doi) {
+          const escapedDoi = pub.doi.replace(/"/g, '&quot;');
+          transformed[attr] =
+            `<a href="https://doi.org/${escapedDoi}">${pub.citation}</a>`;
+        } else {
+          transformed[attr] = pub.citation;
+        }
+        continue;
+      }
+      const value = (result as unknown as Record<string, unknown>)[attr];
+      if (value === undefined || value === null) {
+        transformed[attr] = '';
+        continue;
+      }
+      const type = this.linkoutFunction ? this.linkoutColumns[attr] : undefined;
+      if (!type) {
+        transformed[attr] = Array.isArray(value)
+          ? (value as string[]).join(', ')
+          : String(value);
+        continue;
+      }
+      const values = Array.isArray(value)
+        ? (value as string[])
+        : [String(value)];
+      transformed[attr] = values
+        .map((v) => this._linkoutAnchor(type, v, v))
+        .join(', ');
+    }
+    return transformed;
+  }
+
+  /** @ignore */
+  // overrides the mixin's default results rendering to support linkout columns and
+  // structured citations
+  protected override renderResults(): unknown {
+    const data = this.searchResults.map((r) =>
+      this._transformResult(r as unknown as GeneFunctionSearchResult),
+    );
+
+    const table = html`
+      <lis-simple-table-element
+        .dataAttributes=${this.resultAttributes}
+        .header=${this.tableHeader}
+        .columnClasses=${this.tableColumnClasses}
+        .data=${data}
+      ></lis-simple-table-element>
+    `;
+
+    if (!this.linkoutFunction) {
+      return table;
+    }
+
+    return html`
+      ${table}
+      <lis-modal-element modalId="${this._modalId}">
+        <lis-linkout-element
+          ${ref(this._linkoutRef)}
+          .linkoutFunction=${this.linkoutFunction}
+        ></lis-linkout-element>
+      </lis-modal-element>
     `;
   }
 

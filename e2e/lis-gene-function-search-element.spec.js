@@ -21,7 +21,9 @@ test.describe('genus search', () => {
     const firstRow = page.locator('tbody tr').first();
     await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
     await expect(firstRow.locator('td').nth(1)).toHaveText('asparaginase synthetase 1a');
-    await expect(firstRow.locator('td').nth(6)).toHaveText('Relationship between asparagine metabolism and protein concentration in soybean seed');
+    // citations are rendered as linkout triggers — check the link exists and shows the citation text
+    await expect(firstRow.locator('td').nth(6).locator('a').first()).toBeAttached();
+    await expect(firstRow.locator('td').nth(6)).toContainText('Pandurangan_Pajak_2012');
   });
 
   test('displays the correct total result count', async ({page}) => {
@@ -88,7 +90,8 @@ test.describe('gene identifier search', () => {
     const firstRow = page.locator('tbody tr').first();
     await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
     await expect(firstRow.locator('td').nth(1)).toHaveText('asparaginase synthetase 1a');
-    await expect(firstRow.locator('td').nth(6)).toHaveText('Relationship between asparagine metabolism and protein concentration in soybean seed');
+    await expect(firstRow.locator('td').nth(6).locator('a').first()).toBeAttached();
+    await expect(firstRow.locator('td').nth(6)).toContainText('Pandurangan_Pajak_2012');
   });
 });
 
@@ -198,6 +201,63 @@ test.describe('genus property locking', () => {
     await page.locator('button[type="submit"]').click();
     await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
     await expect(page.getByText('175 results')).toBeVisible();
+  });
+});
+
+test.describe('linkouts', () => {
+  test.beforeEach(async ({page}) => {
+    await page.goto('/dev/lis-gene-function-search-element.html');
+    await waitForFormData(page);
+    await page.locator('select[name="genus"]').selectOption('Glycine');
+    await page.locator('button[type="submit"]').click();
+    await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
+  });
+
+  test('Gene Symbols column renders as clickable links', async ({page}) => {
+    const firstRow = page.locator('tbody tr').first();
+    await expect(firstRow.locator('td').nth(0).locator('a')).toBeAttached();
+  });
+
+  test('Gene Model Full Name column renders as clickable links', async ({page}) => {
+    const firstRow = page.locator('tbody tr').first();
+    await expect(firstRow.locator('td').nth(3).locator('a')).toBeAttached();
+  });
+
+  test('clicking a Gene Symbol link populates the modal with an Intermine linkout', async ({page}) => {
+    const firstRow = page.locator('tbody tr').first();
+    const symbolLink = firstRow.locator('td').nth(0).locator('a').first();
+    // read the symbol text so we can verify the linkout URL
+    const symbolText = await symbolLink.textContent();
+    await symbolLink.click();
+    // the symbol linkout resolves immediately (no network request) — wait for it to appear
+    const resultLink = page.locator('lis-linkout-element a').first();
+    await expect(resultLink).toBeVisible({timeout: 5000});
+    await expect(resultLink).toHaveAttribute(
+      'href',
+      new RegExp(`glycinemine/genefunction:${symbolText}`),
+    );
+  });
+
+  test('clicking a Gene Model Full Name link populates the modal with gene linkouts', async ({page}) => {
+    const firstRow = page.locator('tbody tr').first();
+    await firstRow.locator('td').nth(3).locator('a').first().click();
+    // gene linkouts require a network request — use a longer timeout
+    const resultLink = page.locator('lis-linkout-element a').first();
+    await expect(resultLink).toBeVisible({timeout: 10000});
+    // verify multiple linkout results are returned (gene entries typically have several)
+    await expect(page.locator('lis-linkout-element a')).not.toHaveCount(0);
+  });
+
+  test('Citations column renders as a linkout trigger', async ({page}) => {
+    const firstRow = page.locator('tbody tr').first();
+    const citationLink = firstRow.locator('td').nth(6).locator('a').first();
+    await expect(citationLink).toBeAttached();
+    await citationLink.click();
+    const resultLink = page.locator('lis-linkout-element a').first();
+    await expect(resultLink).toBeVisible({timeout: 5000});
+    await expect(resultLink).toHaveAttribute('href', 'https://doi.org/10.1093/jxb/ers039');
+    // Note that linkouts add a trailing period
+    await expect(resultLink).toHaveText('Relationship between asparagine metabolism and protein concentration in soybean seed.');
   });
 });
 
