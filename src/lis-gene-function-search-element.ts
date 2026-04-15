@@ -63,17 +63,32 @@ export type GeneFunctionPublication = {
 };
 
 /**
+ * A string value in a search result that may optionally opt out of linkout rendering.
+ * Plain strings are treated as linkable when the containing column is in
+ * {@link LisGeneFunctionSearchElement.linkoutColumns | `linkoutColumns`}.
+ * Use the object form with `linkable: false` to render a value as plain text even
+ * when its column is configured for linkouts.
+ *
+ * @example
+ * ```js
+ * // primary symbol is linkable (plain string), synonyms are not
+ * geneSymbols: [symbol, ...synonyms.map(s => ({ value: s, linkable: false }))]
+ * ```
+ */
+export type LinkableString = string | {value: string; linkable: false};
+
+/**
  * A single result of a gene function search performed by the
  * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class.
  */
 export type GeneFunctionSearchResult = {
-  geneSymbols: string[];
+  geneSymbols: LinkableString[];
   geneSymbolDescription: string;
   geneModelPubName: string;
   geneModelFullName: string;
   synopsis: string;
   traits: string[];
-  citations?: GeneFunctionPublication;
+  citations?: GeneFunctionPublication | GeneFunctionPublication[];
 };
 
 /**
@@ -539,25 +554,34 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   ): StringObjectModel {
     const transformed: StringObjectModel = {};
     for (const attr of this.resultAttributes) {
-      // citations is a structured object — handle separately
+      // citations: render each publication as a linkout trigger or DOI link;
+      // supports a single GeneFunctionPublication or an array of them
       if (attr === 'citations') {
-        const pub = result.citations;
-        if (!pub?.citation) {
-          transformed[attr] = '';
-        } else if (this.linkoutFunction && pub.doi) {
-          transformed[attr] = this._linkoutAnchor(
-            'publication',
-            pub.doi,
-            pub.citation,
-            pub.title,
-          );
-        } else if (pub.doi) {
-          const escapedDoi = pub.doi.replace(/"/g, '&quot;');
-          transformed[attr] =
-            `<a href="https://doi.org/${escapedDoi}">${pub.citation}</a>`;
-        } else {
-          transformed[attr] = pub.citation;
-        }
+        const raw = result.citations;
+        const pubs: GeneFunctionPublication[] = !raw
+          ? []
+          : Array.isArray(raw)
+            ? raw
+            : [raw];
+        transformed[attr] = pubs
+          .map((pub) => {
+            if (!pub.citation) return '';
+            if (this.linkoutFunction && pub.doi) {
+              return this._linkoutAnchor(
+                'publication',
+                pub.doi,
+                pub.citation,
+                pub.title,
+              );
+            }
+            if (pub.doi) {
+              const escapedDoi = pub.doi.replace(/"/g, '&quot;');
+              return `<a href="https://doi.org/${escapedDoi}">${pub.citation}</a>`;
+            }
+            return pub.citation;
+          })
+          .filter(Boolean)
+          .join('; ');
         continue;
       }
       const value = (result as unknown as Record<string, unknown>)[attr];
@@ -568,15 +592,21 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
       const type = this.linkoutFunction ? this.linkoutColumns[attr] : undefined;
       if (!type) {
         transformed[attr] = Array.isArray(value)
-          ? (value as string[]).join(', ')
+          ? (value as LinkableString[])
+              .map((item) => (typeof item === 'string' ? item : item.value))
+              .join(', ')
           : String(value);
         continue;
       }
-      const values = Array.isArray(value)
-        ? (value as string[])
+      const items = Array.isArray(value)
+        ? (value as LinkableString[])
         : [String(value)];
-      transformed[attr] = values
-        .map((v) => this._linkoutAnchor(type, v, v))
+      transformed[attr] = items
+        .map((item) => {
+          const str = typeof item === 'string' ? item : item.value;
+          const doLink = typeof item === 'string' || item.linkable !== false;
+          return doLink ? this._linkoutAnchor(type, str, str) : str;
+        })
         .join(', ');
     }
     return transformed;
