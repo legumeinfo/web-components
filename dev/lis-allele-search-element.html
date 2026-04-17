@@ -59,7 +59,7 @@
         // 1. Connector Functions
 
         // Location Search -> GraphQL
-        // Query: genes(identifier: $id) { results { locations { chromosome { identifier } start end } } }
+        // Query: genes(identifier: $id) { results { locations { locatedOn { identifier } start end } } }
         async function locationSearchFunction(identifier, abortSignal) {
             // Trim whitespace from the identifier.
             if (typeof identifier === 'string') {
@@ -70,7 +70,7 @@
                     genes(identifier: $identifier) {
                         results {
                             locations {
-                                chromosome { identifier }
+                                locatedOn { identifier }
                                 start
                                 end
                             }
@@ -84,7 +84,7 @@
             const loc = result.locations[0];
             // The alleles API expects the full contig identifier from the VCF,
             // e.g. "glyma.Wm82.gnm4.Gm16", not just "Gm16".
-            const fullChrom = loc.chromosome.identifier;
+            const fullChrom = loc.locatedOn.identifier;
 
             return {
                 chromosome: fullChrom,
