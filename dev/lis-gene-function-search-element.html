@@ -96,6 +96,8 @@
               symbol
               symbolLong
               classicalLocus
+              synonyms
+              pubName
               genes {
                 name
                 identifier
@@ -137,11 +139,11 @@
 
             // flatten results
             const results = 
-              data.geneFunctions.results.map(({symbol, symbolLong, classicalLocus, genes, synopsis, traits, publications}) => {
+              data.geneFunctions.results.map(({symbol, symbolLong, synonyms, classicalLocus, pubName, genes, synopsis, traits, publications}) => {
                 return {
-                  geneSymbols: [symbol],
+                  geneSymbols: [symbol, ...synonyms.filter(i => ![symbol, symbolLong].includes(i)).map(s => ({value: s, linkable: false}))],
                   geneSymbolDescription: symbolLong,
-                  geneModelPubName: genes[0]?.name,
+                  geneModelPubName: pubName,
                   geneModelFullName: genes[0]?.identifier,
                   synopsis,
                   traits: traits.map(t => t.name).join(', '),
