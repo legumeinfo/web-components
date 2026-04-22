@@ -19,19 +19,19 @@ test.describe('genus search', () => {
 
   test('displays known first result', async ({page}) => {
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
-    await expect(firstRow.locator('td').nth(1)).toHaveText('asparaginase synthetase 1a');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('E1La, Glyma.04G156400');
+    await expect(firstRow.locator('td').nth(1)).toHaveText('E1-like-a');
     // citations are rendered as linkout triggers — check the link exists and shows the citation text
     await expect(firstRow.locator('td').nth(6).locator('a').first()).toBeAttached();
-    await expect(firstRow.locator('td').nth(6)).toContainText('Pandurangan_Pajak_2012');
+    await expect(firstRow.locator('td').nth(6)).toContainText('Xu, Yamagishi et al., 2015');
   });
 
   test('displays the correct total result count', async ({page}) => {
-    await expect(page.getByText('175 results')).toBeVisible();
+    await expect(page.getByText('215 results')).toBeVisible();
   });
 
   test('displays the correct page range in results info', async ({page}) => {
-    await expect(page.getByText('1-10 of 175 results')).toBeVisible();
+    await expect(page.getByText('1-10 of 215 results')).toBeVisible();
   });
 });
 
@@ -47,13 +47,13 @@ test.describe('genus + species search', () => {
   });
 
   test('displays the correct result count for Glycine max', async ({page}) => {
-    await expect(page.getByText('173 results')).toBeVisible();
+    await expect(page.getByText('213 results')).toBeVisible();
   });
 
   test('displays known first result', async ({page}) => {
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
-    await expect(firstRow.locator('td').nth(1)).toHaveText('asparaginase synthetase 1a');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('E1La, Glyma.04G156400');
+    await expect(firstRow.locator('td').nth(1)).toHaveText('E1-like-a');
   });
 });
 
@@ -67,13 +67,13 @@ test.describe('traits search', () => {
   });
 
   test('returns results matching the trait', async ({page}) => {
-    await expect(page.getByText('55 results')).toBeVisible();
+    await expect(page.getByText('60 results')).toBeVisible();
   });
 
   test('displays known first result for flowering trait', async ({page}) => {
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('E1');
-    await expect(firstRow.locator('td').nth(1)).toHaveText('Earliness 1');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('E1La, Glyma.04G156400');
+    await expect(firstRow.locator('td').nth(1)).toHaveText('E1-like-a');
   });
 });
 
@@ -88,10 +88,10 @@ test.describe('gene identifier search', () => {
 
   test('returns the specific known result', async ({page}) => {
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
-    await expect(firstRow.locator('td').nth(1)).toHaveText('asparaginase synthetase 1a');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('GmAS1a, Glyma11g27480');
+    await expect(firstRow.locator('td').nth(1)).toHaveText('Asparaginase Synthetase 1a');
     await expect(firstRow.locator('td').nth(6).locator('a').first()).toBeAttached();
-    await expect(firstRow.locator('td').nth(6)).toContainText('Pandurangan_Pajak_2012');
+    await expect(firstRow.locator('td').nth(6)).toContainText('Pandurangan, Pajak et al., 2012');
   });
 });
 
@@ -116,7 +116,7 @@ test.describe('pagination', () => {
 
   test('page 2 shows a different result range', async ({page}) => {
     await page.locator('a', {hasText: 'Next'}).click();
-    await expect(page.getByText('11-20 of 175 results')).toBeVisible({timeout: 10000});
+    await expect(page.getByText('11-20 of 215 results')).toBeVisible({timeout: 10000});
   });
 
   test('page 2 shows different results from page 1', async ({page}) => {
@@ -124,13 +124,13 @@ test.describe('pagination', () => {
     await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
     // Page 1 starts with AS1a; page 2 starts with E1
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('E1');
-    await expect(firstRow.locator('td').nth(1)).toHaveText('Earliness 1');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('GmANR2, Glyma.08G062100');
+    await expect(firstRow.locator('td').nth(1)).toHaveText('Anthocyanidin Reductase 2');
   });
 
   test('new search resets to page 1', async ({page}) => {
     await page.locator('a', {hasText: 'Next'}).click();
-    await expect(page.getByText('11-20 of 175 results')).toBeVisible({timeout: 10000});
+    await expect(page.getByText('11-20 of 215 results')).toBeVisible({timeout: 10000});
     // Submit a new search — should return to page 1
     await page.locator('input[name="traits"]').fill('flowering');
     await page.locator('button[type="submit"]').click();
@@ -140,8 +140,7 @@ test.describe('pagination', () => {
   test('new search replaces previous results', async ({page}) => {
     await page.locator('input[name="traits"]').fill('flowering');
     await page.locator('button[type="submit"]').click();
-    // Previous result AS1a should be gone; E1 (first flowering result) should appear
-    await expect(page.locator('tbody tr').first().locator('td').nth(0)).toHaveText('E1', {timeout: 10000});
+    await expect(page.locator('tbody tr').first().locator('td').nth(0)).toHaveText('E1La, Glyma.04G156400', {timeout: 10000});
     await expect(page.getByText('AS1a')).toHaveCount(0);
   });
 });
@@ -160,15 +159,15 @@ test.describe('URL query string', () => {
     await page.goto('/dev/lis-gene-function-search-element.html?genus=Glycine&page=1');
     await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('AS1a');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('E1La, Glyma.04G156400');
   });
 
   test('loading page 2 via query string shows the correct results', async ({page}) => {
     await page.goto('/dev/lis-gene-function-search-element.html?genus=Glycine&page=2');
     await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
-    await expect(page.getByText('11-20 of 175 results')).toBeVisible();
+    await expect(page.getByText('11-20 of 215 results')).toBeVisible();
     const firstRow = page.locator('tbody tr').first();
-    await expect(firstRow.locator('td').nth(0)).toHaveText('E1');
+    await expect(firstRow.locator('td').nth(0)).toHaveText('GmANR2, Glyma.08G062100');
   });
 });
 
@@ -200,7 +199,7 @@ test.describe('genus property locking', () => {
   test('search is restricted to the locked genus', async ({page}) => {
     await page.locator('button[type="submit"]').click();
     await expect(page.locator('tbody tr').first()).toBeVisible({timeout: 10000});
-    await expect(page.getByText('175 results')).toBeVisible();
+    await expect(page.getByText('215 results')).toBeVisible();
   });
 });
 
@@ -255,9 +254,9 @@ test.describe('linkouts', () => {
     await citationLink.click();
     const resultLink = page.locator('lis-linkout-element a').first();
     await expect(resultLink).toBeVisible({timeout: 5000});
-    await expect(resultLink).toHaveAttribute('href', 'https://doi.org/10.1093/jxb/ers039');
+    await expect(resultLink).toHaveAttribute('href', 'https://doi.org/10.1104/pp.15.00763');
     // Note that linkouts add a trailing period
-    await expect(resultLink).toHaveText('Relationship between asparagine metabolism and protein concentration in soybean seed.');
+    await expect(resultLink).toHaveText('The Soybean-Specific Maturity Gene E1 Family of Floral Repressors Controls Night-Break Responses through Down-Regulation of FLOWERING LOCUS T Orthologs .');
   });
 });
 
