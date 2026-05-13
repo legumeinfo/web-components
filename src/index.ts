@@ -16,4 +16,5 @@ export * from './lis-publication-search-element';
 export * from './lis-linkout-element';
 export * from './lis-allele-search-element';
 export * from './lis-trait-association-search-element';
+export * from './lis-gene-function-search-element';
 export * from './viz';

@@ -104,7 +104,7 @@
             strain { identifier }
             geneFamilyAssignments { geneFamily { identifier } }
             panGeneSets { identifier }
-            locations { chromosome { identifier } supercontig { identifier } start end strand }
+            locations { locatedOn { identifier } start end strand }
           }
           pageInfo {
             pageSize
@@ -153,17 +153,9 @@
                       gene.panGeneSets
                       .map(({identifier}) => `<a href="#modal" data-pangeneset="${identifier}" uk-toggle>${identifier}</a>`);
                 const locations =
-                  gene.locations.map(({chromosome, supercontig, start, end, strand}) => {
-                    let location = `unknown`;
-                    let type = '';
-                    if (chromosome?.identifier) {
-                      location = chromosome?.identifier;
-                      type = 'chromosome';
-                    } else if (supercontig?.identifier) {
-                      location = supercontig?.identifier;
-                      type = 'supercontig';
-                    }
-                    const text = `${location}:${start}-${end} (${strand}) (${type})`;
+                  gene.locations.map(({locatedOn, start, end, strand}) => {
+                    const location = locatedOn?.identifier ?? 'unknown';
+                    const text = `${location}:${start}-${end} (${strand})`;
                     return `<a href="#modal"
                               data-location="${location}"
                               data-start="${start}"

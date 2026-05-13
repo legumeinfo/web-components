@@ -1,6 +1,6 @@
 {
   "name": "@legumeinfo/web-components",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Web Components for the Legume Information System and other AgBio databases",
   "repository": {
     "type": "git",
@@ -36,6 +36,8 @@
     "serve": "wds --watch",
     "serve:prod": "MODE=prod npm run serve",
     "test": "npm run test:dev && npm run test:prod",
+    "test:e2e": "playwright test",
+    "codegen": "playwright codegen http://localhost:8000",
     "test:clean": "rimraf test",
     "test:dev": "wtr",
     "test:watch": "wtr --watch",
@@ -63,9 +65,10 @@
     "@eslint/js": "^9.26.0",
     "@legumeinfo/taxon-symbology": "^1.1.0",
     "@open-wc/testing": "^4.0.0",
+    "@playwright/test": "^1.59.1",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-replace": "^6.0.2",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@types/eslint__js": "^8.42.3",
     "@web/dev-server": "^0.4.6",
     "@web/dev-server-import-maps": "^0.2.1",

@@ -1,17 +1,18 @@
 import {LitElement, css, html} from 'lit';
-import {customElement} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 import {LisPaginatedSearchMixin, PaginatedSearchOptions} from './mixins';
-import {property, state} from 'lit/decorators.js';
 import {LisCancelPromiseController} from './controllers';
 import {LisLoadingElement} from './core';
+import {LisLinkoutElement, LinkoutFunction} from './lis-linkout-element';
+import {StringObjectModel} from './models';
 import {createRef, ref, Ref} from 'lit/directives/ref.js';
 import {live} from 'lit/directives/live.js';
 
 /**
  * The data used to construct the search form in the
- * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} template.
+ * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} template.
  */
-export type TraitAssociationSearchFormData = {
+export type GeneFunctionSearchFormData = {
   genuses: {
     genus: string;
     species: {
@@ -26,182 +27,156 @@ export type TraitAssociationSearchFormData = {
  * before the current function completes. This signal should be used to cancel in-flight
  * requests if the external API supports it.
  */
-export type TraitAssociationSearchFormDataOptions = {abortSignal?: AbortSignal};
+export type GeneFunctionSearchFormDataOptions = {abortSignal?: AbortSignal};
 
 /**
  * The type signature of a function that may be used to load the data used to construct
- * the search form in the {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`}
+ * the search form in the {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`}
  * template.
  */
-export type TraitAssociationFormDataFunction = (
-  options: TraitAssociationSearchFormDataOptions,
-) => Promise<TraitAssociationSearchFormData>;
+export type GeneFunctionFormDataFunction = (
+  options: GeneFunctionSearchFormDataOptions,
+) => Promise<GeneFunctionSearchFormData>;
 
 /**
  * The data that will be passed to the search function by the
- * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class when a search
+ * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class when a search
  * is performed.
  */
-export type TraitAssociationSearchData = {
+export type GeneFunctionSearchData = {
   page: number;
   genus: string;
   species: string;
-  type: string;
+  geneIdentifier: string;
   traits: string;
   pubId: string;
   author: string;
 };
 
 /**
- * A single result of a trait association search performed by the
- * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class.
- * Contains the name of the trait and either a GWAS or QTL study object.
- *
+ * A publication associated with a gene function search result.
  */
-export type TraitAssociationSearchResult = {
-  name: string;
-  type: string;
-  identifier: string;
-  synopsis: string;
-  description: string;
-  genotypes: string;
+export type GeneFunctionPublication = {
+  citation: string;
+  doi?: string;
+  title?: string;
 };
 
 /**
+ * A string value in a search result that may optionally opt out of linkout rendering.
+ * Plain strings are treated as linkable when the containing column is in
+ * {@link LisGeneFunctionSearchElement.linkoutColumns | `linkoutColumns`}.
+ * Use the object form with `linkable: false` to render a value as plain text even
+ * when its column is configured for linkouts.
+ *
+ * @example
+ * ```js
+ * // primary symbol is linkable (plain string), synonyms are not
+ * geneSymbols: [symbol, ...synonyms.map(s => ({ value: s, linkable: false }))]
+ * ```
+ */
+export type LinkableString = string | {value: string; linkable: false};
+
+/**
+ * A single result of a gene function search performed by the
+ * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class.
+ */
+export type GeneFunctionSearchResult = {
+  geneSymbols: LinkableString[];
+  geneSymbolDescription: string;
+  geneModelPubName: string;
+  geneModelFullName: string;
+  synopsis: string;
+  traits: string[];
+  citations?: GeneFunctionPublication | GeneFunctionPublication[];
+};
+
+/**
+ * Maps result attribute names to linkout type strings. When set alongside
+ * {@link LisGeneFunctionSearchElement.linkoutFunction | `linkoutFunction`},
+ * cells for the specified columns will be rendered as links that open a
+ * linkout modal. The type string is passed through to the linkout function
+ * as `{type, variables: {identifier}}`.
+ *
+ * @example
+ * ```js
+ * searchElement.linkoutColumns = {
+ *   geneSymbols: 'symbol',
+ *   geneModelFullName: 'gene',
+ * };
+ * ```
+ */
+export type GeneFunctionLinkoutColumns = Record<string, string>;
+
+/**
  * The signature of the function the
- * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class requires for
- * performing a trait association search.
+ * {@link LisGeneFunctionSearchElement | `LisGeneFunctionSearchElement`} class requires for
+ * performing a gene function search.
  *
  * @param searchData An object containing a value of each field in the submitted form.
- * @param options Optional parameters that aren't required to perform a trait association search
+ * @param options Optional parameters that aren't required to perform a gene function search
  * but may be useful.
  *
  * @returns A {@link !Promise | `Promise`} that resolves to an
- * {@link !Array | `Array`} of {@link TraitAssociationSearchResult | `TraitAssociationSearchResult`}
+ * {@link !Array | `Array`} of {@link GeneFunctionSearchResult | `GeneFunctionSearchResult`}
  * objects.
  */
-export type TraitAssociationSearchFunction = (
-  searchData: TraitAssociationSearchData,
+export type GeneFunctionSearchFunction = (
+  searchData: GeneFunctionSearchData,
   options: PaginatedSearchOptions,
-) => Promise<Array<TraitAssociationSearchResult>>;
+) => Promise<Array<GeneFunctionSearchResult>>;
 
 /**
- * @htmlElement `<lis-trait-association-search-element>`
+ * @htmlElement `<lis-gene-function-search-element>`
  *
- * A Web Component that provides a search form for searching for GWAS and QTL trait associations and
+ * A Web Component that provides a search form for searching gene functions and
  * displaying the results in a view table. Note that the component saves its state to the URL query
  * string parameters and a search will be automatically performed if the parameters are present when
- * the componnent is loaded. The component uses the
+ * the component is loaded. The component uses the
  * {@link mixins!LisPaginatedSearchMixin | `LisPaginatedSearchMixin`} mixin. See the mixin docs for
  * further details.
  *
  * @queryStringParameters
- * - **genus:** The selected genus in the search for.
- * - **species:** The selected species in the search for.
- * - **type:** The selected type in the search form. Either 'GWAS' or 'QTL'.
+ * - **genus:** The selected genus in the search form.
+ * - **species:** The selected species in the search form.
+ * - **geneIdentifier:** The gene ID, symbol, or locus name provided in the search form.
  * - **traits:** The traits provided in the search form.
- * - **pubId** The publication ID provided in the search form. Either a PubMed ID or a DOI.
- * - **author** The author provided in the search form.
+ * - **pubId:** The publication ID provided in the search form. Either a PubMed ID or a DOI.
+ * - **author:** The author provided in the search form.
  * - **page:** What page of results is loaded. Starts at 1.
  *
  * @example
- * {@link !HTMLElement | `HTMLElement`} properties can only be set via
- * JavaScript. This means the {@link searchFunction | `searchFunction`} property
- * must be set on a `<lis-trait-association-search-element>` tag's instance of the
- * {@link LisTraitAssociationSearchElement | `LisTraitAssociationSearchElement`} class. For example:
- * ```html
- * <!-- add the Web Component to your HTML -->
- * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
- *
- * <!-- configure the Web Component via JavaScript -->
- * <script type="text/javascript">
- *   // a site-specific function that sends a request to a trait association search API
- *   function getTraits(searchData, {abortSignal}) {
- *     // returns a Promise that resolves to a search result object
- *   }
- *   // get the trait association search element
- *   const searchElement = document.getElementById('trait-association-search');
- *   // set the element's searchFunction property
- *   searchElement.searchFunction = getTraits;
- * </script>
- * ```
- *
- * @example
- * Data must be provided for the genus and species selectors in the search form.
- * This can be done by setting the form's {@link formData | `formData`} attribute/property directly
- * or by setting the {@link formDataFunction | `formDataFunction`} property. Setting the latter will
- * call the function immediately and set the {@link formData | `formData`} value using the result.
- * For example:
- * ```html
- * <!-- add the Web Component to your HTML -->
- * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
- *
- * <!-- configure the Web Component via JavaScript -->
- * <script type="text/javascript">
- *   // a site-specific function that gets genus and species data from an API
- *   function getFormData() {
- *     // returns a Promise that resolves to a form data object
- *   }
- *   // get the trait association search element
- *   const searchElement = document.getElementById('trait-association-search');
- *   // set the element's formDataFunction property
- *   searchElement.formDataFunction = getGeneFormData;
- * </script>
- * ```
- *
- * @example
- * The {@link genus | `genus`} and {@link species | `species`} properties can be used to limit all
- * searches to a specific genus and species. This will cause the genus and species fields of the
- * search form to be automatically set and disabled so that users cannot change them. Additionally,
- * these properties cannot be overridden using the `genus` and `species` querystring parameters.
- * However, like the `genus` and `species` querystring parameters, if the genus/species set are not
- * present in the `formData` then the genus/species form fields will be set to the default `any`
- * value. Note that setting the `species` value has no effect if the `genus` value is not also set.
- * For example:
- * ```html
- * <!-- restrict the genus via HTML -->
- * <lis-trait-association-search-element genus="Glycine"></lis-trait-association-search-element>
- *
- * <!-- restrict the genus and species via HTML -->
- * <lis-trait-association-search-element genus="Glycine" species="max"></lis-trait-association-search-element>
- *
- * <!-- restrict the genus and species via JavaScript -->
- * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
- *
- * <script type="text/javascript">
- *   // get the trait association search element
- *   const searchElement = document.getElementById('trait-association-search');
- *   // set the element's genus and species properties
- *   searchElement.genus = "Cicer";
- *   searchElement.species = "arietinum";
- * </script>
- * ```
- *
- * @example
- * The {@link traitsExample | `traitsExample`}, {@link publicationExample | `publicationExample`}, and
- * {@link authorExample | `authorExample`} properties can be used to set the example text for the
- * Traits, Publication ID, and Author input fields, respectively. For example:
+ * The {@link geneIdentifierExample | `geneIdentifierExample`}, {@link traitsExample | `traitsExample`},
+ * {@link publicationExample | `publicationExample`}, and {@link authorExample | `authorExample`}
+ * properties can be used to set the example text for the Gene ID, Traits, Publication ID, and Author
+ * input fields, respectively. For example:
  * ```html
  * <!-- set the example text via HTML -->
- * <lis-trait-association-search-element traitsExample="R8 full maturity" publicationExample="10.2135/cropsci2005.05-0168" authorExample="Specht"></lis-trait-association-search-element>
+ * <lis-gene-function-search-element
+ *   geneIdentifierExample="Glyma01g37810"
+ *   traitsExample="R8 full maturity"
+ *   publicationExample="10.1111/jipb.13070"
+ *   authorExample="Watanobe">
+ * </lis-gene-function-search-element>
  *
  * <!-- set the example text via JavaScript -->
- * <lis-trait-association-search-element id="trait-association-search"></lis-trait-association-search-element>
+ * <lis-gene-function-search-element id="gene-function-search"></lis-gene-function-search-element>
  *
  * <script type="text/javascript">
- *   // get the trait association search element
- *   const searchElement = document.getElementById('trait-association-search');
+ *   // get the gene function search element
+ *   const searchElement = document.getElementById('gene-function-search');
  *   // set the element's example text properties
+ *   searchElement.geneIdentifierExample = 'Glyma01g37810';
  *   searchElement.traitsExample = 'R8 full maturity';
- *   searchElement.publicationExample = '10.2135/cropsci2005.05-0168';
- *   searchElement.authorExample = 'Specht';
+ *   searchElement.publicationExample = '10.1111/jipb.13070';
+ *   searchElement.authorExample = 'Watanobe';
  * </script>
  * ```
  */
-@customElement('lis-trait-association-search-element')
-export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
+@customElement('lis-gene-function-search-element')
+export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
   LitElement,
-)<TraitAssociationSearchData, TraitAssociationSearchResult>() {
+)<GeneFunctionSearchData, GeneFunctionSearchResult>() {
   /** @ignore */
   // used by Lit to style the Shadow DOM
   // not necessary but exclusion breaks TypeDoc
@@ -213,15 +188,14 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    * @attribute
    */
   @property()
-  formData: TraitAssociationSearchFormData = {genuses: []};
+  formData: GeneFunctionSearchFormData = {genuses: []};
 
   /**
    * An optional property that can be used to load the form data via an external function.
    * If used, the `formData` attribute/property will be updated using the result.
    */
   @property({type: Function, attribute: false})
-  formDataFunction: TraitAssociationFormDataFunction = () =>
-    Promise.reject(new Error('No form data function provided'));
+  formDataFunction?: GeneFunctionFormDataFunction;
 
   /**
    * An optional property that limits searches to a specific genus. Setting the property to the
@@ -241,6 +215,14 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
    */
   @property({type: String})
   species?: string;
+
+  /**
+   * An optional property to set the example text for the Gene ID input field.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  geneIdentifierExample?: string;
 
   /**
    * An optional property to set the example text for the Traits input field.
@@ -266,6 +248,22 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   @property({type: String})
   authorExample?: string;
 
+  /**
+   * An optional function for performing linkouts. When provided alongside
+   * {@link linkoutColumns | `linkoutColumns`}, cells for the configured columns
+   * will be rendered as links that open a linkout modal.
+   */
+  @property({type: Function, attribute: false})
+  linkoutFunction?: LinkoutFunction<unknown>;
+
+  /**
+   * Maps result attribute names to linkout type strings passed to
+   * {@link linkoutFunction | `linkoutFunction`}. Has no effect unless
+   * `linkoutFunction` is also set.
+   */
+  @property({type: Object, attribute: false})
+  linkoutColumns: GeneFunctionLinkoutColumns = {};
+
   // the selected index of the genus select element
   @state()
   private selectedGenus: number = 0;
@@ -274,17 +272,17 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   @state()
   private selectedSpecies: number = 0;
 
-  // available study types
-  private _studyTypes = ['GWAS', 'QTL'];
-
-  // the index of the selected type of study (GWAS or QTL)
-  @state()
-  private selectedType: number = 0;
-
   // a controller that allows in-flight form data requests to be cancelled
   protected formDataCancelPromiseController = new LisCancelPromiseController(
     this,
   );
+
+  // unique ID for the linkout modal — avoids conflicts when multiple instances are on the same page
+  private _modalId = `lis-gene-function-linkout-${Math.random().toString(36).slice(2)}`;
+
+  // direct reference to the linkout element — createRef is used instead of @query because
+  // UIkit moves the modal <div> to document.body on open, which would break a querySelector
+  private _linkoutRef: Ref<LisLinkoutElement> = createRef();
 
   // bind to the loading element in the template
   private _formLoadingRef: Ref<LisLoadingElement> = createRef();
@@ -295,26 +293,28 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     this.requiredQueryStringParams = [
       ['genus'],
       ['genus', 'species'],
+      ['geneIdentifier'],
       ['traits'],
-      ['type'],
       ['pubId'],
       ['author'],
     ];
     this.resultAttributes = [
-      'identifier',
-      'type',
+      'geneSymbols',
+      'geneSymbolDescription',
+      'geneModelPubName',
+      'geneModelFullName',
       'synopsis',
-      'description',
-      'name',
-      'genotypes',
+      'traits',
+      'citations',
     ];
     this.tableHeader = {
-      identifier: 'Study Name',
-      type: 'Study Type',
+      geneSymbols: 'Gene Symbols',
+      geneSymbolDescription: 'Gene Symbol Description',
+      geneModelPubName: 'Gene Model Pub Name',
+      geneModelFullName: 'Gene Model Full Name',
       synopsis: 'Synopsis',
-      description: 'Description',
-      name: 'Name',
-      genotypes: 'Genotypes',
+      traits: 'Traits',
+      citations: 'Citations',
     };
     this.tableColumnClasses = {
       description: 'uk-table-expand',
@@ -332,9 +332,10 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
   // called when the component is added to the DOM; attributes should have properties now
   override connectedCallback() {
     super.connectedCallback();
+    this.addEventListener('click', this._handleLinkoutClick);
     // initialize the form data with querystring parameters so a search can be performed
     // before the actual form data is loaded
-    const formData: TraitAssociationSearchFormData = {genuses: []};
+    const formData: GeneFunctionSearchFormData = {genuses: []};
     const genus = this._getDefaultGenus();
     if (genus) {
       formData.genuses.push({genus, species: []});
@@ -350,10 +351,15 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     });
   }
 
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('click', this._handleLinkoutClick);
+  }
+
   // called after every component update, e.g. when a property changes
   override updated(changedProperties: Map<string, unknown>) {
     // call the formDataFunction every time its value changes
-    if (changedProperties.has('formDataFunction')) {
+    if (changedProperties.has('formDataFunction') && this.formDataFunction) {
       this._getFormData();
     }
     // use querystring parameters to update the selectors when the form data changes
@@ -375,7 +381,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     const options = {
       abortSignal: this.formDataCancelPromiseController.abortSignal,
     };
-    const formDataPromise = this.formDataFunction(options);
+    const formDataPromise = this.formDataFunction!(options);
     // call the cancellable function
     this.formDataCancelPromiseController.wrapPromise(formDataPromise).then(
       (formData) => {
@@ -412,15 +418,6 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
           .indexOf(species) + 1;
     } else {
       this.selectedSpecies = 0;
-    }
-
-    await this.updateComplete;
-
-    const type = this.queryStringController.getParameter('type');
-    if (type) {
-      this.selectedType = this._studyTypes.indexOf(type) + 1;
-    } else {
-      this.selectedType = 0;
     }
   }
 
@@ -474,6 +471,7 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
       this.selectedSpecies = (event.target as HTMLSelectElement).selectedIndex;
     }
   }
+
   // renders the species selector
   private _renderSpeciesSelector() {
     let options = [html``];
@@ -518,28 +516,131 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     `;
   }
 
-  // called when a type is selected
-  private _selectType(event: Event) {
-    if (event.target != null) {
-      this.selectedType = (event.target as HTMLSelectElement).selectedIndex;
+  // handles clicks on linkout anchor tags produced by _transformResultForLinkouts
+  private _handleLinkoutClick = (e: Event) => {
+    const target = e.target as HTMLElement;
+    const link = target.closest('[data-linkout-type]') as HTMLElement | null;
+    if (link && this._linkoutRef.value) {
+      const type = link.getAttribute('data-linkout-type')!;
+      const identifier = link.getAttribute('data-linkout-identifier')!;
+      const label = link.getAttribute('data-linkout-label') ?? undefined;
+      this._linkoutRef.value.getLinkouts({
+        type,
+        variables: {identifier, label},
+      });
     }
+  };
+
+  // builds a linkout anchor string for use inside a table cell;
+  // linkoutLabel is an optional hint passed to the linkout function as variables.label
+  private _linkoutAnchor(
+    type: string,
+    identifier: string,
+    anchorText: string,
+    linkoutLabel?: string,
+  ): string {
+    const escapedId = identifier.replace(/"/g, '&quot;');
+    const labelAttr = linkoutLabel
+      ? ` data-linkout-label="${linkoutLabel.replace(/"/g, '&quot;')}"`
+      : '';
+    return `<a href="#${this._modalId}" uk-toggle data-linkout-type="${type}" data-linkout-identifier="${escapedId}"${labelAttr}>${anchorText}</a>`;
   }
 
-  // renders the type selector
-  private _renderTypeSelector() {
-    const options = this._studyTypes.map((type) => {
-      return html`<option value="${type}">${type}</option>`;
-    });
+  // transforms every result row to a flat StringObjectModel for the table;
+  // citations (a structured object) are always converted to a display string,
+  // and linkout columns are rendered as anchors when linkoutFunction is set
+  private _transformResult(
+    result: GeneFunctionSearchResult,
+  ): StringObjectModel {
+    const transformed: StringObjectModel = {};
+    for (const attr of this.resultAttributes) {
+      // citations: render each publication as a linkout trigger or DOI link;
+      // supports a single GeneFunctionPublication or an array of them
+      if (attr === 'citations') {
+        const raw = result.citations;
+        const pubs: GeneFunctionPublication[] = !raw
+          ? []
+          : Array.isArray(raw)
+            ? raw
+            : [raw];
+        transformed[attr] = pubs
+          .map((pub) => {
+            if (!pub.citation) return '';
+            if (this.linkoutFunction && pub.doi) {
+              return this._linkoutAnchor(
+                'publication',
+                pub.doi,
+                pub.citation,
+                pub.title,
+              );
+            }
+            if (pub.doi) {
+              const escapedDoi = pub.doi.replace(/"/g, '&quot;');
+              return `<a href="https://doi.org/${escapedDoi}">${pub.citation}</a>`;
+            }
+            return pub.citation;
+          })
+          .filter(Boolean)
+          .join('; ');
+        continue;
+      }
+      const value = (result as unknown as Record<string, unknown>)[attr];
+      if (value === undefined || value === null) {
+        transformed[attr] = '';
+        continue;
+      }
+      const type = this.linkoutFunction ? this.linkoutColumns[attr] : undefined;
+      if (!type) {
+        transformed[attr] = Array.isArray(value)
+          ? (value as LinkableString[])
+              .map((item) => (typeof item === 'string' ? item : item.value))
+              .join(', ')
+          : String(value);
+        continue;
+      }
+      const items = Array.isArray(value)
+        ? (value as LinkableString[])
+        : [String(value)];
+      transformed[attr] = items
+        .map((item) => {
+          const str = typeof item === 'string' ? item : item.value;
+          const doLink = typeof item === 'string' || item.linkable !== false;
+          return doLink ? this._linkoutAnchor(type, str, str) : str;
+        })
+        .join(', ');
+    }
+    return transformed;
+  }
+
+  /** @ignore */
+  // overrides the mixin's default results rendering to support linkout columns and
+  // structured citations
+  protected override renderResults(): unknown {
+    const data = this.searchResults.map((r) =>
+      this._transformResult(r as unknown as GeneFunctionSearchResult),
+    );
+
+    const table = html`
+      <lis-simple-table-element
+        .dataAttributes=${this.resultAttributes}
+        .header=${this.tableHeader}
+        .columnClasses=${this.tableColumnClasses}
+        .data=${data}
+      ></lis-simple-table-element>
+    `;
+
+    if (!this.linkoutFunction) {
+      return table;
+    }
+
     return html`
-      <select
-        class="uk-select uk-form-small"
-        name="type"
-        .selectedIndex=${live(this.selectedType)}
-        @change="${this._selectType}"
-      >
-        <option value="">-- any --</option>
-        ${options}
-      </select>
+      ${table}
+      <lis-modal-element modalId="${this._modalId}">
+        <lis-linkout-element
+          ${ref(this._linkoutRef)}
+          .linkoutFunction=${this.linkoutFunction}
+        ></lis-linkout-element>
+      </lis-modal-element>
     `;
   }
 
@@ -549,13 +650,12 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
     // render the form's selectors
     const genusSelector = this._renderGenusSelector();
     const speciesSelector = this._renderSpeciesSelector();
-    const typeSelector = this._renderTypeSelector();
 
     // render the form
     return html`
       <form class="uk-form-stacked">
         <fieldset class="uk-fieldset">
-          <legend class="uk-legend">Trait Association Search</legend>
+          <legend class="uk-legend">Gene Function Search</legend>
           <lis-loading-element
             ${ref(this._formLoadingRef)}
           ></lis-loading-element>
@@ -569,8 +669,20 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
               ${speciesSelector}
             </div>
             <div class="uk-width-1-3@s">
-              <label class="uk-form-label" for="type">Study Type</label>
-              ${typeSelector}
+              <label class="uk-form-label" for="geneIdentifier"
+                >Gene ID, symbol, or locus name</label
+              >
+              <input
+                class="uk-input"
+                type="text"
+                name="geneIdentifier"
+                .value=${this.queryStringController.getParameter(
+                  'geneIdentifier',
+                )}
+              />
+              <lis-form-input-example-element
+                .text=${this.geneIdentifierExample}
+              ></lis-form-input-example-element>
             </div>
           </div>
           <div class="uk-margin uk-grid-small" uk-grid>
@@ -626,6 +738,6 @@ export class LisTraitAssociationSearchElement extends LisPaginatedSearchMixin(
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lis-trait-association-search-element': LisTraitAssociationSearchElement;
+    'lis-gene-function-search-element': LisGeneFunctionSearchElement;
   }
 }

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-gene-function-search-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- GraphQL -->
+    <script type="text/javascript" src="./graphql.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container uk-margin-bottom">
+      <h1>&lt;lis-gene-function-search-element&gt;</h1>
+      <p>
+        TODO: Add description here.
+      </p>
+      <p>
+        Optionally, all searches can be limited to a specific genus by setting the <code>genus</code> attribute/property.
+        This will cause the genus field of the search form to be automatically set and disabled so that users cannot change it.
+        Similarly, all searches can be limited to a specific species by setting the <code>species</code> attribute/property in conjunction with the <code>genus</code> attribute/property.
+        You can try setting the <code>genus</code> and <code>species</code> properties in this example using the <code>geneFunctionSearchElement</code> variable in the Web console.
+      </p>
+      <p>
+        Example text for the Gene ID, Traits, Publication ID, and Author fields can be provided by setting the <code>geneIdentifierExample</code>, <code>traitsExample</code>, <code>publicationExample</code>, and <code>authorExample</code> attributes/properties, respectively.
+      </p>
+
+      <hr>
+    </div>
+
+    <div class="uk-container uk-container-expand">
+      <!-- the custom gene function search element -->
+      <lis-gene-function-search-element id="gene-function-search" geneIdentifierExample="Glyma01g37810, E9, Dt1 FT" traitsExample="flowering, maturity, height" publicationExample="10.1111/jipb.13070 or 33458938" authorExample="Watanobe"></lis-gene-function-search-element>
+    </div>
+
+    <!-- set the search function by property because functions can't be set as attributes -->
+    <script type="text/javascript">
+
+      // uses the LIS GraphQL API to get data used to construct the search form
+      const formDataQuery = `
+        query FormDataQuery {
+          organisms {
+            results {
+              genus
+              species
+            }
+          }
+        }
+      `;
+
+      function getFormData({abortSignal}) {
+        return graphqlQuery(uri, formDataQuery, {}, abortSignal)
+          .then(({data}) => {
+            // bin the strains by genus then species
+            const binnedFormData = {};
+            data.organisms.results.forEach(({genus, species}) => {
+              if (!(genus in binnedFormData)) {
+                binnedFormData[genus] = [];
+              }
+              binnedFormData[genus].push(species);
+            });
+            // collapse the bins into arrays of objects
+            const genuses =
+              Object.entries(binnedFormData).map(([genus, binnedSpecies]) => {
+                const species = binnedSpecies.map((species) => {
+                  return {species};
+                });
+                return {genus, species};
+              });
+            // return the expected form data object
+            return {genuses};
+          });
+      }
+
+      const geneFunctionQuery = `
+        query GeneFunctions($symbol: String, $trait: String, $gene: String, $genus: String, $species: String, $publicationId: String, $author: String, $page: Int, $pageSize: Int) {
+          geneFunctions(symbol: $symbol, trait: $trait, gene: $gene, genus: $genus, species: $species, publicationId: $publicationId, author: $author, page: $page, pageSize: $pageSize) {
+            pageInfo {
+              currentPage
+              pageSize
+              numResults
+              pageCount
+              hasPreviousPage
+              hasNextPage
+            }
+            results {
+              symbol
+              symbolLong
+              classicalLocus
+              synonyms
+              pubName
+              genes {
+                name
+                identifier
+              }
+              synopsis
+              traits {
+                name
+              }
+              publications {
+                citation
+                title
+                doi
+              }
+            }
+          }
+        }
+      `;
+
+      // search function
+      function getGeneFunctions(searchData,{abortSignal}) {
+        const variables = {
+          symbol: null,
+          trait: searchData['traits'],
+          gene: searchData['geneIdentifier'],
+          genus: searchData['genus'],
+          species: searchData['species'],
+          publicationId: searchData['pubId'],
+          author: searchData['author'],
+          page: searchData['page'],
+          pageSize: 10
+        };
+
+        // shim the results for the Web Component
+        return graphqlQuery(uri, geneFunctionQuery, variables, abortSignal)
+          .then(({data}) => {
+            // extract the page info
+            const {hasNextPage: hasNext, numResults, pageSize, pageCount: numPages}
+              = data.geneFunctions.pageInfo;
+
+            // flatten results
+            const results = 
+              data.geneFunctions.results.map(({symbol, symbolLong, synonyms, classicalLocus, pubName, genes, synopsis, traits, publications}) => {
+                return {
+                  geneSymbols: [symbol, ...synonyms.filter(i => ![symbol, symbolLong].includes(i)).map(s => ({value: s, linkable: false}))],
+                  geneSymbolDescription: symbolLong,
+                  geneModelPubName: pubName,
+                  geneModelFullName: genes[0]?.identifier,
+                  synopsis,
+                  traits: traits.map(t => t.name).join(', '),
+                  citations: publications
+                };
+              });
+              
+              
+              // construct the expected paginated results object
+              const paginatedResults = {hasNext, numResults, pageSize, numPages, results};
+              return paginatedResults;
+          });          
+      }
+
+      const geneLinkoutsQuery = `
+        query GeneLinkoutsQuery($identifier: ID!) {
+          geneLinkouts(identifier: $identifier) {
+            results {
+              href
+              text
+            }
+          }
+        }
+      `;
+
+      function geneLinkoutsFunction({type, variables}, {abortSignal} = {}) {
+        if (type === 'gene') {
+          return graphqlQuery(uri, geneLinkoutsQuery, variables, abortSignal)
+            .then(({data}) => ({results: data.geneLinkouts.results}));
+        }
+        if (type === 'symbol') {
+          const href = `https://mines.dev.lis.ncgr.org/glycinemine/genefunction:${variables.identifier}`;
+          return Promise.resolve({results: [{href, text: href}]});
+        }
+        if (type === 'publication') {
+          const href = `https://doi.org/${variables.identifier}`;
+          const text = variables.label || href;
+          return Promise.resolve({results: [{href, text}]});
+        }
+        return Promise.reject(new Error(`Unknown linkout type: ${type}`));
+      }
+
+      // bind component properties
+      const geneFunctionSearchElement = document.getElementById('gene-function-search');
+      geneFunctionSearchElement.formDataFunction = getFormData;
+      geneFunctionSearchElement.searchFunction = getGeneFunctions;
+      geneFunctionSearchElement.linkoutFunction = geneLinkoutsFunction;
+      geneFunctionSearchElement.linkoutColumns = {
+        geneSymbols: 'symbol',
+        geneModelFullName: 'gene',
+      };
+
+    </script>
+
+  </body>
+
+</html>

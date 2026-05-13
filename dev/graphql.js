@@ -2,7 +2,8 @@
 // https://github.com/legumeinfo/graphql-server
 
 // Note: using port 4444 since port 4000 is default for jekyll site
-const uri = 'https://graphql.lis.ncgr.org/';
+//const uri = 'https://graphql.lis.ncgr.org/';
+const uri = 'https://mines.dev.lis.ncgr.org/graphql-genefunction/';
 
 // A function that gets data from a GraphQL server via a POST request.
 // Adapted from https://graphql.org/graphql-js/graphql-clients/
