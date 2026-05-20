@@ -225,15 +225,14 @@ test.describe('linkouts', () => {
   test('clicking a Gene Symbol link populates the modal with an Intermine linkout', async ({page}) => {
     const firstRow = page.locator('tbody tr').first();
     const symbolLink = firstRow.locator('td').nth(0).locator('a').first();
-    // read the symbol text so we can verify the linkout URL
-    const symbolText = await symbolLink.textContent();
     await symbolLink.click();
     // the symbol linkout resolves immediately (no network request) — wait for it to appear
     const resultLink = page.locator('lis-linkout-element a').first();
     await expect(resultLink).toBeVisible({timeout: 5000});
+    // the URL uses primaryIdentifier (not the displayed symbol) as the linkout identifier
     await expect(resultLink).toHaveAttribute(
       'href',
-      new RegExp(`glycinemine/genefunction:${symbolText}`),
+      /glycinemine\/genefunction:.+/,
     );
   });
 

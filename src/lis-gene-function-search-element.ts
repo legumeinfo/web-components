@@ -63,19 +63,30 @@ export type GeneFunctionPublication = {
 };
 
 /**
- * A string value in a search result that may optionally opt out of linkout rendering.
+ * A string value in a search result that may optionally opt out of linkout rendering
+ * or pass a separate identifier to the linkout function.
  * Plain strings are treated as linkable when the containing column is in
- * {@link LisGeneFunctionSearchElement.linkoutColumns | `linkoutColumns`}.
+ * {@link LisGeneFunctionSearchElement.linkoutColumns | `linkoutColumns`}, and `value`
+ * is used as both the displayed text and the linkout identifier.
  * Use the object form with `linkable: false` to render a value as plain text even
- * when its column is configured for linkouts.
+ * when its column is configured for linkouts. Use `identifier` to display `value`
+ * but pass a different string to the linkout function (e.g. show a symbol but link
+ * by canonical identifier).
  *
  * @example
  * ```js
- * // primary symbol is linkable (plain string), synonyms are not
- * geneSymbols: [symbol, ...synonyms.map(s => ({ value: s, linkable: false }))]
+ * // display the symbol, but use primaryIdentifier for the linkout;
+ * // synonyms are shown as plain text
+ * geneSymbols: [
+ *   {value: symbol, identifier: primaryIdentifier},
+ *   ...synonyms.map(s => ({value: s, linkable: false})),
+ * ]
  * ```
  */
-export type LinkableString = string | {value: string; linkable: false};
+export type LinkableString =
+  | string
+  | {value: string; linkable: false}
+  | {value: string; identifier: string};
 
 /**
  * A single result of a gene function search performed by the
@@ -603,9 +614,13 @@ export class LisGeneFunctionSearchElement extends LisPaginatedSearchMixin(
         : [String(value)];
       transformed[attr] = items
         .map((item) => {
-          const str = typeof item === 'string' ? item : item.value;
-          const doLink = typeof item === 'string' || item.linkable !== false;
-          return doLink ? this._linkoutAnchor(type, str, str) : str;
+          if (typeof item === 'string') {
+            return this._linkoutAnchor(type, item, item);
+          }
+          if ('identifier' in item) {
+            return this._linkoutAnchor(type, item.identifier, item.value);
+          }
+          return item.value;
         })
         .join(', ');
     }
