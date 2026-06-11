@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-retrieve-one-gene-sequence-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+  </head>
+
+  <body>
+
+    <div class="uk-container">
+      <h1>&lt;lis-retrieve-one-gene-sequence-element&gt;</h1>
+      <p>
+        Component 1 of the
+        <a href="https://github.com/legumeinfo/website-ui-specs/tree/main/retrieve-sequence">retrieve-sequence spec</a>:
+        fetch protein / CDS / genomic sequence for a single gene by ID.
+        The element talks to two microservices:
+      </p>
+      <ul>
+        <li><code>dscensor</code> (default <code>http://localhost:8765</code>) resolves the gene's annotation prefix to its canonical file URLs.</li>
+        <li><code>ds_utilities</code> (default <code>http://localhost:8080</code>) reads the BED to map the gene to its longest mRNA, then slices the protein / CDS / genome FASTA.</li>
+      </ul>
+      <p>
+        <strong>Pick a Cicer gene for live testing.</strong> The <code>glyma.Wm82.gnm2.ann1</code> assembly that the
+        spec uses as an example currently lacks a tabix index on its <code>gene_models_main.bed.gz</code>, so the
+        BED lookup will fail until that index is generated upstream. Cicer (e.g.
+        <code>cicar.CDCFrontier.gnm2.ann1.Ca_00001</code>) has working indexes today.
+      </p>
+      <hr>
+
+      <lis-retrieve-one-gene-sequence-element
+        id="retrieve"
+      ></lis-retrieve-one-gene-sequence-element>
+
+    </div>
+
+    <script type="text/javascript">
+      // Point the backend URLs at the same host the page was loaded from so
+      // a remote browser hits the dev box's dscensor / ds_utilities instead
+      // of its own localhost. Overridable per environment if needed.
+      const retrieveElement = document.getElementById('retrieve');
+      const host = window.location.hostname || 'localhost';
+      retrieveElement.dscensorBase = `http://${host}:8765`;
+      retrieveElement.dsUtilitiesBase = `http://${host}:8080`;
+
+      // Uncomment to fire an automatic search on page load — handy when
+      // smoke-testing the backend without clicking through the form.
+      // window.onload = () => {
+      //   retrieveElement.retrieve({
+      //     geneId: 'cicar.CDCFrontier.gnm2.ann1.Ca_00001',
+      //     protein: true,
+      //     cds: true,
+      //     genome: false,
+      //   });
+      // };
+    </script>
+
+  </body>
+
+</html>
