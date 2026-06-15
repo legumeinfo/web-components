@@ -29,12 +29,6 @@
         <li><code>dscensor</code> (default <code>http://localhost:8765</code>) resolves the gene's annotation prefix to its canonical file URLs.</li>
         <li><code>ds_utilities</code> (default <code>http://localhost:8080</code>) reads the BED to map the gene to its longest mRNA, then slices the protein / CDS / genome FASTA.</li>
       </ul>
-      <p>
-        <strong>Pick a Cicer gene for live testing.</strong> The <code>glyma.Wm82.gnm2.ann1</code> assembly that the
-        spec uses as an example currently lacks a tabix index on its <code>gene_models_main.bed.gz</code>, so the
-        BED lookup will fail until that index is generated upstream. Cicer (e.g.
-        <code>cicar.CDCFrontier.gnm2.ann1.Ca_00001</code>) has working indexes today.
-      </p>
       <hr>
 
       <lis-retrieve-one-gene-sequence-element
