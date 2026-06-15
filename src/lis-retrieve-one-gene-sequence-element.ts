@@ -14,6 +14,38 @@ import {
 } from './utils/sequence-fasta';
 
 /**
+ * Pull the `error` string out of a `{error, status}` JSON body that the
+ * Python services return on 4xx/5xx. Best-effort: returns "" if the body
+ * isn't JSON or doesn't have the expected shape.
+ */
+async function readErrorMessage(resp: Response): Promise<string> {
+  try {
+    const body = (await resp.json()) as {error?: unknown};
+    return typeof body?.error === 'string' ? body.error : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * pysam's TabixFile / FastaFile constructors raise OSError with messages
+ * like "could not open file `<url>`" when the sibling index (.tbi / .fai /
+ * .gzi / .csi) is missing on the remote file — the most common reason a
+ * working backend can't serve a known-good URL. Detect that string so the
+ * UI can point at curation rather than at the service.
+ */
+function looksLikeMissingPysamIndex(errMsg: string): boolean {
+  return /could not open file|Unable to open file/i.test(errMsg);
+}
+
+/** Last path segment of a URL, for compact filenames in error messages. */
+function lastUrlSegment(url: string): string {
+  const noQuery = url.split('?')[0];
+  const segments = noQuery.split('/');
+  return segments[segments.length - 1] || url;
+}
+
+/**
  * URLs the catalog produces for a single annotation prefix. Mirrors the
  * dscensor `/files/{prefix}` response shape so the type carries the same
  * nullability semantics (a URL is null when the catalog can't confirm the
@@ -323,8 +355,13 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     const url = `${this.dscensorBase}/files/${encodeURIComponent(prefix)}`;
     const resp = await fetch(url, {signal});
     if (resp.status === 404) {
+      // Catalog-side curation gap rather than a service bug. Mention
+      // lis-autocontent so the next reader knows which tool produces these.
       throw new Error(
-        `dscensor has no annotation cataloged for prefix "${prefix}".`,
+        `The dscensor catalog has no entry for prefix "${prefix}". ` +
+          `This usually means the autocontent JSON for this assembly hasn't ` +
+          `been generated yet — the LIS data team produces them via ` +
+          `\`lis-autocontent populate-dscensor\`.`,
       );
     }
     if (!resp.ok) {
@@ -349,7 +386,23 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       );
     }
     if (!resp.ok) {
-      throw new Error(`ds_utilities /bed/lookup returned HTTP ${resp.status}.`);
+      // pysam.TabixFile.__cinit__ surfaces "could not open file" when the
+      // sibling .tbi (or .csi) index is missing on the remote BED — distinct
+      // from a transient HTTP error. Detect it so the user sees a data-gap
+      // hint rather than a generic 400.
+      const errMsg = await readErrorMessage(resp);
+      if (looksLikeMissingPysamIndex(errMsg)) {
+        const filename = lastUrlSegment(bedUrl);
+        throw new Error(
+          `The annotation BED at "${filename}" is reachable but its tabix ` +
+            `index (.tbi) is missing — pysam can't open the file without ` +
+            `it. This is a data-side gap; the LIS data team needs to ` +
+            `generate the index. Other assemblies should still work.`,
+        );
+      }
+      throw new Error(
+        `ds_utilities /bed/lookup error: ${errMsg || `HTTP ${resp.status}`}`,
+      );
     }
     const rows = (await resp.json()) as RetrieveSequenceBedRow[];
     if (!Array.isArray(rows) || rows.length === 0) {
@@ -370,8 +423,22 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       `${encodeURIComponent(seqid)}/${encodeURIComponent(fastaUrl)}`;
     const resp = await fetch(url, {signal});
     if (!resp.ok) {
+      // Same pysam failure shape as bed_lookup: a missing .fai / .gzi sibling
+      // on the FASTA produces "could not open file" rather than a transient
+      // HTTP failure. Surface it specifically so users know to ask the data
+      // team rather than retrying.
+      const errMsg = await readErrorMessage(resp);
+      if (looksLikeMissingPysamIndex(errMsg)) {
+        const filename = lastUrlSegment(fastaUrl);
+        throw new Error(
+          `The FASTA at "${filename}" is reachable but its index ` +
+            `(.fai/.gzi) is missing — pysam can't open the file without it. ` +
+            `This is a data-side gap; the LIS data team needs to generate ` +
+            `the index.`,
+        );
+      }
       throw new Error(
-        `ds_utilities /fasta/fetch returned HTTP ${resp.status}.`,
+        `ds_utilities /fasta/fetch error: ${errMsg || `HTTP ${resp.status}`}`,
       );
     }
     const body = (await resp.json()) as {sequence?: string};
@@ -404,8 +471,18 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       `${encodeURIComponent(region)}/${encodeURIComponent(genomeUrl)}`;
     const resp = await fetch(url, {signal});
     if (!resp.ok) {
+      const errMsg = await readErrorMessage(resp);
+      if (looksLikeMissingPysamIndex(errMsg)) {
+        const filename = lastUrlSegment(genomeUrl);
+        throw new Error(
+          `The genome FASTA at "${filename}" is reachable but its index ` +
+            `(.fai/.gzi) is missing — pysam can't open the file without it. ` +
+            `This is a data-side gap; the LIS data team needs to generate ` +
+            `the index.`,
+        );
+      }
       throw new Error(
-        `ds_utilities /fasta/fetch returned HTTP ${resp.status}.`,
+        `ds_utilities /fasta/fetch error: ${errMsg || `HTTP ${resp.status}`}`,
       );
     }
     const body = (await resp.json()) as {sequence?: string};
