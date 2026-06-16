@@ -465,10 +465,14 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       upstream,
       downstream,
     );
-    const region = `${row.molecule}:${fetchStart}-${fetchEnd}`;
+    // ds_utilities exposes coords as optional `start`/`end` query parameters
+    // on /fasta/fetch/{seqid}/{url} — keeps integer ranges out of the URL
+    // path (which avoids the encodeURIComponent-vs-route-pattern mismatch
+    // the old `/fasta/fetch/{seqid}:{start}-{end}/{url}` form suffered from).
     const url =
       `${this.dsUtilitiesBase}/fasta/fetch/` +
-      `${encodeURIComponent(region)}/${encodeURIComponent(genomeUrl)}`;
+      `${encodeURIComponent(row.molecule)}/${encodeURIComponent(genomeUrl)}` +
+      `?start=${fetchStart}&end=${fetchEnd}`;
     const resp = await fetch(url, {signal});
     if (!resp.ok) {
       const errMsg = await readErrorMessage(resp);
