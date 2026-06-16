@@ -61,7 +61,14 @@ export type RetrieveSequenceFiles = {
   infraspecies?: string | null;
 };
 
-/** One row from ds_utilities `/bed/lookup`. */
+/**
+ * Row describing a single mRNA's coordinates on its chromosome.
+ *
+ * Originally modeled on the ds_utilities `/bed/lookup` response, kept as the
+ * shared shape so the GraphQL path produces the same structure and the rest
+ * of the orchestrator (protein/CDS/genome fetches, flank math, etc.) doesn't
+ * care which backend supplied the row.
+ */
 export type RetrieveSequenceBedRow = {
   molecule: string;
   start: number;
@@ -71,6 +78,59 @@ export type RetrieveSequenceBedRow = {
   strand: string;
   gene_id: string;
 };
+
+/**
+ * Subset of the GraphQL `Transcript` we read when picking the longest mRNA.
+ *
+ * `length` is what we sort on (matches the spec's "longest variant" rule).
+ * `chromosomeLocation` is nullable on the schema because some annotation types
+ * (e.g. trans-spliced features) lack a single canonical location; we skip
+ * those when picking the longest.
+ */
+type GraphQLTranscriptSubset = {
+  identifier: string;
+  length: number | null;
+  chromosomeLocation: {
+    start: number;
+    end: number;
+    strand: string | null;
+  } | null;
+  chromosome: {identifier: string} | null;
+};
+
+/** Subset of the `gene(identifier:)` GraphQL response we consume. */
+type GraphQLGeneResponse = {
+  data?: {
+    gene?: {
+      results?: {
+        identifier: string;
+        transcripts?: GraphQLTranscriptSubset[];
+      } | null;
+    } | null;
+  };
+  errors?: Array<{message: string}>;
+};
+
+/**
+ * GraphQL query for the four BED-equivalent fields per transcript. Sent as
+ * a string body to keep the component dependency-free — no GraphQL client
+ * runtime is needed for a single hand-written query of this size.
+ */
+const GENE_BY_IDENTIFIER_QUERY = `
+  query GeneByID($identifier: ID!) {
+    gene(identifier: $identifier) {
+      results {
+        identifier
+        transcripts {
+          identifier
+          length
+          chromosomeLocation { start, end, strand }
+          chromosome { identifier }
+        }
+      }
+    }
+  }
+`;
 
 /**
  * Form data submitted to the retrieve function when the user clicks SEARCH.
@@ -142,6 +202,17 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   /** Base URL of the ds_utilities service (no trailing slash). */
   @property({type: String, attribute: 'ds-utilities-base'})
   dsUtilitiesBase: string = 'http://localhost:8080';
+
+  /**
+   * GraphQL endpoint URL. When set, the element uses it as the primary path
+   * for gene → mRNA resolution (a few-hundred-byte query instead of a multi-MB
+   * BED download), falling back to ds_utilities `/bed/lookup` if the GraphQL
+   * lookup fails or returns no result. When unset (the empty string) the
+   * element only uses the BED path — preserves the previous behavior for
+   * deployments without a GraphQL backend.
+   */
+  @property({type: String, attribute: 'graphql-endpoint'})
+  graphqlEndpoint: string = '';
 
   /**
    * Optional override of the backend orchestration. When unset the element
@@ -272,11 +343,11 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     URL.revokeObjectURL(url);
   }
 
-  // The built-in chain: dscensor /files/{prefix} → ds_utilities /bed/lookup
-  // (longest=true) → ds_utilities /fasta/fetch per requested sequence type.
-  // Kept inside the element so the spec's flow Just Works against the default
-  // localhost ports; consumers needing a different transport replace this via
-  // `retrieveFunction`.
+  // The built-in chain: dscensor /files/{prefix} → (GraphQL gene query OR
+  // ds_utilities /bed/lookup as fallback) → ds_utilities /fasta/fetch per
+  // requested sequence type. Kept inside the element so the spec's flow Just
+  // Works against the default localhost ports; consumers needing a different
+  // transport replace this via `retrieveFunction`.
   private async _defaultRetrieve(
     data: RetrieveOneGeneSearchData,
     options: RetrieveOneGeneOptions,
@@ -284,21 +355,25 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     const signal = options.abortSignal;
     const prefix = extractFullYuckPrefix(data.geneId);
     const files = await this._fetchFiles(prefix, signal);
-    if (!files.bed_url) {
-      throw new Error(
-        `dscensor catalog has no bed_url for prefix "${prefix}"; ` +
-          `cannot resolve mRNA IDs.`,
-      );
+
+    // GraphQL is the preferred path when configured: a short query returns
+    // exactly the four BED-equivalent fields we need, no multi-MB BED file
+    // download. We still fall through to /bed/lookup if GraphQL doesn't know
+    // about this gene — covers assemblies that are in the dscensor catalog
+    // but not loaded into a mine.
+    let row: RetrieveSequenceBedRow | null = null;
+    if (this.graphqlEndpoint) {
+      row = await this._fetchLongestTranscriptViaGraphQL(data.geneId, signal);
     }
-    // longest=true → the BED-lookup returns a one-element list (or 404, which
-    // surfaces as a thrown Error below). We pick the longest variant so the
-    // single-gene view shows one canonical mRNA without forcing the user to
-    // choose, per Steven's "return one" mode.
-    const row = await this._fetchLongestBedRow(
-      data.geneId,
-      files.bed_url,
-      signal,
-    );
+    if (row === null) {
+      if (!files.bed_url) {
+        throw new Error(
+          `dscensor catalog has no bed_url for prefix "${prefix}"; ` +
+            `cannot resolve mRNA IDs via the BED fallback.`,
+        );
+      }
+      row = await this._fetchLongestBedRow(data.geneId, files.bed_url, signal);
+    }
     const records: FastaRecord[] = [];
     if (data.protein) {
       if (!files.protein_url) {
@@ -346,6 +421,124 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       );
     }
     return records;
+  }
+
+  /**
+   * Resolve the longest mRNA for a gene via the GraphQL server.
+   *
+   * Returns null on any "not authoritative" outcome — gene not in the mine,
+   * empty transcripts list, network/HTTP error, GraphQL `errors` field set,
+   * or no transcript with usable coordinates. The caller falls back to the
+   * BED-lookup path on null. We deliberately do NOT throw here for those
+   * cases: the BED path is the safety net, and surfacing a network error
+   * from GraphQL would mask a perfectly working BED.
+   *
+   * A truly fatal error (e.g. malformed configuration) still throws.
+   */
+  private async _fetchLongestTranscriptViaGraphQL(
+    geneId: string,
+    signal?: AbortSignal,
+  ): Promise<RetrieveSequenceBedRow | null> {
+    let body: GraphQLGeneResponse;
+    try {
+      const resp = await fetch(this.graphqlEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          query: GENE_BY_IDENTIFIER_QUERY,
+          variables: {identifier: geneId},
+        }),
+        signal,
+      });
+      if (!resp.ok) return null;
+      body = (await resp.json()) as GraphQLGeneResponse;
+    } catch {
+      // Network failures (DNS, offline, TLS, etc.) and JSON parse failures
+      // both land here. Either way, defer to the BED fallback.
+      return null;
+    }
+    if (body.errors && body.errors.length > 0) return null;
+    const transcripts = body.data?.gene?.results?.transcripts ?? [];
+    const longest = this._pickLongestTranscript(transcripts);
+    if (longest === null) return null;
+    return this._transcriptToBedRow(geneId, longest);
+  }
+
+  /**
+   * Pick the longest transcript by `length`, falling back to `end - start`
+   * when GraphQL doesn't return `length`. Skips transcripts without a usable
+   * `chromosomeLocation` since we can't slice the genome without one.
+   *
+   * Deterministic tie-break: returns the first iterated. The mine orders
+   * results by primary identifier, so this gives a stable choice across
+   * runs.
+   */
+  private _pickLongestTranscript(
+    transcripts: GraphQLTranscriptSubset[],
+  ): GraphQLTranscriptSubset | null {
+    let best: GraphQLTranscriptSubset | null = null;
+    let bestLength = -1;
+    for (const t of transcripts) {
+      if (!t.chromosomeLocation) continue;
+      const len =
+        t.length ?? t.chromosomeLocation.end - t.chromosomeLocation.start;
+      if (len > bestLength) {
+        best = t;
+        bestLength = len;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Convert a GraphQL transcript record to the shared BED-row shape the rest
+   * of the orchestrator consumes. `score` is set to 0 (BED column 5's LIS
+   * convention) and `gene_id` is the caller-supplied gene ID — the rest of
+   * the chain doesn't read either field.
+   */
+  private _transcriptToBedRow(
+    geneId: string,
+    t: GraphQLTranscriptSubset,
+  ): RetrieveSequenceBedRow | null {
+    const loc = t.chromosomeLocation;
+    const chrom = t.chromosome?.identifier;
+    if (!loc || !chrom) return null;
+    return {
+      molecule: chrom,
+      start: loc.start,
+      end: loc.end,
+      mrna_id: t.identifier,
+      score: 0,
+      strand: this._normalizeIntermineStrand(loc.strand),
+      gene_id: geneId,
+    };
+  }
+
+  /**
+   * InterMine reports strand as `"1"` / `"-1"` / `"0"`; downstream consumers
+   * (computeFlankRegion, reverseComplement) expect BED-style `"+"` / `"-"` /
+   * `"."`. Map both common shapes; pass anything else through unchanged so
+   * the consumer sees the raw value rather than us silently mis-translating.
+   */
+  private _normalizeIntermineStrand(strand: string | null): string {
+    if (strand === null || strand === undefined) return '.';
+    switch (strand) {
+      case '1':
+      case '+1':
+      case '+':
+        return '+';
+      case '-1':
+      case '-':
+        return '-';
+      case '0':
+      case '.':
+        return '.';
+      default:
+        return strand;
+    }
   }
 
   private async _fetchFiles(

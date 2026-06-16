@@ -1,12 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 
 <html>
-
   <head>
     <meta charset="utf-8" />
-    <title>LIS Web-Components - &lt;lis-retrieve-one-gene-sequence-element&gt;</title>
+    <title>
+      LIS Web-Components - &lt;lis-retrieve-one-gene-sequence-element&gt;
+    </title>
     <!-- CSS framework -->
-    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="../node_modules/uikit/dist/css/uikit.min.css"
+    />
     <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
     <!-- web components polyfills -->
     <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
@@ -16,35 +21,53 @@
   </head>
 
   <body>
-
     <div class="uk-container">
       <h1>&lt;lis-retrieve-one-gene-sequence-element&gt;</h1>
       <p>
         Component 1 of the
-        <a href="https://github.com/legumeinfo/website-ui-specs/tree/main/retrieve-sequence">retrieve-sequence spec</a>:
-        fetch protein / CDS / genomic sequence for a single gene by ID.
-        The element talks to two microservices:
+        <a
+          href="https://github.com/legumeinfo/website-ui-specs/tree/main/retrieve-sequence"
+          >retrieve-sequence spec</a
+        >: fetch protein / CDS / genomic sequence for a single gene by ID. The
+        element talks to up to three backends:
       </p>
       <ul>
-        <li><code>dscensor</code> (default <code>http://localhost:8765</code>) resolves the gene's annotation prefix to its canonical file URLs.</li>
-        <li><code>ds_utilities</code> (default <code>http://localhost:8080</code>) reads the BED to map the gene to its longest mRNA, then slices the protein / CDS / genome FASTA.</li>
+        <li>
+          <code>dscensor</code> resolves the gene's annotation prefix to its
+          canonical file URLs.
+        </li>
+        <li>
+          <code>graphql-server</code> (preferred path when set) resolves the
+          gene's longest mRNA + coordinates in a single small query, avoiding a
+          multi-MB BED download per search.
+        </li>
+        <li>
+          <code>ds_utilities</code> reads the BED (only when GraphQL doesn't
+          know the gene) and always handles the FASTA slicing for the sequences
+          themselves.
+        </li>
       </ul>
-      <hr>
+      <hr />
 
       <lis-retrieve-one-gene-sequence-element
         id="retrieve"
       ></lis-retrieve-one-gene-sequence-element>
-
     </div>
 
     <script type="text/javascript">
       // Point the backend URLs at the same host the page was loaded from so
-      // a remote browser hits the dev box's dscensor / ds_utilities instead
-      // of its own localhost. Overridable per environment if needed.
+      // a remote browser hits the dev box's services instead of its own
+      // localhost. Overridable per environment if needed.
       const retrieveElement = document.getElementById('retrieve');
       const host = window.location.hostname || 'localhost';
       retrieveElement.dscensorBase = `http://${host}:8765`;
       retrieveElement.dsUtilitiesBase = `http://${host}:8080`;
+      // Set to a GraphQL endpoint to enable the preferred mRNA-resolution
+      // path. Leave as the empty string to use the BED-lookup fallback only
+      // (the previous behavior). The dev LIS instance below is a reasonable
+      // default; production deployments should point at their own gateway.
+      retrieveElement.graphqlEndpoint =
+        'https://mines.dev.lis.ncgr.org/graphql-genefunction/';
 
       // Uncomment to fire an automatic search on page load — handy when
       // smoke-testing the backend without clicking through the form.
@@ -57,7 +80,5 @@
       //   });
       // };
     </script>
-
   </body>
-
 </html>
