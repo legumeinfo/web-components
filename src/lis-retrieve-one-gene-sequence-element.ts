@@ -54,21 +54,13 @@ function lastUrlSegment(url: string): string {
 export type RetrieveSequenceFiles = {
   protein_url: string | null;
   cds_url: string | null;
-  bed_url: string | null;
   genome_url: string | null;
   genus?: string | null;
   species?: string | null;
   infraspecies?: string | null;
 };
 
-/**
- * Row describing a single mRNA's coordinates on its chromosome.
- *
- * Originally modeled on the ds_utilities `/bed/lookup` response, kept as the
- * shared shape so the GraphQL path produces the same structure and the rest
- * of the orchestrator (protein/CDS/genome fetches, flank math, etc.) doesn't
- * care which backend supplied the row.
- */
+/** Row describing a single mRNA's coordinates on its chromosome. */
 export type RetrieveSequenceBedRow = {
   molecule: string;
   start: number;
@@ -168,9 +160,10 @@ export type RetrieveOneGeneFunction = (
  *
  * Component 1 of the LIS retrieve-sequence spec (v0.5.0): given a single gene
  * ID, fetch protein / CDS / genomic sequences and surface them as a table plus
- * a Download-as-FASTA action. Out of the box it talks to a dscensor instance
- * and a ds_utilities instance over HTTP — set
- * {@link dscensorBase | `dscensorBase`} and
+ * a Download-as-FASTA action. Out of the box it talks to a dscensor instance,
+ * a GraphQL server, and a ds_utilities instance over HTTP — set
+ * {@link dscensorBase | `dscensorBase`},
+ * {@link graphqlEndpoint | `graphqlEndpoint`}, and
  * {@link dsUtilitiesBase | `dsUtilitiesBase`} to point at your services, or
  * replace the whole chain by assigning
  * {@link retrieveFunction | `retrieveFunction`}.
@@ -180,6 +173,7 @@ export type RetrieveOneGeneFunction = (
  * <lis-retrieve-one-gene-sequence-element
  *   id="retrieve"
  *   dscensorBase="http://localhost:8765"
+ *   graphql-endpoint="https://mines.example.org/graphql"
  *   dsUtilitiesBase="http://localhost:8080"
  * ></lis-retrieve-one-gene-sequence-element>
  * ```
@@ -204,12 +198,10 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   dsUtilitiesBase: string = 'http://localhost:8080';
 
   /**
-   * GraphQL endpoint URL. When set, the element uses it as the primary path
-   * for gene → mRNA resolution (a few-hundred-byte query instead of a multi-MB
-   * BED download), falling back to ds_utilities `/bed/lookup` if the GraphQL
-   * lookup fails or returns no result. When unset (the empty string) the
-   * element only uses the BED path — preserves the previous behavior for
-   * deployments without a GraphQL backend.
+   * GraphQL endpoint URL. Required: the element resolves gene → mRNA
+   * coordinates by POSTing a `gene(identifier:)` query to this endpoint and
+   * has no other path. An empty value causes the retrieve to throw with a
+   * clear configuration error.
    */
   @property({type: String, attribute: 'graphql-endpoint'})
   graphqlEndpoint: string = '';
@@ -343,37 +335,29 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     URL.revokeObjectURL(url);
   }
 
-  // The built-in chain: dscensor /files/{prefix} → (GraphQL gene query OR
-  // ds_utilities /bed/lookup as fallback) → ds_utilities /fasta/fetch per
-  // requested sequence type. Kept inside the element so the spec's flow Just
-  // Works against the default localhost ports; consumers needing a different
-  // transport replace this via `retrieveFunction`.
+  // The built-in chain: dscensor /files/{prefix} → GraphQL gene query →
+  // ds_utilities /fasta/fetch per requested sequence type. Kept inside the
+  // element so the spec's flow Just Works against the default localhost
+  // ports; consumers needing a different transport replace this via
+  // `retrieveFunction`.
   private async _defaultRetrieve(
     data: RetrieveOneGeneSearchData,
     options: RetrieveOneGeneOptions,
   ): Promise<FastaRecord[]> {
+    if (!this.graphqlEndpoint) {
+      throw new Error(
+        `graphqlEndpoint is not set — this element resolves gene → mRNA ` +
+          `via GraphQL only. Set the \`graphql-endpoint\` attribute or the ` +
+          `\`graphqlEndpoint\` property on the element.`,
+      );
+    }
     const signal = options.abortSignal;
     const prefix = extractFullYuckPrefix(data.geneId);
     const files = await this._fetchFiles(prefix, signal);
-
-    // GraphQL is the preferred path when configured: a short query returns
-    // exactly the four BED-equivalent fields we need, no multi-MB BED file
-    // download. We still fall through to /bed/lookup if GraphQL doesn't know
-    // about this gene — covers assemblies that are in the dscensor catalog
-    // but not loaded into a mine.
-    let row: RetrieveSequenceBedRow | null = null;
-    if (this.graphqlEndpoint) {
-      row = await this._fetchLongestTranscriptViaGraphQL(data.geneId, signal);
-    }
-    if (row === null) {
-      if (!files.bed_url) {
-        throw new Error(
-          `dscensor catalog has no bed_url for prefix "${prefix}"; ` +
-            `cannot resolve mRNA IDs via the BED fallback.`,
-        );
-      }
-      row = await this._fetchLongestBedRow(data.geneId, files.bed_url, signal);
-    }
+    const row = await this._fetchLongestTranscriptViaGraphQL(
+      data.geneId,
+      signal,
+    );
     const records: FastaRecord[] = [];
     if (data.protein) {
       if (!files.protein_url) {
@@ -426,19 +410,15 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   /**
    * Resolve the longest mRNA for a gene via the GraphQL server.
    *
-   * Returns null on any "not authoritative" outcome — gene not in the mine,
-   * empty transcripts list, network/HTTP error, GraphQL `errors` field set,
-   * or no transcript with usable coordinates. The caller falls back to the
-   * BED-lookup path on null. We deliberately do NOT throw here for those
-   * cases: the BED path is the safety net, and surfacing a network error
-   * from GraphQL would mask a perfectly working BED.
-   *
-   * A truly fatal error (e.g. malformed configuration) still throws.
+   * Throws on every "no result" outcome — gene not in the mine, empty
+   * transcripts list, network/HTTP error, GraphQL `errors` field set, or no
+   * transcript with usable coordinates. There is no fallback path; the
+   * caller surfaces the thrown message to the user.
    */
   private async _fetchLongestTranscriptViaGraphQL(
     geneId: string,
     signal?: AbortSignal,
-  ): Promise<RetrieveSequenceBedRow | null> {
+  ): Promise<RetrieveSequenceBedRow> {
     let body: GraphQLGeneResponse;
     try {
       const resp = await fetch(this.graphqlEndpoint, {
@@ -453,18 +433,38 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
         }),
         signal,
       });
-      if (!resp.ok) return null;
+      if (!resp.ok) {
+        throw new Error(`GraphQL endpoint returned HTTP ${resp.status}.`);
+      }
       body = (await resp.json()) as GraphQLGeneResponse;
-    } catch {
-      // Network failures (DNS, offline, TLS, etc.) and JSON parse failures
-      // both land here. Either way, defer to the BED fallback.
-      return null;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error(`GraphQL request failed: ${String(err)}`);
     }
-    if (body.errors && body.errors.length > 0) return null;
+    if (body.errors && body.errors.length > 0) {
+      throw new Error(
+        `GraphQL server reported errors: ${body.errors
+          .map((e) => e.message)
+          .join('; ')}`,
+      );
+    }
     const transcripts = body.data?.gene?.results?.transcripts ?? [];
     const longest = this._pickLongestTranscript(transcripts);
-    if (longest === null) return null;
-    return this._transcriptToBedRow(geneId, longest);
+    if (longest === null) {
+      throw new Error(
+        `GraphQL server has no usable transcript with chromosome ` +
+          `coordinates for gene "${geneId}". The gene may not be loaded ` +
+          `into the mine, or its transcripts may lack a canonical location.`,
+      );
+    }
+    const row = this._transcriptToBedRow(geneId, longest);
+    if (row === null) {
+      throw new Error(
+        `GraphQL response for gene "${geneId}" was missing chromosome or ` +
+          `location fields on its longest transcript.`,
+      );
+    }
+    return row;
   }
 
   /**
@@ -494,8 +494,8 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   }
 
   /**
-   * Convert a GraphQL transcript record to the shared BED-row shape the rest
-   * of the orchestrator consumes. `score` is set to 0 (BED column 5's LIS
+   * Convert a GraphQL transcript record to the BED-row shape the rest of the
+   * orchestrator consumes. `score` is set to 0 (BED column 5's LIS
    * convention) and `gene_id` is the caller-supplied gene ID — the rest of
    * the chain doesn't read either field.
    */
@@ -561,49 +561,6 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       throw new Error(`dscensor /files returned HTTP ${resp.status}.`);
     }
     return (await resp.json()) as RetrieveSequenceFiles;
-  }
-
-  private async _fetchLongestBedRow(
-    geneId: string,
-    bedUrl: string,
-    signal?: AbortSignal,
-  ): Promise<RetrieveSequenceBedRow> {
-    const url =
-      `${this.dsUtilitiesBase}/bed/lookup/` +
-      `${encodeURIComponent(geneId)}/${encodeURIComponent(bedUrl)}` +
-      `?longest=true`;
-    const resp = await fetch(url, {signal});
-    if (resp.status === 404) {
-      throw new Error(
-        `No mRNA rows found for gene "${geneId}" in the annotation BED.`,
-      );
-    }
-    if (!resp.ok) {
-      // pysam.TabixFile.__cinit__ surfaces "could not open file" when the
-      // sibling .tbi (or .csi) index is missing on the remote BED — distinct
-      // from a transient HTTP error. Detect it so the user sees a data-gap
-      // hint rather than a generic 400.
-      const errMsg = await readErrorMessage(resp);
-      if (looksLikeMissingPysamIndex(errMsg)) {
-        const filename = lastUrlSegment(bedUrl);
-        throw new Error(
-          `The annotation BED at "${filename}" is reachable but its tabix ` +
-            `index (.tbi) is missing — pysam can't open the file without ` +
-            `it. This is a data-side gap; the LIS data team needs to ` +
-            `generate the index. Other assemblies should still work.`,
-        );
-      }
-      throw new Error(
-        `ds_utilities /bed/lookup error: ${errMsg || `HTTP ${resp.status}`}`,
-      );
-    }
-    const rows = (await resp.json()) as RetrieveSequenceBedRow[];
-    if (!Array.isArray(rows) || rows.length === 0) {
-      throw new Error(
-        `No mRNA rows found for gene "${geneId}" in the annotation BED.`,
-      );
-    }
-    return rows[0];
   }
 
   private async _fetchFasta(

@@ -29,7 +29,7 @@
           href="https://github.com/legumeinfo/website-ui-specs/tree/main/retrieve-sequence"
           >retrieve-sequence spec</a
         >: fetch protein / CDS / genomic sequence for a single gene by ID. The
-        element talks to up to three backends:
+        element talks to three backends:
       </p>
       <ul>
         <li>
@@ -37,14 +37,14 @@
           canonical file URLs.
         </li>
         <li>
-          <code>graphql-server</code> (preferred path when set) resolves the
-          gene's longest mRNA + coordinates in a single small query, avoiding a
-          multi-MB BED download per search.
+          <code>graphql-server</code> (required) resolves the gene's longest
+          mRNA + chromosome coordinates in one small POST query. There is no
+          fallback: if GraphQL doesn't know the gene, the retrieve fails with
+          a clear message and the user picks a different gene.
         </li>
         <li>
-          <code>ds_utilities</code> reads the BED (only when GraphQL doesn't
-          know the gene) and always handles the FASTA slicing for the sequences
-          themselves.
+          <code>ds_utilities</code> handles the FASTA slicing for the
+          sequences themselves (protein, CDS, genome with optional flank).
         </li>
       </ul>
       <hr />
@@ -62,10 +62,10 @@
       const host = window.location.hostname || 'localhost';
       retrieveElement.dscensorBase = `http://${host}:8765`;
       retrieveElement.dsUtilitiesBase = `http://${host}:8080`;
-      // Set to a GraphQL endpoint to enable the preferred mRNA-resolution
-      // path. Leave as the empty string to use the BED-lookup fallback only
-      // (the previous behavior). The dev LIS instance below is a reasonable
-      // default; production deployments should point at their own gateway.
+      // GraphQL endpoint is required — the element resolves gene → mRNA
+      // exclusively via this endpoint. The dev LIS instance below is a
+      // reasonable default; production deployments should point at their own
+      // gateway.
       retrieveElement.graphqlEndpoint =
         'https://mines.dev.lis.ncgr.org/graphql-genefunction/';
 
