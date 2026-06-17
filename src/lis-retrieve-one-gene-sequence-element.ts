@@ -71,32 +71,18 @@ export type RetrieveSequenceBedRow = {
   gene_id: string;
 };
 
-/**
- * Subset of the GraphQL `Transcript` we read when picking the longest mRNA.
- *
- * `length` is what we sort on (matches the spec's "longest variant" rule).
- * `chromosomeLocation` is nullable on the schema because some annotation types
- * (e.g. trans-spliced features) lack a single canonical location; we skip
- * those when picking the longest.
- */
-type GraphQLTranscriptSubset = {
-  identifier: string;
-  length: number | null;
-  chromosomeLocation: {
-    start: number;
-    end: number;
-    strand: string | null;
-  } | null;
-  chromosome: {identifier: string} | null;
-};
-
 /** Subset of the `gene(identifier:)` GraphQL response we consume. */
 type GraphQLGeneResponse = {
   data?: {
     gene?: {
       results?: {
         identifier: string;
-        transcripts?: GraphQLTranscriptSubset[];
+        chromosomeLocation: {
+          start: number;
+          end: number;
+          strand: string | null;
+        } | null;
+        chromosome: {identifier: string} | null;
       } | null;
     } | null;
   };
@@ -104,25 +90,41 @@ type GraphQLGeneResponse = {
 };
 
 /**
- * GraphQL query for the four BED-equivalent fields per transcript. Sent as
- * a string body to keep the component dependency-free — no GraphQL client
- * runtime is needed for a single hand-written query of this size.
+ * GraphQL query for the gene's chromosomal span. Sent as a string body to
+ * keep the component dependency-free — no GraphQL client runtime is needed
+ * for a single hand-written query of this size.
+ *
+ * We deliberately do NOT request `transcripts` here: the legumeinfo
+ * graphql-server (as of 2026-06) has a broken `resolveType` resolver on the
+ * `Transcript` interface, causing every `Gene.transcripts` query to fail
+ * with "Abstract type Transcript must resolve to an Object type at
+ * runtime." We sidestep it by working only with gene-level location and
+ * using the LIS `<gene_id>.1` primary-mRNA convention for protein/CDS
+ * FASTA lookups. When the server-side resolveType lands, this query can
+ * grow back a `transcripts { identifier length chromosomeLocation }`
+ * block and the `.1` convention assumption can be removed.
  */
 const GENE_BY_IDENTIFIER_QUERY = `
   query GeneByID($identifier: ID!) {
     gene(identifier: $identifier) {
       results {
         identifier
-        transcripts {
-          identifier
-          length
-          chromosomeLocation { start, end, strand }
-          chromosome { identifier }
-        }
+        chromosomeLocation { start, end, strand }
+        chromosome { identifier }
       }
     }
   }
 `;
+
+/**
+ * Suffix appended to a gene ID to address its primary mRNA in LIS
+ * `_primary.faa.gz` / `_primary.fna.gz` FASTA files. The LIS curation
+ * pipeline puts the canonical isoform into these files keyed by the
+ * `<gene_id>.1` mRNA identifier. Held as a constant so the assumption is
+ * easy to find and revisit when GraphQL grows back transcript-level
+ * resolution.
+ */
+const PRIMARY_MRNA_SUFFIX = '.1';
 
 /**
  * Form data submitted to the retrieve function when the user clicks SEARCH.
@@ -408,12 +410,14 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   }
 
   /**
-   * Resolve the longest mRNA for a gene via the GraphQL server.
+   * Resolve a gene's chromosomal span via the GraphQL server.
    *
-   * Throws on every "no result" outcome — gene not in the mine, empty
-   * transcripts list, network/HTTP error, GraphQL `errors` field set, or no
-   * transcript with usable coordinates. There is no fallback path; the
-   * caller surfaces the thrown message to the user.
+   * Returns a BED-row-shaped record where the genomic fields come from the
+   * gene's `chromosomeLocation` and `mrna_id` is the conventional
+   * `<gene_id>.1` primary mRNA (see PRIMARY_MRNA_SUFFIX for why). Throws on
+   * any "no result" outcome — gene not in the mine, network/HTTP error,
+   * GraphQL `errors` field set, or missing chromosome/location fields.
+   * There is no fallback path; the caller surfaces the thrown message.
    */
   private async _fetchLongestTranscriptViaGraphQL(
     geneId: string,
@@ -448,69 +452,26 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
           .join('; ')}`,
       );
     }
-    const transcripts = body.data?.gene?.results?.transcripts ?? [];
-    const longest = this._pickLongestTranscript(transcripts);
-    if (longest === null) {
+    const result = body.data?.gene?.results;
+    if (!result) {
       throw new Error(
-        `GraphQL server has no usable transcript with chromosome ` +
-          `coordinates for gene "${geneId}". The gene may not be loaded ` +
-          `into the mine, or its transcripts may lack a canonical location.`,
+        `GraphQL server has no record for gene "${geneId}". The gene may ` +
+          `not be loaded into the mine.`,
       );
     }
-    const row = this._transcriptToBedRow(geneId, longest);
-    if (row === null) {
+    const loc = result.chromosomeLocation;
+    const chrom = result.chromosome?.identifier;
+    if (!loc || !chrom) {
       throw new Error(
         `GraphQL response for gene "${geneId}" was missing chromosome or ` +
-          `location fields on its longest transcript.`,
+          `location fields.`,
       );
     }
-    return row;
-  }
-
-  /**
-   * Pick the longest transcript by `length`, falling back to `end - start`
-   * when GraphQL doesn't return `length`. Skips transcripts without a usable
-   * `chromosomeLocation` since we can't slice the genome without one.
-   *
-   * Deterministic tie-break: returns the first iterated. The mine orders
-   * results by primary identifier, so this gives a stable choice across
-   * runs.
-   */
-  private _pickLongestTranscript(
-    transcripts: GraphQLTranscriptSubset[],
-  ): GraphQLTranscriptSubset | null {
-    let best: GraphQLTranscriptSubset | null = null;
-    let bestLength = -1;
-    for (const t of transcripts) {
-      if (!t.chromosomeLocation) continue;
-      const len =
-        t.length ?? t.chromosomeLocation.end - t.chromosomeLocation.start;
-      if (len > bestLength) {
-        best = t;
-        bestLength = len;
-      }
-    }
-    return best;
-  }
-
-  /**
-   * Convert a GraphQL transcript record to the BED-row shape the rest of the
-   * orchestrator consumes. `score` is set to 0 (BED column 5's LIS
-   * convention) and `gene_id` is the caller-supplied gene ID — the rest of
-   * the chain doesn't read either field.
-   */
-  private _transcriptToBedRow(
-    geneId: string,
-    t: GraphQLTranscriptSubset,
-  ): RetrieveSequenceBedRow | null {
-    const loc = t.chromosomeLocation;
-    const chrom = t.chromosome?.identifier;
-    if (!loc || !chrom) return null;
     return {
       molecule: chrom,
       start: loc.start,
       end: loc.end,
-      mrna_id: t.identifier,
+      mrna_id: `${geneId}${PRIMARY_MRNA_SUFFIX}`,
       score: 0,
       strand: this._normalizeIntermineStrand(loc.strand),
       gene_id: geneId,
