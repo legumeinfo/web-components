@@ -23,35 +23,6 @@
   <body>
     <div class="uk-container">
       <h1>&lt;lis-retrieve-one-gene-sequence-element&gt;</h1>
-      <p>
-        Component 1 of the
-        <a
-          href="https://github.com/legumeinfo/website-ui-specs/tree/main/retrieve-sequence"
-          >retrieve-sequence spec</a
-        >: fetch protein / CDS / genomic sequence for a single gene by ID. The
-        element talks to three backends:
-      </p>
-      <ul>
-        <li>
-          <code>dscensor</code> resolves the gene's annotation prefix to its
-          canonical file URLs.
-        </li>
-        <li>
-          <code>graphql-server</code> (required) resolves the gene's chromosome
-          coordinates in one small POST query against the
-          <code>gene(identifier:)</code> field. (The per-mRNA location isn't
-          populated in the LIS mines, so the gene location is used; the primary
-          mRNA <code>&lt;gene_id&gt;.1</code> still keys the protein/CDS FASTA
-          lookups.) There is no fallback: if GraphQL doesn't know the gene, the
-          retrieve fails with a clear message and the user picks a different
-          gene.
-        </li>
-        <li>
-          <code>ds_utilities</code> handles the FASTA slicing for the sequences
-          themselves (protein, CDS, genome with optional flank).
-        </li>
-      </ul>
-      <hr />
 
       <lis-retrieve-one-gene-sequence-element
         id="retrieve"
