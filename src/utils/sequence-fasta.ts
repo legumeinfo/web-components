@@ -53,7 +53,7 @@ export function clampFlank(value: number | string | null | undefined): number {
  * For minus-strand genes the spec's "upstream" sits at the high-coordinate end
  * (3' on plus strand) and "downstream" sits at the low-coordinate end, so we
  * swap the budgets before applying to start/end. Start is clamped at 0 because
- * pysam half-open BED coords don't go negative.
+ * pysam 0-based half-open coords don't go negative.
  */
 export function computeFlankRegion(
   start: number,
