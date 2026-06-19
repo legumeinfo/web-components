@@ -142,6 +142,21 @@ const GENE_BY_IDENTIFIER_QUERY = `
 const PRIMARY_MRNA_SUFFIX = '.1';
 
 /**
+ * Per-sequence-type download metadata, keyed by the sequence-type token that
+ * `_defaultRetrieve` embeds as the second header token (`protein` / `cds` /
+ * `genome`). Downloads are split into one file per type, named
+ * `<id>.<label>.<ext>` (e.g. `<gene>.protein.faa`), with the
+ * biologically-correct FASTA extension: `.faa` (amino acid) for protein,
+ * `.fna` (nucleic acid) for the two nucleotide outputs. The `label` token then
+ * disambiguates the two `.fna` files from each other.
+ */
+const DOWNLOAD_TYPE_META: Record<string, {label: string; ext: string}> = {
+  protein: {label: 'protein', ext: 'faa'},
+  cds: {label: 'CDS', ext: 'fna'},
+  genome: {label: 'genomic', ext: 'fna'},
+};
+
+/**
  * Form data submitted to the retrieve function when the user clicks SEARCH.
  *
  * `basesUpstream` / `basesDownstream` only apply when `genome === true` and are
@@ -336,16 +351,40 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     return parts[1] ?? '';
   }
 
+  // Downloads are split into one file per sequence type, named
+  // `<gene>.<type>.<ext>` (e.g. `<gene>.protein.faa`, `<gene>.CDS.fna`,
+  // `<gene>.genomic.fna`) so the user can tell the three FASTAs apart and the
+  // extension matches the sequence type. A gene query yields at most one
+  // record per type; records are grouped by type so this stays correct if that
+  // ever changes.
   private _download(): void {
     if (this._records.length === 0) return;
-    const fasta = formatFasta(this._records);
-    const blob = new Blob([fasta], {type: 'text/x-fasta'});
+    const base = this._geneId.replace(/[^A-Za-z0-9._-]+/g, '_') || 'sequence';
+    const groups = new Map<string, FastaRecord[]>();
+    for (const record of this._records) {
+      const type = this._typeFromHeader(record.header);
+      const list = groups.get(type) ?? [];
+      list.push(record);
+      groups.set(type, list);
+    }
+    for (const [type, records] of groups) {
+      const meta = DOWNLOAD_TYPE_META[type] ?? {
+        label: type || 'sequence',
+        ext: 'fa',
+      };
+      this._triggerDownload(
+        `${base}.${meta.label}.${meta.ext}`,
+        formatFasta(records),
+      );
+    }
+  }
+
+  private _triggerDownload(filename: string, contents: string): void {
+    const blob = new Blob([contents], {type: 'text/x-fasta'});
     const url = URL.createObjectURL(blob);
-    const filename =
-      this._geneId.replace(/[^A-Za-z0-9._-]+/g, '_') || 'sequence';
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${filename}.fa`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
