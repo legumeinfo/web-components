@@ -60,15 +60,23 @@ export type RetrieveSequenceFiles = {
   infraspecies?: string | null;
 };
 
-/** Row describing a single mRNA's coordinates on its chromosome. */
-export type RetrieveSequenceBedRow = {
+/**
+ * The gene's location on its chromosome, as resolved from GraphQL, paired
+ * with the primary mRNA identifier.
+ *
+ * Protein and CDS are fetched by `mrnaId` (`<gene_id>.1`) out of the
+ * `*_primary` FASTAs; the genomic slice is cut from `start`/`end`, which come
+ * from the gene's `chromosomeLocation` (see below). `start`/`end` are stored
+ * 0-based half-open (pysam's convention) — see
+ * {@link LisRetrieveOneGeneSequenceElement._fetchGeneLocation} for the
+ * conversion from InterMine's 1-based inclusive coordinates.
+ */
+export type RetrieveSequenceMrnaLocation = {
   molecule: string;
   start: number;
   end: number;
-  mrna_id: string;
-  score: number;
+  mrnaId: string;
   strand: string;
-  gene_id: string;
 };
 
 /** Subset of the `gene(identifier:)` GraphQL response we consume. */
@@ -94,15 +102,22 @@ type GraphQLGeneResponse = {
  * keep the component dependency-free — no GraphQL client runtime is needed
  * for a single hand-written query of this size.
  *
- * We deliberately do NOT request `transcripts` here: the legumeinfo
- * graphql-server (as of 2026-06) has a broken `resolveType` resolver on the
- * `Transcript` interface, causing every `Gene.transcripts` query to fail
- * with "Abstract type Transcript must resolve to an Object type at
- * runtime." We sidestep it by working only with gene-level location and
- * using the LIS `<gene_id>.1` primary-mRNA convention for protein/CDS
- * FASTA lookups. When the server-side resolveType lands, this query can
- * grow back a `transcripts { identifier length chromosomeLocation }`
- * block and the `.1` convention assumption can be removed.
+ * We query the gene-level `chromosomeLocation` rather than the per-mRNA
+ * location. Although protein/CDS are keyed by the primary mRNA identifier
+ * (`<gene_id>.1`), the LIS InterMine instances do **not** populate
+ * `MRNA.chromosomeLocation` — `mRNA(identifier:).chromosomeLocation` comes
+ * back `null` (verified against `graphql-genefunction`, 2026-06). Only
+ * `Gene.chromosomeLocation` carries coordinates, so it is the genomic slice's
+ * source of truth. For a single-isoform gene this is exactly the transcript
+ * locus; for a multi-isoform gene it is the union span across isoforms (with
+ * UTRs), which is the spec-faithful "genomic sequence of the gene."
+ *
+ * Note we deliberately avoid `Gene.transcripts`: it returns the `Transcript`
+ * *interface*, and the graphql-server (as of 2026-06) has no `__resolveType`
+ * for it, so that query fails with "Abstract type Transcript must resolve to
+ * an Object type at runtime." The `gene(identifier:)` field returns the
+ * concrete `Gene` type, so no interface resolution is involved and no
+ * upstream server change is required.
  */
 const GENE_BY_IDENTIFIER_QUERY = `
   query GeneByID($identifier: ID!) {
@@ -118,11 +133,11 @@ const GENE_BY_IDENTIFIER_QUERY = `
 
 /**
  * Suffix appended to a gene ID to address its primary mRNA in LIS
- * `_primary.faa.gz` / `_primary.fna.gz` FASTA files. The LIS curation
+ * `_primary.faa.gz` / `_primary.fna.gz` FASTA files, and the mRNA whose
+ * `chromosomeLocation` we query for the genomic slice. The LIS curation
  * pipeline puts the canonical isoform into these files keyed by the
  * `<gene_id>.1` mRNA identifier. Held as a constant so the assumption is
- * easy to find and revisit when GraphQL grows back transcript-level
- * resolution.
+ * easy to find and revisit.
  */
 const PRIMARY_MRNA_SUFFIX = '.1';
 
@@ -200,7 +215,7 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   dsUtilitiesBase: string = 'http://localhost:8080';
 
   /**
-   * GraphQL endpoint URL. Required: the element resolves gene → mRNA
+   * GraphQL endpoint URL. Required: the element resolves the gene's
    * coordinates by POSTing a `gene(identifier:)` query to this endpoint and
    * has no other path. An empty value causes the retrieve to throw with a
    * clear configuration error.
@@ -348,18 +363,16 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   ): Promise<FastaRecord[]> {
     if (!this.graphqlEndpoint) {
       throw new Error(
-        `graphqlEndpoint is not set — this element resolves gene → mRNA ` +
-          `via GraphQL only. Set the \`graphql-endpoint\` attribute or the ` +
+        `graphqlEndpoint is not set — this element resolves the gene's ` +
+          `coordinates via GraphQL only. Set the \`graphql-endpoint\` ` +
+          `attribute or the ` +
           `\`graphqlEndpoint\` property on the element.`,
       );
     }
     const signal = options.abortSignal;
     const prefix = extractFullYuckPrefix(data.geneId);
     const files = await this._fetchFiles(prefix, signal);
-    const row = await this._fetchLongestTranscriptViaGraphQL(
-      data.geneId,
-      signal,
-    );
+    const row = await this._fetchGeneLocation(data.geneId, signal);
     const records: FastaRecord[] = [];
     if (data.protein) {
       if (!files.protein_url) {
@@ -367,13 +380,9 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
           `dscensor catalog has no protein_url for prefix "${prefix}".`,
         );
       }
-      const seq = await this._fetchFasta(
-        row.mrna_id,
-        files.protein_url,
-        signal,
-      );
+      const seq = await this._fetchFasta(row.mrnaId, files.protein_url, signal);
       records.push({
-        header: `${row.mrna_id} protein gene=${data.geneId}`,
+        header: `${row.mrnaId} protein gene=${data.geneId}`,
         sequence: seq,
       });
     }
@@ -383,9 +392,9 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
           `dscensor catalog has no cds_url for prefix "${prefix}".`,
         );
       }
-      const seq = await this._fetchFasta(row.mrna_id, files.cds_url, signal);
+      const seq = await this._fetchFasta(row.mrnaId, files.cds_url, signal);
       records.push({
-        header: `${row.mrna_id} cds gene=${data.geneId}`,
+        header: `${row.mrnaId} cds gene=${data.geneId}`,
         sequence: seq,
       });
     }
@@ -410,19 +419,31 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   }
 
   /**
-   * Resolve a gene's chromosomal span via the GraphQL server.
+   * Resolve the gene's chromosomal span via the GraphQL server, paired with
+   * the primary mRNA identifier.
    *
-   * Returns a BED-row-shaped record where the genomic fields come from the
-   * gene's `chromosomeLocation` and `mrna_id` is the conventional
-   * `<gene_id>.1` primary mRNA (see PRIMARY_MRNA_SUFFIX for why). Throws on
-   * any "no result" outcome — gene not in the mine, network/HTTP error,
-   * GraphQL `errors` field set, or missing chromosome/location fields.
-   * There is no fallback path; the caller surfaces the thrown message.
+   * Queries the `gene(identifier:)` field for `<gene_id>` and returns its
+   * `chromosomeLocation` — the source of truth for the genomic slice. The
+   * per-mRNA location is not populated in the LIS mines, so the gene location
+   * is used (see {@link GENE_BY_IDENTIFIER_QUERY}). The returned `mrnaId`
+   * (`<gene_id>.1`) keys the protein/CDS lookups from the `*_primary` FASTAs.
+   *
+   * Coordinates are converted from InterMine's 1-based inclusive convention
+   * to the 0-based half-open convention pysam expects: `start - 1`, `end`
+   * unchanged. (For an inclusive range [s, e], the half-open equivalent is
+   * [s-1, e).) Skipping this conversion shifts every genomic slice one base
+   * 5′ — the off-by-one we chased earlier.
+   *
+   * Throws on any "no result" outcome — gene not in the mine, network/HTTP
+   * error, GraphQL `errors` field set, or missing chromosome/location
+   * fields. There is no fallback path; the caller surfaces the thrown
+   * message.
    */
-  private async _fetchLongestTranscriptViaGraphQL(
+  private async _fetchGeneLocation(
     geneId: string,
     signal?: AbortSignal,
-  ): Promise<RetrieveSequenceBedRow> {
+  ): Promise<RetrieveSequenceMrnaLocation> {
+    const mrnaId = `${geneId}${PRIMARY_MRNA_SUFFIX}`;
     let body: GraphQLGeneResponse;
     try {
       const resp = await fetch(this.graphqlEndpoint, {
@@ -455,8 +476,8 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     const result = body.data?.gene?.results;
     if (!result) {
       throw new Error(
-        `GraphQL server has no record for gene "${geneId}". The gene may ` +
-          `not be loaded into the mine.`,
+        `GraphQL server has no record for gene "${geneId}". It may not be ` +
+          `loaded into the mine.`,
       );
     }
     const loc = result.chromosomeLocation;
@@ -469,18 +490,17 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     }
     return {
       molecule: chrom,
-      start: loc.start,
+      // InterMine 1-based inclusive → 0-based half-open for pysam.
+      start: loc.start - 1,
       end: loc.end,
-      mrna_id: `${geneId}${PRIMARY_MRNA_SUFFIX}`,
-      score: 0,
+      mrnaId,
       strand: this._normalizeIntermineStrand(loc.strand),
-      gene_id: geneId,
     };
   }
 
   /**
    * InterMine reports strand as `"1"` / `"-1"` / `"0"`; downstream consumers
-   * (computeFlankRegion, reverseComplement) expect BED-style `"+"` / `"-"` /
+   * (computeFlankRegion, reverseComplement) expect `"+"` / `"-"` /
    * `"."`. Map both common shapes; pass anything else through unchanged so
    * the consumer sees the raw value rather than us silently mis-translating.
    */
@@ -534,8 +554,8 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
       `${encodeURIComponent(seqid)}/${encodeURIComponent(fastaUrl)}`;
     const resp = await fetch(url, {signal});
     if (!resp.ok) {
-      // Same pysam failure shape as bed_lookup: a missing .fai / .gzi sibling
-      // on the FASTA produces "could not open file" rather than a transient
+      // A missing .fai / .gzi sibling on the FASTA produces a pysam
+      // "could not open file" error rather than a transient
       // HTTP failure. Surface it specifically so users know to ask the data
       // team rather than retrying.
       const errMsg = await readErrorMessage(resp);
@@ -562,7 +582,7 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   }
 
   private async _fetchGenomicSlice(
-    row: RetrieveSequenceBedRow,
+    row: RetrieveSequenceMrnaLocation,
     genomeUrl: string,
     upstream: number,
     downstream: number,

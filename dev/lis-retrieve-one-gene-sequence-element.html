@@ -37,14 +37,18 @@
           canonical file URLs.
         </li>
         <li>
-          <code>graphql-server</code> (required) resolves the gene's longest
-          mRNA + chromosome coordinates in one small POST query. There is no
-          fallback: if GraphQL doesn't know the gene, the retrieve fails with
-          a clear message and the user picks a different gene.
+          <code>graphql-server</code> (required) resolves the gene's chromosome
+          coordinates in one small POST query against the
+          <code>gene(identifier:)</code> field. (The per-mRNA location isn't
+          populated in the LIS mines, so the gene location is used; the primary
+          mRNA <code>&lt;gene_id&gt;.1</code> still keys the protein/CDS FASTA
+          lookups.) There is no fallback: if GraphQL doesn't know the gene, the
+          retrieve fails with a clear message and the user picks a different
+          gene.
         </li>
         <li>
-          <code>ds_utilities</code> handles the FASTA slicing for the
-          sequences themselves (protein, CDS, genome with optional flank).
+          <code>ds_utilities</code> handles the FASTA slicing for the sequences
+          themselves (protein, CDS, genome with optional flank).
         </li>
       </ul>
       <hr />
