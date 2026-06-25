@@ -251,7 +251,7 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   protected cancelPromiseController = new LisCancelPromiseController(this);
 
   @state() private _geneId: string = '';
-  @state() private _protein: boolean = false;
+  @state() private _protein: boolean = true;
   @state() private _cds: boolean = false;
   @state() private _genome: boolean = false;
   @state() private _basesUpstream: string = '0';
@@ -269,14 +269,27 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
    */
   public retrieve(data?: Partial<RetrieveOneGeneSearchData>): void {
     if (data?.geneId !== undefined) this._geneId = data.geneId;
-    if (data?.protein !== undefined) this._protein = data.protein;
-    if (data?.cds !== undefined) this._cds = data.cds;
-    if (data?.genome !== undefined) this._genome = data.genome;
+    // Sequence type is exclusive: the last type set to `true` wins, mirroring
+    // the radio-button UI. Order protein → cds → genome so an explicit later
+    // selection overrides an earlier one in the same call.
+    if (data?.protein) this._selectSequenceType('protein');
+    if (data?.cds) this._selectSequenceType('cds');
+    if (data?.genome) this._selectSequenceType('genome');
     if (data?.basesUpstream !== undefined)
       this._basesUpstream = String(data.basesUpstream);
     if (data?.basesDownstream !== undefined)
       this._basesDownstream = String(data.basesDownstream);
     this._submit();
+  }
+
+  // Sequence type is mutually exclusive (Protein, CDS, or Genome). Selecting
+  // one clears the others so exactly one boolean is ever true, matching the
+  // radio-button UI while keeping the protein/cds/genome data contract that the
+  // retrieve and download logic relies on.
+  private _selectSequenceType(type: 'protein' | 'cds' | 'genome'): void {
+    this._protein = type === 'protein';
+    this._cds = type === 'cds';
+    this._genome = type === 'genome';
   }
 
   private _searchData(): RetrieveOneGeneSearchData {
@@ -705,11 +718,11 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
         <div class="uk-margin">
           <label class="uk-form-label">
             <input
-              class="uk-checkbox"
-              type="checkbox"
+              class="uk-radio"
+              type="radio"
+              name="sequenceType"
               .checked=${this._protein}
-              @change=${(e: Event) =>
-                (this._protein = (e.target as HTMLInputElement).checked)}
+              @change=${() => this._selectSequenceType('protein')}
             />
             Protein sequence
           </label>
@@ -718,11 +731,11 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
         <div class="uk-margin">
           <label class="uk-form-label">
             <input
-              class="uk-checkbox"
-              type="checkbox"
+              class="uk-radio"
+              type="radio"
+              name="sequenceType"
               .checked=${this._cds}
-              @change=${(e: Event) =>
-                (this._cds = (e.target as HTMLInputElement).checked)}
+              @change=${() => this._selectSequenceType('cds')}
             />
             CDS sequence
           </label>
@@ -731,11 +744,11 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
         <div class="uk-margin">
           <label class="uk-form-label">
             <input
-              class="uk-checkbox"
-              type="checkbox"
+              class="uk-radio"
+              type="radio"
+              name="sequenceType"
               .checked=${this._genome}
-              @change=${(e: Event) =>
-                (this._genome = (e.target as HTMLInputElement).checked)}
+              @change=${() => this._selectSequenceType('genome')}
             />
             Genome sequence:
           </label>
