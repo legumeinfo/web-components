@@ -7,16 +7,14 @@ import {LisLoadingElement, LisSimpleTableElement} from './core';
 import {
   FastaRecord,
   MAX_FLANK_BASES,
-  computeFlankRegion,
-  extractFullYuckPrefix,
   formatFasta,
-  reverseComplement,
+  parseFasta,
 } from './utils/sequence-fasta';
 
 /**
  * Pull the `error` string out of a `{error, status}` JSON body that the
- * Python services return on 4xx/5xx. Best-effort: returns "" if the body
- * isn't JSON or doesn't have the expected shape.
+ * microservices return on 4xx/5xx. Best-effort: returns "" if the body isn't
+ * JSON or doesn't have the expected shape.
  */
 async function readErrorMessage(resp: Response): Promise<string> {
   try {
@@ -28,127 +26,12 @@ async function readErrorMessage(resp: Response): Promise<string> {
 }
 
 /**
- * pysam's TabixFile / FastaFile constructors raise OSError with messages
- * like "could not open file `<url>`" when the sibling index (.tbi / .fai /
- * .gzi / .csi) is missing on the remote file — the most common reason a
- * working backend can't serve a known-good URL. Detect that string so the
- * UI can point at curation rather than at the service.
- */
-function looksLikeMissingPysamIndex(errMsg: string): boolean {
-  return /could not open file|Unable to open file/i.test(errMsg);
-}
-
-/** Last path segment of a URL, for compact filenames in error messages. */
-function lastUrlSegment(url: string): string {
-  const noQuery = url.split('?')[0];
-  const segments = noQuery.split('/');
-  return segments[segments.length - 1] || url;
-}
-
-/**
- * URLs the catalog produces for a single annotation prefix. Mirrors the
- * dscensor `/files/{prefix}` response shape so the type carries the same
- * nullability semantics (a URL is null when the catalog can't confirm the
- * underlying file follows the suffix-substitution convention).
- */
-export type RetrieveSequenceFiles = {
-  protein_url: string | null;
-  cds_url: string | null;
-  genome_url: string | null;
-  genus?: string | null;
-  species?: string | null;
-  infraspecies?: string | null;
-};
-
-/**
- * The gene's location on its chromosome, as resolved from GraphQL, paired
- * with the primary mRNA identifier.
- *
- * Protein and CDS are fetched by `mrnaId` (`<gene_id>.1`) out of the
- * `*_primary` FASTAs; the genomic slice is cut from `start`/`end`, which come
- * from the gene's `chromosomeLocation` (see below). `start`/`end` are stored
- * 0-based half-open (pysam's convention) — see
- * {@link LisRetrieveOneGeneSequenceElement._fetchGeneLocation} for the
- * conversion from InterMine's 1-based inclusive coordinates.
- */
-export type RetrieveSequenceMrnaLocation = {
-  molecule: string;
-  start: number;
-  end: number;
-  mrnaId: string;
-  strand: string;
-};
-
-/** Subset of the `gene(identifier:)` GraphQL response we consume. */
-type GraphQLGeneResponse = {
-  data?: {
-    gene?: {
-      results?: {
-        identifier: string;
-        chromosomeLocation: {
-          start: number;
-          end: number;
-          strand: string | null;
-        } | null;
-        chromosome: {identifier: string} | null;
-      } | null;
-    } | null;
-  };
-  errors?: Array<{message: string}>;
-};
-
-/**
- * GraphQL query for the gene's chromosomal span. Sent as a string body to
- * keep the component dependency-free — no GraphQL client runtime is needed
- * for a single hand-written query of this size.
- *
- * We query the gene-level `chromosomeLocation` rather than the per-mRNA
- * location. Although protein/CDS are keyed by the primary mRNA identifier
- * (`<gene_id>.1`), the LIS InterMine instances do **not** populate
- * `MRNA.chromosomeLocation` — `mRNA(identifier:).chromosomeLocation` comes
- * back `null` (verified against `graphql-genefunction`, 2026-06). Only
- * `Gene.chromosomeLocation` carries coordinates, so it is the genomic slice's
- * source of truth. For a single-isoform gene this is exactly the transcript
- * locus; for a multi-isoform gene it is the union span across isoforms (with
- * UTRs), which is the spec-faithful "genomic sequence of the gene."
- *
- * Note we deliberately avoid `Gene.transcripts`: it returns the `Transcript`
- * *interface*, and the graphql-server (as of 2026-06) has no `__resolveType`
- * for it, so that query fails with "Abstract type Transcript must resolve to
- * an Object type at runtime." The `gene(identifier:)` field returns the
- * concrete `Gene` type, so no interface resolution is involved and no
- * upstream server change is required.
- */
-const GENE_BY_IDENTIFIER_QUERY = `
-  query GeneByID($identifier: ID!) {
-    gene(identifier: $identifier) {
-      results {
-        identifier
-        chromosomeLocation { start, end, strand }
-        chromosome { identifier }
-      }
-    }
-  }
-`;
-
-/**
- * Suffix appended to a gene ID to address its primary mRNA in LIS
- * `_primary.faa.gz` / `_primary.fna.gz` FASTA files, and the mRNA whose
- * `chromosomeLocation` we query for the genomic slice. The LIS curation
- * pipeline puts the canonical isoform into these files keyed by the
- * `<gene_id>.1` mRNA identifier. Held as a constant so the assumption is
- * easy to find and revisit.
- */
-const PRIMARY_MRNA_SUFFIX = '.1';
-
-/**
  * Per-sequence-type download metadata, keyed by the sequence-type token that
- * `_defaultRetrieve` embeds as the second header token (`protein` / `cds` /
- * `genome`). Downloads are split into one file per type, named
- * `<id>.<label>.<ext>` (e.g. `<gene>.protein.faa`), with the
- * biologically-correct FASTA extension: `.faa` (amino acid) for protein,
- * `.fna` (nucleic acid) for the two nucleotide outputs. The `label` token then
- * disambiguates the two `.fna` files from each other.
+ * the `sequences` service embeds as the second header token (`protein` / `cds`
+ * / `genome`). Downloads are named `<id>.<label>.<ext>` (e.g.
+ * `<gene>.protein.faa`), with the biologically-correct FASTA extension: `.faa`
+ * (amino acid) for protein, `.fna` (nucleic acid) for the two nucleotide
+ * outputs. The `label` token disambiguates the two `.fna` files from each other.
  */
 const DOWNLOAD_TYPE_META: Record<string, {label: string; ext: string}> = {
   protein: {label: 'protein', ext: 'faa'},
@@ -175,12 +58,11 @@ export type RetrieveOneGeneSearchData = {
 export type RetrieveOneGeneOptions = {abortSignal?: AbortSignal};
 
 /**
- * Function signature for fully overriding the backend orchestration.
+ * Function signature for fully overriding the backend call.
  *
- * Provided so consumers can swap in a mocked / pre-cached / GraphQL-fronted
- * implementation without re-deriving the element's form logic. When not set
- * the element uses its built-in dscensor + ds_utilities chain against the
- * configured base URLs.
+ * Provided so consumers can swap in a mocked / pre-cached implementation
+ * without re-deriving the element's form logic. When not set the element POSTs
+ * to the configured `sequences` service.
  */
 export type RetrieveOneGeneFunction = (
   searchData: RetrieveOneGeneSearchData,
@@ -188,25 +70,35 @@ export type RetrieveOneGeneFunction = (
 ) => Promise<FastaRecord[]>;
 
 /**
+ * Translate the mutually-exclusive sequence-type booleans into the `type` token
+ * the `sequences` service expects.
+ */
+function sequenceType(
+  data: RetrieveOneGeneSearchData,
+): 'protein' | 'cds' | 'genome' {
+  if (data.cds) return 'cds';
+  if (data.genome) return 'genome';
+  return 'protein';
+}
+
+/**
  * @htmlElement `<lis-retrieve-one-gene-sequence-element>`
  *
- * Component 1 of the LIS retrieve-sequence spec (v0.5.0): given a single gene
- * ID, fetch protein / CDS / genomic sequences and surface them as a table plus
- * a Download-as-FASTA action. Out of the box it talks to a dscensor instance,
- * a GraphQL server, and a ds_utilities instance over HTTP — set
- * {@link dscensorBase | `dscensorBase`},
- * {@link graphqlEndpoint | `graphqlEndpoint`}, and
- * {@link dsUtilitiesBase | `dsUtilitiesBase`} to point at your services, or
- * replace the whole chain by assigning
- * {@link retrieveFunction | `retrieveFunction`}.
+ * Component 1 of the LIS retrieve-sequence spec: given a single gene ID, fetch
+ * its protein / CDS / genomic sequence and surface it as a table plus a
+ * Download-as-FASTA action.
+ *
+ * The element now delegates all resolution to the `sequences` microservice — a
+ * single POST to `/seq` returns the assembled FASTA, and the element parses it
+ * for display and re-serializes it for download. Point it at your service via
+ * {@link sequencesBase | `sequencesBase`}, or replace the call entirely by
+ * assigning {@link retrieveFunction | `retrieveFunction`}.
  *
  * @example
  * ```html
  * <lis-retrieve-one-gene-sequence-element
  *   id="retrieve"
- *   dscensorBase="http://localhost:8765"
- *   graphql-endpoint="https://mines.example.org/graphql"
- *   dsUtilitiesBase="http://localhost:8080"
+ *   sequences-base="http://localhost:8082"
  * ></lis-retrieve-one-gene-sequence-element>
  * ```
  */
@@ -221,33 +113,20 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     return this;
   }
 
-  /** Base URL of the dscensor service (no trailing slash). */
-  @property({type: String, attribute: 'dscensor-base'})
-  dscensorBase: string = 'http://localhost:8765';
-
-  /** Base URL of the ds_utilities service (no trailing slash). */
-  @property({type: String, attribute: 'ds-utilities-base'})
-  dsUtilitiesBase: string = 'http://localhost:8080';
+  /** Base URL of the sequences service (no trailing slash). */
+  @property({type: String, attribute: 'sequences-base'})
+  sequencesBase: string = 'http://localhost:8082';
 
   /**
-   * GraphQL endpoint URL. Required: the element resolves the gene's
-   * coordinates by POSTing a `gene(identifier:)` query to this endpoint and
-   * has no other path. An empty value causes the retrieve to throw with a
-   * clear configuration error.
-   */
-  @property({type: String, attribute: 'graphql-endpoint'})
-  graphqlEndpoint: string = '';
-
-  /**
-   * Optional override of the backend orchestration. When unset the element
-   * runs the built-in dscensor → ds_utilities chain against the base URLs.
+   * Optional override of the backend call. When unset the element POSTs to the
+   * `sequences` service at {@link sequencesBase | `sequencesBase`}.
    */
   @property({type: Function, attribute: false})
   retrieveFunction?: RetrieveOneGeneFunction;
 
   // Controller cancels any in-flight retrieve when the user re-submits or the
-  // host element disconnects, so a slow protein fetch can't overwrite results
-  // from a faster genome-only query the user just started.
+  // host element disconnects, so a slow request can't overwrite results from a
+  // faster query the user just started.
   protected cancelPromiseController = new LisCancelPromiseController(this);
 
   @state() private _geneId: string = '';
@@ -355,10 +234,10 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     }
   }
 
-  // Header strings produced by _defaultRetrieve embed the sequence type as the
-  // second whitespace-delimited token; surface it as its own column so the
-  // table reads like the spec's mockup without forcing callers to parse FASTA
-  // headers themselves.
+  // Header strings produced by the `sequences` service embed the sequence type
+  // as the second whitespace-delimited token; surface it as its own column so
+  // the table reads like the spec's mockup without forcing callers to parse
+  // FASTA headers themselves.
   private _typeFromHeader(header: string): string {
     const parts = header.split(/\s+/);
     return parts[1] ?? '';
@@ -366,10 +245,9 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
 
   // Downloads are split into one file per sequence type, named
   // `<gene>.<type>.<ext>` (e.g. `<gene>.protein.faa`, `<gene>.CDS.fna`,
-  // `<gene>.genomic.fna`) so the user can tell the three FASTAs apart and the
-  // extension matches the sequence type. A gene query yields at most one
-  // record per type; records are grouped by type so this stays correct if that
-  // ever changes.
+  // `<gene>.genomic.fna`) so the user can tell the FASTAs apart and the
+  // extension matches the sequence type. Records are grouped by type so this
+  // stays correct even though a single query currently yields one type.
   private _download(): void {
     if (this._records.length === 0) return;
     const base = this._geneId.replace(/[^A-Za-z0-9._-]+/g, '_') || 'sequence';
@@ -404,288 +282,44 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     URL.revokeObjectURL(url);
   }
 
-  // The built-in chain: dscensor /files/{prefix} → GraphQL gene query →
-  // ds_utilities /fasta/fetch per requested sequence type. Kept inside the
-  // element so the spec's flow Just Works against the default localhost
-  // ports; consumers needing a different transport replace this via
-  // `retrieveFunction`.
+  // The built-in backend call: a single POST to the `sequences` service, which
+  // resolves files/coordinates (via dscensor + genes), fetches the bytes (via
+  // ds_utilities), reverse-complements minus-strand genomic slices, and returns
+  // the assembled FASTA. The element parses that FASTA for display; download
+  // re-serializes the parsed records. Consumers needing a different transport
+  // replace this via `retrieveFunction`.
   private async _defaultRetrieve(
     data: RetrieveOneGeneSearchData,
     options: RetrieveOneGeneOptions,
   ): Promise<FastaRecord[]> {
-    if (!this.graphqlEndpoint) {
+    if (!this.sequencesBase) {
       throw new Error(
-        `graphqlEndpoint is not set — this element resolves the gene's ` +
-          `coordinates via GraphQL only. Set the \`graphql-endpoint\` ` +
-          `attribute or the ` +
-          `\`graphqlEndpoint\` property on the element.`,
+        'sequencesBase is not set — set the `sequences-base` attribute or the ' +
+          '`sequencesBase` property on the element.',
       );
     }
-    const signal = options.abortSignal;
-    const prefix = extractFullYuckPrefix(data.geneId);
-    const files = await this._fetchFiles(prefix, signal);
-    const row = await this._fetchGeneLocation(data.geneId, signal);
-    const records: FastaRecord[] = [];
-    if (data.protein) {
-      if (!files.protein_url) {
-        throw new Error(
-          `dscensor catalog has no protein_url for prefix "${prefix}".`,
-        );
-      }
-      const seq = await this._fetchFasta(row.mrnaId, files.protein_url, signal);
-      records.push({
-        header: `${row.mrnaId} protein gene=${data.geneId}`,
-        sequence: seq,
-      });
-    }
-    if (data.cds) {
-      if (!files.cds_url) {
-        throw new Error(
-          `dscensor catalog has no cds_url for prefix "${prefix}".`,
-        );
-      }
-      const seq = await this._fetchFasta(row.mrnaId, files.cds_url, signal);
-      records.push({
-        header: `${row.mrnaId} cds gene=${data.geneId}`,
-        sequence: seq,
-      });
-    }
-    if (data.genome) {
-      if (!files.genome_url) {
-        throw new Error(
-          `dscensor catalog has no genome_url for prefix "${prefix}".`,
-        );
-      }
-      records.push(
-        await this._fetchGenomicSlice(
-          row,
-          files.genome_url,
-          data.basesUpstream,
-          data.basesDownstream,
-          data.geneId,
-          signal,
-        ),
-      );
-    }
-    return records;
-  }
-
-  /**
-   * Resolve the gene's chromosomal span via the GraphQL server, paired with
-   * the primary mRNA identifier.
-   *
-   * Queries the `gene(identifier:)` field for `<gene_id>` and returns its
-   * `chromosomeLocation` — the source of truth for the genomic slice. The
-   * per-mRNA location is not populated in the LIS mines, so the gene location
-   * is used (see {@link GENE_BY_IDENTIFIER_QUERY}). The returned `mrnaId`
-   * (`<gene_id>.1`) keys the protein/CDS lookups from the `*_primary` FASTAs.
-   *
-   * Coordinates are converted from InterMine's 1-based inclusive convention
-   * to the 0-based half-open convention pysam expects: `start - 1`, `end`
-   * unchanged. (For an inclusive range [s, e], the half-open equivalent is
-   * [s-1, e).) Skipping this conversion shifts every genomic slice one base
-   * 5′ — the off-by-one we chased earlier.
-   *
-   * Throws on any "no result" outcome — gene not in the mine, network/HTTP
-   * error, GraphQL `errors` field set, or missing chromosome/location
-   * fields. There is no fallback path; the caller surfaces the thrown
-   * message.
-   */
-  private async _fetchGeneLocation(
-    geneId: string,
-    signal?: AbortSignal,
-  ): Promise<RetrieveSequenceMrnaLocation> {
-    const mrnaId = `${geneId}${PRIMARY_MRNA_SUFFIX}`;
-    let body: GraphQLGeneResponse;
-    try {
-      const resp = await fetch(this.graphqlEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          query: GENE_BY_IDENTIFIER_QUERY,
-          variables: {identifier: geneId},
-        }),
-        signal,
-      });
-      if (!resp.ok) {
-        throw new Error(`GraphQL endpoint returned HTTP ${resp.status}.`);
-      }
-      body = (await resp.json()) as GraphQLGeneResponse;
-    } catch (err) {
-      if (err instanceof Error) throw err;
-      throw new Error(`GraphQL request failed: ${String(err)}`);
-    }
-    if (body.errors && body.errors.length > 0) {
-      throw new Error(
-        `GraphQL server reported errors: ${body.errors
-          .map((e) => e.message)
-          .join('; ')}`,
-      );
-    }
-    const result = body.data?.gene?.results;
-    if (!result) {
-      throw new Error(
-        `GraphQL server has no record for gene "${geneId}". It may not be ` +
-          `loaded into the mine.`,
-      );
-    }
-    const loc = result.chromosomeLocation;
-    const chrom = result.chromosome?.identifier;
-    if (!loc || !chrom) {
-      throw new Error(
-        `GraphQL response for gene "${geneId}" was missing chromosome or ` +
-          `location fields.`,
-      );
-    }
-    return {
-      molecule: chrom,
-      // InterMine 1-based inclusive → 0-based half-open for pysam.
-      start: loc.start - 1,
-      end: loc.end,
-      mrnaId,
-      strand: this._normalizeIntermineStrand(loc.strand),
+    const body = {
+      yucks: [data.geneId],
+      type: sequenceType(data),
+      up: data.basesUpstream,
+      down: data.basesDownstream,
     };
-  }
-
-  /**
-   * InterMine reports strand as `"1"` / `"-1"` / `"0"`; downstream consumers
-   * (computeFlankRegion, reverseComplement) expect `"+"` / `"-"` /
-   * `"."`. Map both common shapes; pass anything else through unchanged so
-   * the consumer sees the raw value rather than us silently mis-translating.
-   */
-  private _normalizeIntermineStrand(strand: string | null): string {
-    if (strand === null || strand === undefined) return '.';
-    switch (strand) {
-      case '1':
-      case '+1':
-      case '+':
-        return '+';
-      case '-1':
-      case '-':
-        return '-';
-      case '0':
-      case '.':
-        return '.';
-      default:
-        return strand;
-    }
-  }
-
-  private async _fetchFiles(
-    prefix: string,
-    signal?: AbortSignal,
-  ): Promise<RetrieveSequenceFiles> {
-    const url = `${this.dscensorBase}/files/${encodeURIComponent(prefix)}`;
-    const resp = await fetch(url, {signal});
-    if (resp.status === 404) {
-      // Catalog-side curation gap rather than a service bug. Mention
-      // lis-autocontent so the next reader knows which tool produces these.
-      throw new Error(
-        `The dscensor catalog has no entry for prefix "${prefix}". ` +
-          `This usually means the autocontent JSON for this assembly hasn't ` +
-          `been generated yet — the LIS data team produces them via ` +
-          `\`lis-autocontent populate-dscensor\`.`,
-      );
-    }
-    if (!resp.ok) {
-      throw new Error(`dscensor /files returned HTTP ${resp.status}.`);
-    }
-    return (await resp.json()) as RetrieveSequenceFiles;
-  }
-
-  private async _fetchFasta(
-    seqid: string,
-    fastaUrl: string,
-    signal?: AbortSignal,
-  ): Promise<string> {
-    const url =
-      `${this.dsUtilitiesBase}/fasta/fetch/` +
-      `${encodeURIComponent(seqid)}/${encodeURIComponent(fastaUrl)}`;
-    const resp = await fetch(url, {signal});
-    if (!resp.ok) {
-      // A missing .fai / .gzi sibling on the FASTA produces a pysam
-      // "could not open file" error rather than a transient
-      // HTTP failure. Surface it specifically so users know to ask the data
-      // team rather than retrying.
-      const errMsg = await readErrorMessage(resp);
-      if (looksLikeMissingPysamIndex(errMsg)) {
-        const filename = lastUrlSegment(fastaUrl);
-        throw new Error(
-          `The FASTA at "${filename}" is reachable but its index ` +
-            `(.fai/.gzi) is missing — pysam can't open the file without it. ` +
-            `This is a data-side gap; the LIS data team needs to generate ` +
-            `the index.`,
-        );
-      }
-      throw new Error(
-        `ds_utilities /fasta/fetch error: ${errMsg || `HTTP ${resp.status}`}`,
-      );
-    }
-    const body = (await resp.json()) as {sequence?: string};
-    if (typeof body.sequence !== 'string') {
-      throw new Error(
-        `ds_utilities /fasta/fetch response missing "sequence" field.`,
-      );
-    }
-    return body.sequence;
-  }
-
-  private async _fetchGenomicSlice(
-    row: RetrieveSequenceMrnaLocation,
-    genomeUrl: string,
-    upstream: number,
-    downstream: number,
-    geneId: string,
-    signal?: AbortSignal,
-  ): Promise<FastaRecord> {
-    const {fetchStart, fetchEnd} = computeFlankRegion(
-      row.start,
-      row.end,
-      row.strand,
-      upstream,
-      downstream,
-    );
-    // ds_utilities exposes coords as optional `start`/`end` query parameters
-    // on /fasta/fetch/{seqid}/{url} — keeps integer ranges out of the URL
-    // path (which avoids the encodeURIComponent-vs-route-pattern mismatch
-    // the old `/fasta/fetch/{seqid}:{start}-{end}/{url}` form suffered from).
-    const url =
-      `${this.dsUtilitiesBase}/fasta/fetch/` +
-      `${encodeURIComponent(row.molecule)}/${encodeURIComponent(genomeUrl)}` +
-      `?start=${fetchStart}&end=${fetchEnd}`;
-    const resp = await fetch(url, {signal});
+    const resp = await fetch(`${this.sequencesBase.replace(/\/$/, '')}/seq`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/x-fasta',
+      },
+      body: JSON.stringify(body),
+      signal: options.abortSignal,
+    });
     if (!resp.ok) {
       const errMsg = await readErrorMessage(resp);
-      if (looksLikeMissingPysamIndex(errMsg)) {
-        const filename = lastUrlSegment(genomeUrl);
-        throw new Error(
-          `The genome FASTA at "${filename}" is reachable but its index ` +
-            `(.fai/.gzi) is missing — pysam can't open the file without it. ` +
-            `This is a data-side gap; the LIS data team needs to generate ` +
-            `the index.`,
-        );
-      }
       throw new Error(
-        `ds_utilities /fasta/fetch error: ${errMsg || `HTTP ${resp.status}`}`,
+        `sequences /seq error: ${errMsg || `HTTP ${resp.status}`}`,
       );
     }
-    const body = (await resp.json()) as {sequence?: string};
-    if (typeof body.sequence !== 'string') {
-      throw new Error(
-        `ds_utilities /fasta/fetch response missing "sequence" field.`,
-      );
-    }
-    // ds_utilities serves plus-strand reference bases; we own the flip so the
-    // returned sequence reads 5'→3' along the gene's transcribed strand.
-    const sequence =
-      row.strand === '-' ? reverseComplement(body.sequence) : body.sequence;
-    const header =
-      `${row.molecule}:${fetchStart}-${fetchEnd} genome ` +
-      `gene=${geneId} strand=${row.strand} flanks=${upstream}/${downstream}`;
-    return {header, sequence};
+    return parseFasta(await resp.text());
   }
 
   /** @ignore */

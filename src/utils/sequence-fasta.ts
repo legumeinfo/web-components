@@ -1,7 +1,9 @@
 /**
- * Pure helpers for the retrieve-sequence components: full-yuck prefix extraction,
- * strand-aware flank coordinate math, nucleotide reverse-complement, and FASTA
- * assembly. Kept DOM-free so they can be unit-tested in isolation.
+ * Pure helpers for the retrieve-sequence components: FASTA parsing/assembly and
+ * the per-side flank cap. The gene → coordinate/file resolution, strand
+ * reverse-complement, and flank math that used to live here now live in the
+ * `sequences` microservice, so the component only needs to read and write FASTA.
+ * Kept DOM-free so they can be unit-tested in isolation.
  */
 
 /** One labelled sequence ready to render in a table cell or write to a FASTA file. */
@@ -10,125 +12,17 @@ export type FastaRecord = {
   sequence: string;
 };
 
-/** Sequence-type flags surfaced by the spec's checkboxes. */
+/** Sequence-type flags surfaced by the spec's radio buttons. */
 export type SequenceType = 'protein' | 'cds' | 'genome';
 
 /** Cap on per-side flank length per the spec (max 10000 bases each). */
 export const MAX_FLANK_BASES = 10000;
 
 /**
- * Pull the LIS full-yuck annotation prefix out of a gene ID.
- *
- * LIS gene IDs are structurally `{gensp}.{infraspecies}.{gnm}.{ann}.{gene-suffix}`,
- * so the first four dot-separated tokens are the prefix dscensor indexes on. Doing
- * this client-side avoids a second dscensor round-trip just to discover the prefix.
- */
-export function extractFullYuckPrefix(geneId: string): string {
-  const parts = geneId.split('.');
-  if (parts.length < 5) {
-    throw new Error(
-      `Gene ID "${geneId}" is not in the expected ` +
-        `gensp.infraspecies.gnm<N>.ann<N>.<suffix> shape.`,
-    );
-  }
-  return parts.slice(0, 4).join('.');
-}
-
-/**
- * Coerce a user-typed flank value to an integer in [0, MAX_FLANK_BASES].
- *
- * The spec caps each side at 10000 bp; rather than throwing on out-of-range input
- * we silently clamp so the UI matches the "max 10000 bases" caption.
- */
-export function clampFlank(value: number | string | null | undefined): number {
-  const n = typeof value === 'number' ? value : Number(value ?? 0);
-  if (!Number.isFinite(n) || n < 0) return 0;
-  return Math.min(Math.floor(n), MAX_FLANK_BASES);
-}
-
-/**
- * Region to actually fetch from the genome FASTA, given the gene's coordinates
- * and the user's requested ±flank budget.
- *
- * For minus-strand genes the spec's "upstream" sits at the high-coordinate end
- * (3' on plus strand) and "downstream" sits at the low-coordinate end, so we
- * swap the budgets before applying to start/end. Start is clamped at 0 because
- * pysam 0-based half-open coords don't go negative.
- */
-export function computeFlankRegion(
-  start: number,
-  end: number,
-  strand: string,
-  upstreamBases: number,
-  downstreamBases: number,
-): {fetchStart: number; fetchEnd: number} {
-  const up = clampFlank(upstreamBases);
-  const down = clampFlank(downstreamBases);
-  const negative = strand === '-';
-  const leftBudget = negative ? down : up;
-  const rightBudget = negative ? up : down;
-  return {
-    fetchStart: Math.max(0, start - leftBudget),
-    fetchEnd: end + rightBudget,
-  };
-}
-
-/**
- * Standard IUPAC nucleotide reverse-complement.
- *
- * ds_utilities is strand-agnostic by design (see backend-side memory
- * `retrieve-sequence-strandedness-out-of-scope`), so flipping minus-strand
- * genomic slices is the web component's responsibility. We preserve case so
- * downstream tooling can still distinguish soft-masked bases.
- */
-export function reverseComplement(seq: string): string {
-  const complement: Record<string, string> = {
-    A: 'T',
-    T: 'A',
-    G: 'C',
-    C: 'G',
-    U: 'A',
-    R: 'Y',
-    Y: 'R',
-    S: 'S',
-    W: 'W',
-    K: 'M',
-    M: 'K',
-    B: 'V',
-    V: 'B',
-    D: 'H',
-    H: 'D',
-    N: 'N',
-    a: 't',
-    t: 'a',
-    g: 'c',
-    c: 'g',
-    u: 'a',
-    r: 'y',
-    y: 'r',
-    s: 's',
-    w: 'w',
-    k: 'm',
-    m: 'k',
-    b: 'v',
-    v: 'b',
-    d: 'h',
-    h: 'd',
-    n: 'n',
-  };
-  let result = '';
-  for (let i = seq.length - 1; i >= 0; i--) {
-    const base = seq[i];
-    result += complement[base] ?? base;
-  }
-  return result;
-}
-
-/**
  * Wrap a single sequence to the conventional FASTA line width.
  *
- * Default 60 matches NCBI / Ensembl output and keeps long protein/CDS sequences
- * readable when pasted into BLAST forms or text editors.
+ * Default 60 matches NCBI / Ensembl / `samtools faidx` output and keeps long
+ * protein/CDS sequences readable when pasted into BLAST forms or text editors.
  */
 export function wrapSequence(seq: string, width = 60): string {
   if (width <= 0) return seq;
@@ -154,4 +48,32 @@ export function formatFasta(records: FastaRecord[], wrapWidth = 60): string {
       )
       .join('\n') + (records.length > 0 ? '\n' : '')
   );
+}
+
+/**
+ * Parse a FASTA-formatted string into records.
+ *
+ * Lenient by design: blank lines are ignored, sequence lines are concatenated
+ * (line wrapping removed), and the leading `>` plus surrounding whitespace are
+ * stripped from each header. Used to turn the `sequences` service's FASTA
+ * response into rows for the results table.
+ */
+export function parseFasta(text: string): FastaRecord[] {
+  const records: FastaRecord[] = [];
+  let header: string | null = null;
+  let sequence: string[] = [];
+  const flush = () => {
+    if (header !== null) records.push({header, sequence: sequence.join('')});
+  };
+  for (const line of text.split('\n')) {
+    if (line.startsWith('>')) {
+      flush();
+      header = line.slice(1).trim();
+      sequence = [];
+    } else if (line.trim() !== '') {
+      sequence.push(line.trim());
+    }
+  }
+  flush();
+  return records;
 }

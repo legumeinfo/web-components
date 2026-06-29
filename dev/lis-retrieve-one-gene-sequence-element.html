@@ -30,19 +30,12 @@
     </div>
 
     <script type="text/javascript">
-      // Point the backend URLs at the same host the page was loaded from so
-      // a remote browser hits the dev box's services instead of its own
-      // localhost. Overridable per environment if needed.
+      // Point the backend URL at the same host the page was loaded from so
+      // a remote browser hits the dev box's `sequences` service instead of its
+      // own localhost. Overridable per environment if needed.
       const retrieveElement = document.getElementById('retrieve');
       const host = window.location.hostname || 'localhost';
-      retrieveElement.dscensorBase = `http://${host}:8765`;
-      retrieveElement.dsUtilitiesBase = `http://${host}:8080`;
-      // GraphQL endpoint is required — the element resolves gene → mRNA
-      // exclusively via this endpoint. The dev LIS instance below is a
-      // reasonable default; production deployments should point at their own
-      // gateway.
-      retrieveElement.graphqlEndpoint =
-        'https://mines.dev.lis.ncgr.org/graphql-genefunction/';
+      retrieveElement.sequencesBase = `http://${host}:8082`;
 
       // Uncomment to fire an automatic search on page load — handy when
       // smoke-testing the backend without clicking through the form.
