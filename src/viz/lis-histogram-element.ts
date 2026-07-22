@@ -1,5 +1,5 @@
 import {css, html, LitElement} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 import {Ref, createRef, ref} from 'lit/directives/ref.js';
 
 import {LisResizeObserverController} from '../controllers';
@@ -9,9 +9,10 @@ declare const d3: any; // version 7
 
 /**
  * The structure a single numeric bin must have when given to the
- * {@link LisHistogramElement | `LisHistogramElement`} component. This is
- * intentionally the same shape produced by {@link !d3.bin | `d3.bin()`}, so
- * the output of D3's bin generator can be passed to the component as-is.
+ * {@link LisHistogramElement | `LisHistogramElement`} component. Note this
+ * is *not* quite what {@link !d3.bin | `d3.bin()`} returns directly.
+ * Example map to convert to D3:
+ * `bin(values).map((b) => ({x0: b.x0, x1: b.x1, count: b.length}))`.
  */
 export type NumericHistogramBin = {
   x0: number;
@@ -20,7 +21,7 @@ export type NumericHistogramBin = {
 };
 
 /**
- * The structure a single ordinal (categorical) bin must have when given to
+ * The structure a single ordinal bin must have when given to
  * the {@link LisHistogramElement | `LisHistogramElement`} component.
  */
 export type OrdinalHistogramBin = {
@@ -34,8 +35,7 @@ export type OrdinalHistogramBin = {
  * either numeric ({@link NumericHistogramBin | `NumericHistogramBin`}) or
  * ordinal ({@link OrdinalHistogramBin | `OrdinalHistogramBin`}); the
  * component detects which kind it's been given by inspecting the first bin
- * in {@link data | `data`}, so a single instance of the component can't mix
- * the two.
+ * in {@link data | `data`}.
  */
 export type HistogramBin = NumericHistogramBin | OrdinalHistogramBin;
 
@@ -44,6 +44,15 @@ export type HistogramBin = NumericHistogramBin | OrdinalHistogramBin;
  * {@link LisHistogramElement | `LisHistogramElement`} component.
  */
 export type HistogramData = HistogramBin[];
+
+/**
+ * The direction the {@link LisHistogramElement | `LisHistogramElement`}
+ * component draws its bars in. `'vertical'` draws bars that grow upward,
+ * with the bin/category axis along the bottom and the count axis along the
+ * left. `'horizontal'` draws bars that grow rightward, with the bin/category
+ * axis along the left and the count axis along the top.
+ */
+export type HistogramOrientation = 'vertical' | 'horizontal';
 
 /**
  * A type guard that distinguishes an {@link OrdinalHistogramBin | `OrdinalHistogramBin`}
@@ -56,11 +65,9 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
 /**
  * @htmlElement `<lis-histogram-element>`
  *
- * A "dumb"/presentational Web Component that draws a histogram for a set of
- * pre-computed {@link HistogramData | `HistogramData`}. The component performs
+ * Draws a histogram for a set of pre-computed {@link HistogramData | `HistogramData`}. The component performs
  * no data fetching or binning of its own; it only renders the bins it's given
- * via its {@link data | `data`} property. This keeps the component reusable
- * regardless of where its data comes from or how it was binned. The component
+ * via its {@link data | `data`} property. The component
  * automatically redraws when its data changes or when the width of its parent
  * element changes.
  *
@@ -92,7 +99,9 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
  * @example
  * Because the component is "dumb", it expects to be given bins, not raw values.
  * D3's own bin generator can be used to produce them, which keeps binning logic
- * (thresholds, domain, etc.) with the caller instead of the component:
+ * (thresholds, domain, etc.) with the caller instead of the component. Note that
+ * D3's bins are array-like objects with the count only implicit as `bin.length`,
+ * so the output must be mapped to `{x0, x1, count}`:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-histogram-element id="histogram"></lis-histogram-element>
@@ -101,9 +110,9 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
  * <script type="text/javascript">
  *   // raw values to visualize
  *   const values = [1, 2, 2, 3, 3, 3, 4, 4, 5];
- *   // bin the values using D3
+ *   // bin the values using D3, then map to {x0, x1, count}
  *   const bin = d3.bin();
- *   const data = bin(values);
+ *   const data = bin(values).map((b) => ({x0: b.x0, x1: b.x1, count: b.length}));
  *   // get the histogram element
  *   const histogramElement = document.getElementById('histogram');
  *   // set the element's data property
@@ -118,9 +127,10 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
  * array of {@link OrdinalHistogramBin | `OrdinalHistogramBin`} objects
  * (`{label: string, count: number}`) instead. The component detects the
  * ordinal case automatically by inspecting the first bin. Category labels
- * longer than 25 characters are truncated with an ellipsis and drawn at an
- * angle to keep them readable; hovering a truncated label shows the full
- * text:
+ * longer than 25 characters are truncated with an ellipsis; hovering a
+ * truncated label shows the full text. In the default `'vertical'`
+ * orientation truncated labels are also drawn at an angle to keep them
+ * readable:
  * ```html
  * <!-- add the Web Component to your HTML -->
  * <lis-histogram-element id="histogram"></lis-histogram-element>
@@ -128,15 +138,34 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
  * <!-- configure the Web Component via JavaScript -->
  * <script type="text/javascript">
  *   const data = [
- *     {label: 'Glycine max', count: 812},
- *     {label: 'Phaseolus vulgaris', count: 431},
- *     {label: 'Medicago truncatula', count: 298},
+ *     {label: 'Glycine', count: 67},
+ *     {label: 'Phaseolus', count: 10},
+ *     {label: 'Medicago', count: 37},
  *   ];
  *   const histogramElement = document.getElementById('histogram');
  *   histogramElement.data = data;
- *   histogramElement.xLabel = 'Species';
- *   histogramElement.yLabel = 'Count';
+ *   histogramElement.xLabel = 'Genera';
+ *   histogramElement.yLabel = 'Genomes';
  * </script>
+ * ```
+ *
+ * @example
+ * The {@link orientation | `orientation`} property toggles between bars that
+ * grow upward (`'vertical'`, the default, count axis on the left) and bars
+ * that grow rightward (`'horizontal'`, count axis on top):
+ * ```html
+ * <lis-histogram-element orientation="horizontal"></lis-histogram-element>
+ * ```
+ *
+ * @example
+ * Setting {@link resizable | `resizable`} shows a drag handle along the
+ * bottom edge that lets users interactively resize the chart by dragging.
+ * A `heightChange` event fires when the drag ends:
+ * ```html
+ * <lis-histogram-element
+ *   resizable
+ *   onheightchange="console.log(event.detail.height)"
+ * ></lis-histogram-element>
  * ```
  *
  * @example
@@ -164,15 +193,45 @@ function isOrdinalBin(bin: HistogramBin): bin is OrdinalHistogramBin {
 @customElement('lis-histogram-element')
 export class LisHistogramElement extends LitElement {
   static readonly MARGIN = {top: 10, right: 10, bottom: 30, left: 44};
-  // ordinal category labels are rotated, so they need more room
-  static readonly ORDINAL_BOTTOM_MARGIN = 90;
+  static readonly ORDINAL_ROTATED_MARGIN = 90;
+  static readonly ORDINAL_HORIZONTAL_MARGIN = 140;
   // ordinal category labels are truncated to this many characters, ellipsis included
   static readonly MAX_LABEL_LENGTH = 25;
   static readonly LABEL_ANGLE = -40;
+  // the shortest height the drag handle will resize the component to
+  static readonly MIN_HEIGHT = 100;
 
   static override styles = css`
     :host {
       display: block;
+      position: relative;
+    }
+
+    .resize-handle {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 10px;
+      cursor: ns-resize;
+      touch-action: none;
+    }
+
+    .resize-handle::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: 3px;
+      width: 32px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--lis-histogram-resize-handle-color, #ccc);
+      transform: translateX(-50%);
+    }
+
+    .resize-handle:hover::after,
+    .resize-handle.dragging::after {
+      background: var(--lis-histogram-resize-handle-hover-color, #888);
     }
 
     .bar {
@@ -201,10 +260,8 @@ export class LisHistogramElement extends LitElement {
     }
   `;
 
-  // bind to the container div element in the template
   private _containerRef: Ref<HTMLDivElement> = createRef();
 
-  // a controller that allows element resize events to be observed
   protected resizeObserverController = new LisResizeObserverController(
     this,
     this._resize,
@@ -223,7 +280,21 @@ export class LisHistogramElement extends LitElement {
   data: HistogramData = [];
 
   /**
-   * An optional label drawn beneath the X axis.
+   * The direction to draw the bars in. `'vertical'` (the default) draws bars
+   * upward, with the bin/category axis along the bottom and the
+   * count axis along the left. `'horizontal'` draws bars rightward,
+   * with the bin/category axis along the left and the count axis
+   * along the top.
+   *
+   * @attribute
+   */
+  @property({type: String})
+  orientation: HistogramOrientation = 'vertical';
+
+  /**
+   * An optional label for the bin/category axis. Drawn beneath the axis when
+   * {@link orientation | `orientation`} is `'vertical'` (the default), or
+   * beside it when `'horizontal'`.
    *
    * @attribute
    */
@@ -231,7 +302,9 @@ export class LisHistogramElement extends LitElement {
   xLabel = '';
 
   /**
-   * An optional label drawn beside the Y axis.
+   * An optional label for the count axis. Drawn beside the axis when
+   * {@link orientation | `orientation`} is `'vertical'` (the default), or
+   * above it when `'horizontal'`.
    *
    * @attribute
    */
@@ -240,12 +313,31 @@ export class LisHistogramElement extends LitElement {
 
   /**
    * The height of the component in pixels. The component always fills the
-   * available width of its parent element.
+   * available width of its parent element. When {@link resizable | `resizable`}
+   * is set, this value updates live as the user drags the resize handle.
    *
    * @attribute
    */
   @property({type: Number})
   height = 300;
+
+  /**
+   * Whether to show a drag handle along the bottom edge that lets users
+   * interactively resize the component by changing {@link height | `height`}.
+   * Off by default. A `heightChange` event (`detail: {height: number}`) is
+   * dispatched when a drag finishes, so a page can persist the chosen height
+   * if it wants to.
+   *
+   * @attribute
+   */
+  @property({type: Boolean})
+  resizable = false;
+
+  @state()
+  private _dragging = false;
+
+  private _dragStartY = 0;
+  private _dragStartHeight = 0;
 
   private _resize(entries: ResizeObserverEntry[]) {
     entries.forEach((entry: ResizeObserverEntry) => {
@@ -261,12 +353,61 @@ export class LisHistogramElement extends LitElement {
     }
   }
 
+  private _onHandlePointerDown(event: PointerEvent) {
+    if (!this.resizable) {
+      return;
+    }
+    event.preventDefault();
+    this._dragging = true;
+    this._dragStartY = event.clientY;
+    this._dragStartHeight = this.height;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  private _onHandlePointerMove(event: PointerEvent) {
+    if (!this._dragging) {
+      return;
+    }
+    const delta = event.clientY - this._dragStartY;
+    this.height = Math.max(
+      LisHistogramElement.MIN_HEIGHT,
+      this._dragStartHeight + delta,
+    );
+  }
+
+  private _onHandlePointerUp(event: PointerEvent) {
+    if (!this._dragging) {
+      return;
+    }
+    this._dragging = false;
+    (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+    this._dispatchHeightChange();
+  }
+
+  private _dispatchHeightChange() {
+    const options = {
+      detail: {height: this.height},
+      bubbles: true,
+      composed: true,
+    };
+    const event = new CustomEvent('heightChange', options);
+    this.dispatchEvent(event);
+  }
+
   override render() {
     this._drawHistogram();
-    return html`<div
-      ${ref(this._containerRef)}
-      ${ref(this._containerReady)}
-    ></div>`;
+    return html`
+      <div ${ref(this._containerRef)} ${ref(this._containerReady)}></div>
+      ${this.resizable
+        ? html`<div
+            class="resize-handle ${this._dragging ? 'dragging' : ''}"
+            @pointerdown=${this._onHandlePointerDown}
+            @pointermove=${this._onHandlePointerMove}
+            @pointerup=${this._onHandlePointerUp}
+            @pointercancel=${this._onHandlePointerUp}
+          ></div>`
+        : null}
+    `;
   }
 
   private _containerWidth(): number {
@@ -281,13 +422,51 @@ export class LisHistogramElement extends LitElement {
     return `${label.slice(0, max - 1)}…`;
   }
 
+  private _truncateOrdinalTicks(axis: any, rotate: boolean) {
+    axis
+      .selectAll('.tick')
+      .each((label: string, i: number, nodes: SVGGElement[]) => {
+        const tick = d3.select(nodes[i]);
+        const truncated = this._truncateLabel(label);
+        const text = tick.select('text').text(truncated);
+        if (rotate) {
+          text
+            .attr('transform', `rotate(${LisHistogramElement.LABEL_ANGLE})`)
+            .style('text-anchor', 'end')
+            .attr('dx', '-0.5em')
+            .attr('dy', '0.4em');
+        }
+        if (truncated !== label) {
+          tick.classed('tick--truncated', true);
+          text.append('title').text(label);
+        }
+      });
+  }
+
+  private _margins(ordinal: boolean, horizontal: boolean) {
+    const {top, right, bottom, left} = LisHistogramElement.MARGIN;
+    if (!horizontal) {
+      return {
+        top,
+        right,
+        bottom: ordinal ? LisHistogramElement.ORDINAL_ROTATED_MARGIN : bottom,
+        left,
+      };
+    }
+    return {
+      top: left,
+      right,
+      bottom: right,
+      left: ordinal ? LisHistogramElement.ORDINAL_HORIZONTAL_MARGIN : bottom,
+    };
+  }
+
   @globalSubstitution('d3', 'd3v7')
   private _drawHistogram() {
     if (this._containerRef.value === undefined) {
       return;
     }
 
-    // reset the container
     this._containerRef.value.innerHTML = '';
 
     if (!this.data.length) {
@@ -295,24 +474,23 @@ export class LisHistogramElement extends LitElement {
     }
 
     const ordinal = isOrdinalBin(this.data[0]);
+    const horizontal = this.orientation === 'horizontal';
 
-    const {top, right, left} = LisHistogramElement.MARGIN;
-    const bottom = ordinal
-      ? LisHistogramElement.ORDINAL_BOTTOM_MARGIN
-      : LisHistogramElement.MARGIN.bottom;
+    const {top, right, bottom, left} = this._margins(ordinal, horizontal);
     const width = this._containerWidth();
     const height = this.height;
 
-    // create the SVG element
     const svg = d3.create('svg').attr('width', width).attr('height', height);
     this._containerRef.value.append(svg.node());
 
-    // x scale: a band scale for ordinal data, a linear scale for numeric data
-    const x = ordinal
+    const binRange = horizontal
+      ? [top, height - bottom]
+      : [left, width - right];
+    const binScale = ordinal
       ? d3
           .scaleBand()
           .domain((this.data as OrdinalHistogramBin[]).map((d) => d.label))
-          .range([left, width - right])
+          .range(binRange)
           .padding(0.1)
       : d3
           .scaleLinear()
@@ -320,13 +498,16 @@ export class LisHistogramElement extends LitElement {
             (this.data[0] as NumericHistogramBin).x0,
             (this.data[this.data.length - 1] as NumericHistogramBin).x1,
           ])
-          .range([left, width - right]);
+          .range(binRange);
 
-    const y = d3
+    const countRange = horizontal
+      ? [left, width - right]
+      : [height - bottom, top];
+    const countScale = d3
       .scaleLinear()
       .domain([0, d3.max(this.data, (d: HistogramBin) => d.count) ?? 0])
       .nice()
-      .range([height - bottom, top]);
+      .range(countRange);
 
     // bars
     svg
@@ -335,60 +516,86 @@ export class LisHistogramElement extends LitElement {
       .data(this.data)
       .join('rect')
       .attr('class', 'bar')
-      .attr('x', (d: HistogramBin) =>
-        isOrdinalBin(d) ? x(d.label) : x(d.x0) + 1,
-      )
-      .attr('width', (d: HistogramBin) =>
-        isOrdinalBin(d) ? x.bandwidth() : Math.max(0, x(d.x1) - x(d.x0) - 1),
-      )
-      .attr('y', (d: HistogramBin) => y(d.count))
-      .attr('height', (d: HistogramBin) => y(0) - y(d.count));
+      .attr('x', (d: HistogramBin) => {
+        if (horizontal) {
+          return countScale(0);
+        }
+        return isOrdinalBin(d) ? binScale(d.label) : binScale(d.x0) + 1;
+      })
+      .attr('width', (d: HistogramBin) => {
+        if (horizontal) {
+          return Math.max(0, countScale(d.count) - countScale(0));
+        }
+        return isOrdinalBin(d)
+          ? binScale.bandwidth()
+          : Math.max(0, binScale(d.x1) - binScale(d.x0) - 1);
+      })
+      .attr('y', (d: HistogramBin) => {
+        if (horizontal) {
+          return isOrdinalBin(d) ? binScale(d.label) : binScale(d.x0) + 1;
+        }
+        return countScale(d.count);
+      })
+      .attr('height', (d: HistogramBin) => {
+        if (horizontal) {
+          return isOrdinalBin(d)
+            ? binScale.bandwidth()
+            : Math.max(0, binScale(d.x1) - binScale(d.x0) - 1);
+        }
+        return countScale(0) - countScale(d.count);
+      });
 
-    // x axis
-    const xAxis = svg
-      .append('g')
-      .attr('class', 'axis')
-      .attr('transform', `translate(0, ${height - bottom})`)
-      .call(d3.axisBottom(x));
-
-    // angle and truncate ordinal category labels so long ones stay readable
-    if (ordinal) {
-      xAxis
-        .selectAll('.tick')
-        .each((label: string, i: number, nodes: SVGGElement[]) => {
-          const tick = d3.select(nodes[i]);
-          const truncated = this._truncateLabel(label);
-          const text = tick
-            .select('text')
-            .attr('transform', `rotate(${LisHistogramElement.LABEL_ANGLE})`)
-            .style('text-anchor', 'end')
-            .attr('dx', '-0.5em')
-            .attr('dy', '0.4em')
-            .text(truncated);
-          if (truncated !== label) {
-            tick.classed('tick--truncated', true);
-            text.append('title').text(label);
-          }
-        });
+    // axes
+    if (!horizontal) {
+      const binAxis = svg
+        .append('g')
+        .attr('class', 'axis')
+        .attr('transform', `translate(0, ${height - bottom})`)
+        .call(d3.axisBottom(binScale));
+      if (ordinal) {
+        this._truncateOrdinalTicks(binAxis, true);
+      }
+      svg
+        .append('g')
+        .attr('class', 'axis')
+        .attr('transform', `translate(${left}, 0)`)
+        .call(d3.axisLeft(countScale));
+    } else {
+      svg
+        .append('g')
+        .attr('class', 'axis')
+        .attr('transform', `translate(0, ${top})`)
+        .call(d3.axisTop(countScale));
+      const binAxis = svg
+        .append('g')
+        .attr('class', 'axis')
+        .attr('transform', `translate(${left}, 0)`)
+        .call(d3.axisLeft(binScale));
+      if (ordinal) {
+        this._truncateOrdinalTicks(binAxis, false);
+      }
     }
 
-    svg
-      .append('g')
-      .attr('class', 'axis')
-      .attr('transform', `translate(${left}, 0)`)
-      .call(d3.axisLeft(y));
-
-    if (this.xLabel) {
+    // axis label helpers
+    const drawBottomLabel = (text: string) => {
       svg
         .append('text')
         .attr('class', 'axis-label')
         .attr('text-anchor', 'middle')
         .attr('x', (left + (width - right)) / 2)
         .attr('y', height - 2)
-        .text(this.xLabel);
-    }
-
-    if (this.yLabel) {
+        .text(text);
+    };
+    const drawTopLabel = (text: string) => {
+      svg
+        .append('text')
+        .attr('class', 'axis-label')
+        .attr('text-anchor', 'middle')
+        .attr('x', (left + (width - right)) / 2)
+        .attr('y', 12)
+        .text(text);
+    };
+    const drawLeftLabel = (text: string) => {
       svg
         .append('text')
         .attr('class', 'axis-label')
@@ -396,7 +603,23 @@ export class LisHistogramElement extends LitElement {
         .attr('transform', 'rotate(-90)')
         .attr('x', -((top + (height - bottom)) / 2))
         .attr('y', 12)
-        .text(this.yLabel);
+        .text(text);
+    };
+
+    if (!horizontal) {
+      if (this.xLabel) {
+        drawBottomLabel(this.xLabel);
+      }
+      if (this.yLabel) {
+        drawLeftLabel(this.yLabel);
+      }
+    } else {
+      if (this.xLabel) {
+        drawLeftLabel(this.xLabel);
+      }
+      if (this.yLabel) {
+        drawTopLabel(this.yLabel);
+      }
     }
   }
 }

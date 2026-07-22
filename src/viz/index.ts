@@ -8,3 +8,4 @@
  */
 export * from './lis-legend-element';
 export * from './lis-phylotree-element';
+export * from './lis-histogram-element';

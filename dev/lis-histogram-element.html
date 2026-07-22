@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>LIS Web-Components - &lt;lis-histogram-element&gt;</title>
+    <!-- CSS framework -->
+    <link rel="stylesheet" type="text/css" href="../node_modules/uikit/dist/css/uikit.min.css">
+    <script src="../node_modules/uikit/dist/js/uikit.min.js"></script>
+    <!-- web components polyfills -->
+    <script src="../node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../node_modules/lit/polyfill-support.js"></script>
+    <!-- web components -->
+    <script type="module" src="../lib/index.js"></script>
+    <!-- D3 -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <div class="uk-container">
+      <h1>&lt;lis-histogram-element&gt;</h1>
+      <p>
+        The <code>&lt;lis-histogram-element&gt;</code> is a "dumb" vizualization component for drawing a histogram.
+        It doesn't fetch or bin data itself; it only draws whatever pre-binned data is given to it via its <code>data</code> property, e.g. as produced by <a href="https://d3js.org/d3-array/bin">D3's own bin generator</a>.
+      </p>
+      <p>
+        Optional <code>xLabel</code>, <code>yLabel</code>, and <code>height</code> attributes/properties control the axis labels and the height of the chart area. The width will always fill to the parent element.
+      </p>
+      <hr>
+      <button class="uk-button uk-button-default" onclick="toggleOrientation()">Toggle orientation</button>
+    </div>
+    <div class="uk-container uk-container-expand">
+      <!-- the custom histogram element -->
+      <lis-histogram-element id="histogram" height="300" xLabel="Value" yLabel="Count"></lis-histogram-element>
+    </div>
+    <script type="text/javascript">
+      // simple test data
+      const values = Array.from({length: 500}, () => Math.round(Math.random() * 100));
+      // bin the values using D3; binning is the caller's responsibility, not the component's
+      const bin = d3.bin();
+      // get the histogram element and set its data
+      const histogramElement = document.getElementById('histogram');
+      // d3.bin() bins are array-like: they hold the actual values in
+      // range, with x0/x1 attached. Count is implicitly bin.length, not a
+      // property, so it must be mapped explicitly to what the component
+      // expects: {x0, x1, count}.
+      histogramElement.data = bin(values).map((b) => ({
+        x0: b.x0,
+        x1: b.x1,
+        count: b.length,
+      }));
+ 
+      // "vertical" (the default) draws bars upward with the
+      // count axis on the left; "horizontal" draws bars
+      // rightward with the count axis on top
+      function toggleOrientation() {
+        histogramElement.orientation =
+          histogramElement.orientation === 'horizontal'
+            ? 'vertical'
+            : 'horizontal';
+      }
+    </script>
+  </body>
+</html>
