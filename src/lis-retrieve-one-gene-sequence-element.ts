@@ -89,10 +89,11 @@ function sequenceType(
  * Download-as-FASTA action.
  *
  * The element now delegates all resolution to the `sequences` microservice — a
- * single POST to `/seq` returns the assembled FASTA, and the element parses it
- * for display and re-serializes it for download. Point it at your service via
- * {@link sequencesBase | `sequencesBase`}, or replace the call entirely by
- * assigning {@link retrieveFunction | `retrieveFunction`}.
+ * single GET to `/seq/{geneId}` returns the assembled FASTA, and the element
+ * parses it for display and re-serializes it for download. Point it at your
+ * service via {@link sequencesBase | `sequencesBase`} (default `/api/sequences`),
+ * or replace the call entirely by assigning
+ * {@link retrieveFunction | `retrieveFunction`}.
  *
  * @example
  * ```html
@@ -113,12 +114,17 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     return this;
   }
 
-  /** Base URL of the sequences service (no trailing slash). */
+  /**
+   * Base URL (or path) of the sequences service, no trailing slash. Defaults to
+   * the gateway-mounted path `/api/sequences` (so requests go to
+   * `/api/sequences/seq/...` on the same origin); set an absolute URL to hit the
+   * service directly.
+   */
   @property({type: String, attribute: 'sequences-base'})
-  sequencesBase: string = 'http://localhost:8082';
+  sequencesBase: string = '/api/sequences';
 
   /**
-   * Optional override of the backend call. When unset the element POSTs to the
+   * Optional override of the backend call. When unset the element GETs from the
    * `sequences` service at {@link sequencesBase | `sequencesBase`}.
    */
   @property({type: Function, attribute: false})
@@ -282,12 +288,14 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     URL.revokeObjectURL(url);
   }
 
-  // The built-in backend call: a single POST to the `sequences` service, which
+  // The built-in backend call: a single GET to the `sequences` service, which
   // resolves files/coordinates (via dscensor + genes), fetches the bytes (via
   // ds_utilities), reverse-complements minus-strand genomic slices, and returns
-  // the assembled FASTA. The element parses that FASTA for display; download
-  // re-serializes the parsed records. Consumers needing a different transport
-  // replace this via `retrieveFunction`.
+  // the assembled FASTA. The gene id is a single path segment (the service's GET
+  // route is `/seq/{yucks}`, comma-separated; this element retrieves one gene).
+  // The element parses that FASTA for display; download re-serializes the parsed
+  // records. Consumers needing a different transport replace this via
+  // `retrieveFunction`.
   private async _defaultRetrieve(
     data: RetrieveOneGeneSearchData,
     options: RetrieveOneGeneOptions,
@@ -298,19 +306,16 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
           '`sequencesBase` property on the element.',
       );
     }
-    const body = {
-      yucks: [data.geneId],
+    const params = new URLSearchParams({
       type: sequenceType(data),
-      up: data.basesUpstream,
-      down: data.basesDownstream,
-    };
-    const resp = await fetch(`${this.sequencesBase.replace(/\/$/, '')}/seq`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/x-fasta',
-      },
-      body: JSON.stringify(body),
+      up: String(data.basesUpstream),
+      down: String(data.basesDownstream),
+    });
+    const base = this.sequencesBase.replace(/\/$/, '');
+    const url = `${base}/seq/${encodeURIComponent(data.geneId)}?${params}`;
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {Accept: 'text/x-fasta'},
       signal: options.abortSignal,
     });
     if (!resp.ok) {
