@@ -8,30 +8,34 @@ import {
   FastaRecord,
   MAX_FLANK_BASES,
   formatFasta,
-  parseFasta,
 } from './utils/sequence-fasta';
 
 /**
- * Pull the `error` string out of a `{error, status}` JSON body that the
- * microservices return on 4xx/5xx. Best-effort: returns "" if the body isn't
- * JSON or doesn't have the expected shape.
+ * Resolves each requested gene's sequence. Genes absent from the mine, or
+ * lacking the requested type, come back absent / null.
  */
-async function readErrorMessage(resp: Response): Promise<string> {
-  try {
-    const body = (await resp.json()) as {error?: unknown};
-    return typeof body?.error === 'string' ? body.error : '';
-  } catch {
-    return '';
+const GET_SEQUENCES_QUERY = `query GetSequences(
+  $identifiers: [ID!]!
+  $type: SequenceType!
+  $up: Int!
+  $down: Int!
+) {
+  getGenes(identifiers: $identifiers) {
+    results {
+      identifier
+      retrievedSequence(type: $type, up: $up, down: $down) {
+        length
+        md5checksum
+        residues
+      }
+    }
   }
-}
+}`;
 
 /**
- * Per-sequence-type download metadata, keyed by the sequence-type token that
- * the `sequences` service embeds as the second header token (`protein` / `cds`
- * / `genome`). Downloads are named `<id>.<label>.<ext>` (e.g.
- * `<gene>.protein.faa`), with the biologically-correct FASTA extension: `.faa`
- * (amino acid) for protein, `.fna` (nucleic acid) for the two nucleotide
- * outputs. The `label` token disambiguates the two `.fna` files from each other.
+ * Download metadata per sequence type (keyed by the header's second token).
+ * Files are named `<id>.<label>.<ext>`: `.faa` for protein, `.fna` for the two
+ * nucleotide types (`label` tells them apart).
  */
 const DOWNLOAD_TYPE_META: Record<string, {label: string; ext: string}> = {
   protein: {label: 'protein', ext: 'faa'},
@@ -40,13 +44,11 @@ const DOWNLOAD_TYPE_META: Record<string, {label: string; ext: string}> = {
 };
 
 /**
- * Form data submitted to the retrieve function when the user clicks SEARCH.
- *
- * `basesUpstream` / `basesDownstream` only apply when `genome === true` and are
- * already clamped to [0, MAX_FLANK_BASES] before reaching the retrieve function.
+ * Form data submitted on SEARCH. `geneIds` is the parsed ID list; flanks apply
+ * only when `genome`, pre-clamped to [0, MAX_FLANK_BASES].
  */
-export type RetrieveOneGeneSearchData = {
-  geneId: string;
+export type RetrieveSequenceSearchData = {
+  geneIds: string[];
   protein: boolean;
   cds: boolean;
   genome: boolean;
@@ -55,26 +57,20 @@ export type RetrieveOneGeneSearchData = {
 };
 
 /** Optional parameters passed alongside the form data. */
-export type RetrieveOneGeneOptions = {abortSignal?: AbortSignal};
+export type RetrieveSequenceOptions = {abortSignal?: AbortSignal};
 
 /**
- * Function signature for fully overriding the backend call.
- *
- * Provided so consumers can swap in a mocked / pre-cached implementation
- * without re-deriving the element's form logic. When not set the element POSTs
- * to the configured `sequences` service.
+ * Overrides the backend call (e.g. a mock). Unset, the element POSTs the
+ * `getGenes { retrievedSequence }` query to the GraphQL server.
  */
-export type RetrieveOneGeneFunction = (
-  searchData: RetrieveOneGeneSearchData,
-  options: RetrieveOneGeneOptions,
+export type RetrieveSequenceFunction = (
+  searchData: RetrieveSequenceSearchData,
+  options: RetrieveSequenceOptions,
 ) => Promise<FastaRecord[]>;
 
-/**
- * Translate the mutually-exclusive sequence-type booleans into the `type` token
- * the `sequences` service expects.
- */
+/** The selected type token from the mutually-exclusive type flags. */
 function sequenceType(
-  data: RetrieveOneGeneSearchData,
+  data: RetrieveSequenceSearchData,
 ): 'protein' | 'cds' | 'genome' {
   if (data.cds) return 'cds';
   if (data.genome) return 'genome';
@@ -82,60 +78,51 @@ function sequenceType(
 }
 
 /**
- * @htmlElement `<lis-retrieve-one-gene-sequence-element>`
+ * @htmlElement `<lis-retrieve-sequence-element>`
  *
- * Component 1 of the LIS retrieve-sequence spec: given a single gene ID, fetch
- * its protein / CDS / genomic sequence and surface it as a table plus a
- * Download-as-FASTA action.
+ * Component 1 of the LIS retrieve-sequence spec: given one or more gene IDs,
+ * fetch each gene's protein / CDS / genomic sequence and surface them as a
+ * table plus a Download-as-FASTA action.
  *
- * The element now delegates all resolution to the `sequences` microservice — a
- * single GET to `/seq/{geneId}` returns the assembled FASTA, and the element
- * parses it for display and re-serializes it for download. Point it at your
- * service via {@link sequencesBase | `sequencesBase`} (default `/api/sequences`),
- * or replace the call entirely by assigning
- * {@link retrieveFunction | `retrieveFunction`}.
+ * Resolves sequences via a single `getGenes { retrievedSequence }` query to the
+ * LIS GraphQL server ({@link graphqlEndpoint | `graphqlEndpoint`}); override the
+ * call with {@link retrieveFunction | `retrieveFunction`}.
  *
  * @example
  * ```html
- * <lis-retrieve-one-gene-sequence-element
+ * <lis-retrieve-sequence-element
  *   id="retrieve"
- *   sequences-base="http://localhost:8082"
- * ></lis-retrieve-one-gene-sequence-element>
+ *   graphql-endpoint="http://localhost:4000/graphql"
+ * ></lis-retrieve-sequence-element>
  * ```
  */
-@customElement('lis-retrieve-one-gene-sequence-element')
-export class LisRetrieveOneGeneSequenceElement extends LitElement {
+@customElement('lis-retrieve-sequence-element')
+export class LisRetrieveSequenceElement extends LitElement {
   /** @ignore */
   static override styles = css``;
 
   /** @ignore */
-  // Disable Shadow DOM so the host page's UIKit styles apply to our form.
+  // Disable Shadow DOM to inherit the page's UIKit styles.
   override createRenderRoot() {
     return this;
   }
 
   /**
-   * Base URL (or path) of the sequences service, no trailing slash. Defaults to
-   * the gateway-mounted path `/api/sequences` (so requests go to
-   * `/api/sequences/seq/...` on the same origin); set an absolute URL to hit the
-   * service directly.
+   * GraphQL endpoint URL. Defaults to `/api/graphql` on the same origin; set an
+   * absolute URL to hit a server directly.
    */
-  @property({type: String, attribute: 'sequences-base'})
-  sequencesBase: string = '/api/sequences';
+  @property({type: String, attribute: 'graphql-endpoint'})
+  graphqlEndpoint: string = '/api/graphql';
 
-  /**
-   * Optional override of the backend call. When unset the element GETs from the
-   * `sequences` service at {@link sequencesBase | `sequencesBase`}.
-   */
+  /** Optional override of the backend call — see {@link RetrieveSequenceFunction}. */
   @property({type: Function, attribute: false})
-  retrieveFunction?: RetrieveOneGeneFunction;
+  retrieveFunction?: RetrieveSequenceFunction;
 
-  // Controller cancels any in-flight retrieve when the user re-submits or the
-  // host element disconnects, so a slow request can't overwrite results from a
-  // faster query the user just started.
+  // Cancels an in-flight retrieve on re-submit / disconnect so a slow response
+  // can't overwrite newer results.
   protected cancelPromiseController = new LisCancelPromiseController(this);
 
-  @state() private _geneId: string = '';
+  @state() private _geneIds: string = '';
   @state() private _protein: boolean = true;
   @state() private _cds: boolean = false;
   @state() private _genome: boolean = false;
@@ -146,17 +133,10 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   @query('lis-simple-table-element') private _table!: LisSimpleTableElement;
   private _loadingRef: Ref<LisLoadingElement> = createRef();
 
-  /**
-   * Programmatic entry point for triggering a retrieve from outside the form.
-   *
-   * Useful for `window.onload` demos and for code that wants to drive the
-   * element from URL query parameters.
-   */
-  public retrieve(data?: Partial<RetrieveOneGeneSearchData>): void {
-    if (data?.geneId !== undefined) this._geneId = data.geneId;
-    // Sequence type is exclusive: the last type set to `true` wins, mirroring
-    // the radio-button UI. Order protein → cds → genome so an explicit later
-    // selection overrides an earlier one in the same call.
+  /** Trigger a retrieve from outside the form (e.g. `window.onload` demos). */
+  public retrieve(data?: Partial<RetrieveSequenceSearchData>): void {
+    if (data?.geneIds !== undefined) this._geneIds = data.geneIds.join('\n');
+    // Exclusive type: later selections win (protein → cds → genome).
     if (data?.protein) this._selectSequenceType('protein');
     if (data?.cds) this._selectSequenceType('cds');
     if (data?.genome) this._selectSequenceType('genome');
@@ -167,19 +147,26 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     this._submit();
   }
 
-  // Sequence type is mutually exclusive (Protein, CDS, or Genome). Selecting
-  // one clears the others so exactly one boolean is ever true, matching the
-  // radio-button UI while keeping the protein/cds/genome data contract that the
-  // retrieve and download logic relies on.
+  // Exclusive selection: exactly one type flag is ever true.
   private _selectSequenceType(type: 'protein' | 'cds' | 'genome'): void {
     this._protein = type === 'protein';
     this._cds = type === 'cds';
     this._genome = type === 'genome';
   }
 
-  private _searchData(): RetrieveOneGeneSearchData {
+  // Split the ID field on whitespace/commas, de-duplicated.
+  private _parseGeneIds(): string[] {
+    const seen = new Set<string>();
+    for (const id of this._geneIds.split(/[\s,]+/)) {
+      const trimmed = id.trim();
+      if (trimmed) seen.add(trimmed);
+    }
+    return [...seen];
+  }
+
+  private _searchData(): RetrieveSequenceSearchData {
     return {
-      geneId: this._geneId.trim(),
+      geneIds: this._parseGeneIds(),
       protein: this._protein,
       cds: this._cds,
       genome: this._genome,
@@ -197,8 +184,10 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
   private _submit(event?: Event): void {
     event?.preventDefault();
     const data = this._searchData();
-    if (!data.geneId) {
-      this._loadingRef.value?.error('Enter a gene ID before searching.');
+    if (data.geneIds.length === 0) {
+      this._loadingRef.value?.error(
+        'Enter at least one gene ID before searching.',
+      );
       return;
     }
     if (!data.protein && !data.cds && !data.genome) {
@@ -240,23 +229,21 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     }
   }
 
-  // Header strings produced by the `sequences` service embed the sequence type
-  // as the second whitespace-delimited token; surface it as its own column so
-  // the table reads like the spec's mockup without forcing callers to parse
-  // FASTA headers themselves.
+  // The type is the header's second whitespace token; surface it as a column.
   private _typeFromHeader(header: string): string {
     const parts = header.split(/\s+/);
     return parts[1] ?? '';
   }
 
-  // Downloads are split into one file per sequence type, named
-  // `<gene>.<type>.<ext>` (e.g. `<gene>.protein.faa`, `<gene>.CDS.fna`,
-  // `<gene>.genomic.fna`) so the user can tell the FASTAs apart and the
-  // extension matches the sequence type. Records are grouped by type so this
-  // stays correct even though a single query currently yields one type.
+  // One FASTA file per sequence type, named `<base>.<label>.<ext>`.
   private _download(): void {
     if (this._records.length === 0) return;
-    const base = this._geneId.replace(/[^A-Za-z0-9._-]+/g, '_') || 'sequence';
+    // single gene → name after it; multiple → generic prefix
+    const ids = this._parseGeneIds();
+    const base =
+      ids.length === 1
+        ? ids[0].replace(/[^A-Za-z0-9._-]+/g, '_') || 'sequence'
+        : 'sequences';
     const groups = new Map<string, FastaRecord[]>();
     for (const record of this._records) {
       const type = this._typeFromHeader(record.header);
@@ -288,43 +275,63 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     URL.revokeObjectURL(url);
   }
 
-  // The built-in backend call: a single GET to the `sequences` service, which
-  // resolves files/coordinates (via dscensor + genes), fetches the bytes (via
-  // ds_utilities), reverse-complements minus-strand genomic slices, and returns
-  // the assembled FASTA. The gene id is a single path segment (the service's GET
-  // route is `/seq/{yucks}`, comma-separated; this element retrieves one gene).
-  // The element parses that FASTA for display; download re-serializes the parsed
-  // records. Consumers needing a different transport replace this via
-  // `retrieveFunction`.
+  // Built-in backend: POST the `getGenes { retrievedSequence }` query to the
+  // GraphQL server. Genes absent from the mine, or lacking the requested type,
+  // are dropped. Override via `retrieveFunction`.
   private async _defaultRetrieve(
-    data: RetrieveOneGeneSearchData,
-    options: RetrieveOneGeneOptions,
+    data: RetrieveSequenceSearchData,
+    options: RetrieveSequenceOptions,
   ): Promise<FastaRecord[]> {
-    if (!this.sequencesBase) {
+    if (!this.graphqlEndpoint) {
       throw new Error(
-        'sequencesBase is not set — set the `sequences-base` attribute or the ' +
-          '`sequencesBase` property on the element.',
+        'graphqlEndpoint is not set — set the `graphql-endpoint` attribute or ' +
+          'the `graphqlEndpoint` property on the element.',
       );
     }
-    const params = new URLSearchParams({
-      type: sequenceType(data),
-      up: String(data.basesUpstream),
-      down: String(data.basesDownstream),
-    });
-    const base = this.sequencesBase.replace(/\/$/, '');
-    const url = `${base}/seq/${encodeURIComponent(data.geneId)}?${params}`;
-    const resp = await fetch(url, {
-      method: 'GET',
-      headers: {Accept: 'text/x-fasta'},
+    const type = sequenceType(data);
+    // flanks are genome-only
+    const genome = type === 'genome';
+    const variables = {
+      identifiers: data.geneIds,
+      type: type.toUpperCase(),
+      up: genome ? data.basesUpstream : 0,
+      down: genome ? data.basesDownstream : 0,
+    };
+    const resp = await fetch(this.graphqlEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({query: GET_SEQUENCES_QUERY, variables}),
       signal: options.abortSignal,
     });
     if (!resp.ok) {
-      const errMsg = await readErrorMessage(resp);
-      throw new Error(
-        `sequences /seq error: ${errMsg || `HTTP ${resp.status}`}`,
-      );
+      throw new Error(`GraphQL request failed: HTTP ${resp.status}`);
     }
-    return parseFasta(await resp.text());
+    const body = (await resp.json()) as {
+      data?: {
+        getGenes?: {
+          results?: Array<{
+            identifier: string;
+            retrievedSequence: {residues: string} | null;
+          }>;
+        };
+      };
+      errors?: Array<{message: string}>;
+    };
+    if (body.errors?.length) {
+      throw new Error(body.errors.map((e) => e.message).join('; '));
+    }
+    // one record per resolved gene; header's second token is the type
+    const results = body.data?.getGenes?.results ?? [];
+    const records: FastaRecord[] = [];
+    for (const gene of results) {
+      const residues = gene.retrievedSequence?.residues;
+      if (!residues) continue;
+      records.push({header: `${gene.identifier} ${type}`, sequence: residues});
+    }
+    return records;
   }
 
   /** @ignore */
@@ -338,19 +345,20 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
     };
     return html`
       <form class="uk-form-stacked" @submit=${(e: Event) => this._submit(e)}>
-        <legend class="uk-legend">Retrieve sequence for one gene by ID</legend>
+        <legend class="uk-legend">Retrieve sequences by gene ID</legend>
 
         <div class="uk-margin">
-          <input
-            class="uk-input"
-            type="text"
-            placeholder="Gene ID"
-            .value=${this._geneId}
+          <textarea
+            class="uk-textarea"
+            rows="3"
+            placeholder="Gene IDs (one per line, or separated by spaces/commas)"
+            .value=${this._geneIds}
             @input=${(e: Event) =>
-              (this._geneId = (e.target as HTMLInputElement).value)}
-          />
+              (this._geneIds = (e.target as HTMLTextAreaElement).value)}
+          ></textarea>
           <small class="uk-text-muted">
             e.g., glyma.Wm82.gnm2.ann1.Glyma.08G002000
+            glyma.Wm82.gnm2.ann1.Glyma.08G003000
           </small>
         </div>
 
@@ -478,6 +486,6 @@ export class LisRetrieveOneGeneSequenceElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lis-retrieve-one-gene-sequence-element': LisRetrieveOneGeneSequenceElement;
+    'lis-retrieve-sequence-element': LisRetrieveSequenceElement;
   }
 }

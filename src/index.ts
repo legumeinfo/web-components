@@ -17,5 +17,5 @@ export * from './lis-linkout-element';
 export * from './lis-allele-search-element';
 export * from './lis-trait-association-search-element';
 export * from './lis-gene-function-search-element';
-export * from './lis-retrieve-one-gene-sequence-element';
+export * from './lis-retrieve-sequence-element';
 export * from './viz';
