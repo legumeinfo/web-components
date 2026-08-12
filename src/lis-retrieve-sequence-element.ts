@@ -24,6 +24,7 @@ const GET_SEQUENCES_QUERY = `query GetSequences(
     results {
       identifier
       retrievedSequence(type: $type, up: $up, down: $down) {
+        header
         length
         md5checksum
         residues
@@ -314,7 +315,7 @@ export class LisRetrieveSequenceElement extends LitElement {
         getGenes?: {
           results?: Array<{
             identifier: string;
-            retrievedSequence: {residues: string} | null;
+            retrievedSequence: {header: string; residues: string} | null;
           }>;
         };
       };
@@ -323,13 +324,13 @@ export class LisRetrieveSequenceElement extends LitElement {
     if (body.errors?.length) {
       throw new Error(body.errors.map((e) => e.message).join('; '));
     }
-    // one record per resolved gene; header's second token is the type
+    // one record per resolved gene; the server supplies the FASTA defline
     const results = body.data?.getGenes?.results ?? [];
     const records: FastaRecord[] = [];
     for (const gene of results) {
-      const residues = gene.retrievedSequence?.residues;
-      if (!residues) continue;
-      records.push({header: `${gene.identifier} ${type}`, sequence: residues});
+      const seq = gene.retrievedSequence;
+      if (!seq?.residues) continue;
+      records.push({header: seq.header, sequence: seq.residues});
     }
     return records;
   }
